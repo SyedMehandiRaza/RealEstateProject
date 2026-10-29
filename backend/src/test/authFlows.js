@@ -55,3 +55,22 @@ export function refresh(app, token) {
 export function logOut(app, token) {
   return withRefreshCookie(request(app).post(LOGOUT), token);
 }
+
+export const FORGOT_PASSWORD = '/api/auth/password/forgot';
+export const RESEND_PASSWORD_RESET = '/api/auth/password/resend';
+export const VERIFY_PASSWORD_RESET = '/api/auth/password/verify';
+
+// Asks for a password_reset code. Returns the response.
+export function forgotPassword(app, email) {
+  return request(app).post(FORGOT_PASSWORD).send({ email });
+}
+
+// Asks for a new password_reset code. Returns the response.
+export function resendPasswordReset(app, email) {
+  return request(app).post(RESEND_PASSWORD_RESET).send({ email });
+}
+
+// Posts a password_reset code. Returns the response ({ resetToken } on success).
+export function verifyPasswordReset(app, { email, code }) {
+  return request(app).post(VERIFY_PASSWORD_RESET).send({ email, code });
+}

@@ -6,6 +6,7 @@ import { createAuthRepository } from './auth.repository.js';
 import { createAuthRoutes } from './auth.routes.js';
 import { createAuthService } from './auth.service.js';
 import { createLoginAttemptLimiter } from './loginAttemptLimiter.js';
+import { createResetTokens } from './resetToken.js';
 import { createSessionService } from './session.service.js';
 import { createVerificationCodeService } from './verificationCode.service.js';
 
@@ -22,6 +23,8 @@ export function createAuthRouter({ mailer, clock }) {
     verificationCodes,
     sessions: createSessionService({ models, clock }),
     loginAttempts: createLoginAttemptLimiter({ clock }),
+    // Keys derived from the access secret, never equal to it (DEC-029).
+    resetTokens: createResetTokens({ parentSecret: env.JWT_ACCESS_SECRET, clock }),
     mailer,
     clock,
     logger,

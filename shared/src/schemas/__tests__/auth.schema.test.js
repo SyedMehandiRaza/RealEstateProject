@@ -13,7 +13,13 @@ import { authMessages as m } from '../../messages/auth.messages.js';
 import { commonMessages } from '../../messages/common.messages.js';
 import { toFieldErrors } from '../../errors/toFieldErrors.js';
 import { LIMITS } from '../../limits.js';
-import { loginCases, resendCodeCases, signUpCases, verifyCodeCases } from '../../testing/index.js';
+import {
+  forgotPasswordCases,
+  loginCases,
+  resendCodeCases,
+  signUpCases,
+  verifyCodeCases,
+} from '../../testing/index.js';
 
 const L = LIMITS.auth;
 const errorsOf = (schema, input) => {
@@ -104,12 +110,10 @@ describe('forgotPasswordSchema', () => {
     });
   });
 
-  it.each([
-    [undefined, m.email.required],
-    ['', m.email.required],
-    ['sara@', m.email.invalid],
-  ])('rejects email %j', (email, message) => {
-    expect(errorsOf(forgotPasswordSchema, { email }).email).toEqual([message]);
+  it.each(forgotPasswordCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(forgotPasswordSchema, { ...forgotPasswordCases.valid, ...input })[field]).toEqual([
+      message,
+    ]);
   });
 });
 

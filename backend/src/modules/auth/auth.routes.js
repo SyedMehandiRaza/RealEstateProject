@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import { loginSchema, resendCodeSchema, signUpSchema, verifyCodeSchema } from '@real-estate/shared';
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  resendCodeSchema,
+  signUpSchema,
+  verifyCodeSchema,
+} from '@real-estate/shared';
 import { authenticate } from '../../middlewares/authenticate.js';
 import { authRateLimiter } from '../../middlewares/rateLimiter.js';
 import { validate } from '../../middlewares/validate.js';
@@ -17,6 +23,24 @@ export function createAuthRoutes(controller) {
     controller.resendVerification,
   );
   router.post('/login', authRateLimiter, validate({ body: loginSchema }), controller.login);
+  router.post(
+    '/password/forgot',
+    authRateLimiter,
+    validate({ body: forgotPasswordSchema }),
+    controller.requestPasswordReset,
+  );
+  router.post(
+    '/password/resend',
+    authRateLimiter,
+    validate({ body: resendCodeSchema }),
+    controller.requestPasswordReset,
+  );
+  router.post(
+    '/password/verify',
+    authRateLimiter,
+    validate({ body: verifyCodeSchema }),
+    controller.verifyPasswordReset,
+  );
 
   // Refresh-cookie routes. Not public, so not behind the per-IP limiter, which every page load's refresh
   // would otherwise share with sign-up and login (DEC-028).

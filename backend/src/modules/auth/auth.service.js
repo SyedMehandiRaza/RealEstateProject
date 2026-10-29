@@ -23,6 +23,7 @@ export function createAuthService({
   verificationCodes,
   sessions,
   loginAttempts,
+  resetTokens,
   mailer,
   clock,
   logger,
@@ -54,6 +55,21 @@ export function createAuthService({
       throw error;
     }
     if (code) await mailCode({ userId, email, code, purpose });
+  }
+
+  // Issues a code for the Account of `email` within the resend rules (ResendRefusedError → 429) and
+  // mails it. The Account row is locked first, so concurrent requests cannot both pass the cooldown
+  // (DEC-026). Unknown emails, and Accounts that `eligible` refuses, get no code and no email and the
+  // same { sent: true }, so this does not reveal which Accounts exist.
+  async function resendCode({ email, purpose, eligible = () => true }) {
+    const issued = await sequelize.transaction(async (transaction) => {
+      const user = await repository.lockUserByEmail(email, { transaction });
+      if (!user || !eligible(user)) return null;
+      const code = await verificationCodes.issue({ userId: user.id, purpose }, { transaction });
+      return { userId: user.id, code };
+    });
+    if (issued) await mailCode({ ...issued, email, purpose });
+    return { sent: true };
   }
 
   return {
@@ -113,17 +129,12 @@ export function createAuthService({
 
     // Sends a new email_verification code within the resend rules (ResendRefusedError → 429). Unknown
     // and already-verified emails get the same answer and no email, so this does not reveal Accounts.
-    async resendVerification({ email }) {
-      const purpose = CODE_PURPOSES.emailVerification;
-      const issued = await sequelize.transaction(async (transaction) => {
-        const user = await repository.lockUserByEmail(email, { transaction });
-        if (!user || user.emailVerifiedAt) return null;
-        const code = await verificationCodes.issue({ userId: user.id, purpose }, { transaction });
-        return { userId: user.id, code };
+    resendVerification({ email }) {
+      return resendCode({
+        email,
+        purpose: CODE_PURPOSES.emailVerification,
+        eligible: (user) => !user.emailVerifiedAt,
       });
-
-      if (issued) await mailCode({ ...issued, email, purpose });
-      return { sent: true };
     },
 
     // Log in by email (SPEC-001 login flow order). Wrong password, unknown email and a hit per-account
@@ -170,6 +181,36 @@ export function createAuthService({
     // Ends the session of the presented refresh token, if any. Always succeeds.
     async logout({ refreshToken }) {
       await sessions.end(refreshToken);
+    },
+
+    // Forgot Password and its Resend (SPEC-001): mail a password_reset code within the resend rules.
+    // Unknown emails get the same { sent: true } and no email. An Account that never verified its email
+    // gets a code too, or it could never recover a forgotten password (Q-039).
+    requestPasswordReset({ email }) {
+      return resendCode({ email, purpose: CODE_PURPOSES.passwordReset });
+    },
+
+    // Accepts the newest password_reset code and returns a reset token (10 min) bound to the Account's
+    // current password hash. Wrong, expired, used or dead codes and unknown emails answer as on
+    // verify-email. No session starts and the email is not marked verified; the reset is TASK-024.
+    async verifyPasswordReset({ email, code }) {
+      // A wrong guess is stored even though the request fails: the outcome leaves the transaction as a
+      // value and the error is thrown after the commit.
+      const outcome = await sequelize.transaction(async (transaction) => {
+        const user = await repository.findUserWithPasswordByEmail(email, { transaction });
+        if (!user) return { result: CODE_CHECK.invalid };
+        const result = await verificationCodes.check(
+          { userId: user.id, purpose: CODE_PURPOSES.passwordReset, code },
+          { transaction },
+        );
+        return { result, user };
+      });
+
+      if (outcome.result !== CODE_CHECK.valid) {
+        throw new AppError('VALIDATION_ERROR', { fields: { code: [CODE_ERRORS[outcome.result]] } });
+      }
+      const { id: userId, passwordHash } = outcome.user;
+      return { resetToken: resetTokens.issue({ userId, passwordHash }) };
     },
 
     // The signed-in Account. One deleted since its access token was issued is no longer signed in.

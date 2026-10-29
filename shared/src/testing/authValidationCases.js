@@ -106,6 +106,25 @@ export const resendCodeCases = {
   ],
 };
 
+// Forgot Password: the same email rules as every other auth form.
+export const forgotPasswordCases = {
+  valid: { email: 'sara@example.com' },
+  invalid: [
+    fieldCase('email', undefined, m.email.required),
+    fieldCase('email', '', m.email.required),
+    fieldCase('email', '  ', m.email.required),
+    fieldCase('email', 'sara@', m.email.invalid),
+    fieldCase('email', '+971501234567', m.email.invalid),
+    fieldCase('email', emailOfLength(L.email.max + 1), m.email.max),
+    {
+      name: 'reset by phone (email only, DEC-022)',
+      input: { phone: '+971501234567' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};
+
 // Log in checks only that a password was typed: the password policy applies to new passwords only.
 export const loginCases = {
   valid: { email: 'sara@example.com', password: 'secret123' },

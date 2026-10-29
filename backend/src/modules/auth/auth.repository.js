@@ -14,6 +14,11 @@ export function createAuthRepository(models) {
       return User.scope('withPassword').findOne({ where: { email }, include: [withRoles] });
     },
 
+    // Password reset only: the Account with its password hash, which the reset token is bound to.
+    findUserWithPasswordByEmail(email, { transaction } = {}) {
+      return User.scope('withPassword').findOne({ where: { email }, transaction });
+    },
+
     findUserById(id, { transaction } = {}) {
       return User.findByPk(id, { include: [withRoles], transaction });
     },

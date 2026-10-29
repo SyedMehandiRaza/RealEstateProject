@@ -24,6 +24,15 @@ export function createAuthController(authService) {
       sendSuccess(res, await authService.resendVerification(req.validated.body));
     },
 
+    // Forgot Password and its Resend share one use case (SPEC-001: same rules, same answer).
+    async requestPasswordReset(req, res) {
+      sendSuccess(res, await authService.requestPasswordReset(req.validated.body));
+    },
+
+    async verifyPasswordReset(req, res) {
+      sendSuccess(res, await authService.verifyPasswordReset(req.validated.body));
+    },
+
     async login(req, res) {
       startSession(res, await authService.login(req.validated.body));
     },

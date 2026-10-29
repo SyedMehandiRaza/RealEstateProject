@@ -1,6 +1,12 @@
 import request from 'supertest';
 import { commonMessages } from '@real-estate/shared';
-import { loginCases, resendCodeCases, signUpCases, verifyCodeCases } from '@real-estate/shared/testing';
+import {
+  forgotPasswordCases,
+  loginCases,
+  resendCodeCases,
+  signUpCases,
+  verifyCodeCases,
+} from '@real-estate/shared/testing';
 import { createTestApp } from '../../../test/testApp.js';
 
 // Validation parity: every invalid payload of the shared schema tests, posted to the API, comes back as
@@ -12,6 +18,9 @@ const ROUTES = [
   ['POST /api/auth/verify-email', '/api/auth/verify-email', verifyCodeCases],
   ['POST /api/auth/verify-email/resend', '/api/auth/verify-email/resend', resendCodeCases],
   ['POST /api/auth/login', '/api/auth/login', loginCases],
+  ['POST /api/auth/password/forgot', '/api/auth/password/forgot', forgotPasswordCases],
+  ['POST /api/auth/password/resend', '/api/auth/password/resend', resendCodeCases],
+  ['POST /api/auth/password/verify', '/api/auth/password/verify', verifyCodeCases],
 ];
 
 describe.each(ROUTES)('%s rejects invalid input with the shared messages', (_name, path, cases) => {
@@ -32,7 +41,7 @@ describe.each(ROUTES)('%s rejects invalid input with the shared messages', (_nam
 });
 
 describe('per-IP auth limiter', () => {
-  it('applies one shared count to sign-up, verify-email, its resend and login', async () => {
+  it('applies one shared count to sign-up, verify-email, its resend, login and the password reset routes', async () => {
     const { app } = createTestApp();
     const invalid = { ...signUpCases.valid, role: 'admin' };
     for (let i = 0; i < 20; i += 1) {
@@ -43,11 +52,19 @@ describe('per-IP auth limiter', () => {
     const verify = await request(app).post('/api/auth/verify-email').send(verifyCodeCases.valid);
     const resend = await request(app).post('/api/auth/verify-email/resend').send(resendCodeCases.valid);
     const login = await request(app).post('/api/auth/login').send(loginCases.valid);
+    const passwordRoutes = [
+      ['/api/auth/password/forgot', forgotPasswordCases.valid],
+      ['/api/auth/password/resend', resendCodeCases.valid],
+      ['/api/auth/password/verify', verifyCodeCases.valid],
+    ];
+    const passwordAnswers = [];
+    for (const [path, body] of passwordRoutes) passwordAnswers.push(await request(app).post(path).send(body));
 
     expect(signUp.status).toBe(429);
     expect(signUp.body.error.code).toBe('TOO_MANY_REQUESTS');
     expect(verify.status).toBe(429);
     expect(resend.status).toBe(429);
     expect(login.status).toBe(429);
+    for (const res of passwordAnswers) expect(res.status).toBe(429);
   });
 });
