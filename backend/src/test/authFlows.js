@@ -96,3 +96,10 @@ export const SELECT_COUNTRY = '/api/auth/me/country';
 export function selectCountry(app, accessToken, countryCode) {
   return request(app).put(SELECT_COUNTRY).set('Authorization', `Bearer ${accessToken}`).send({ countryCode });
 }
+
+export const BECOME_DEVELOPER = '/api/auth/me/roles/developer';
+
+// POST /me/roles/developer with an access token. Returns the response (201 { user } on success).
+export function becomeDeveloper(app, accessToken) {
+  return request(app).post(BECOME_DEVELOPER).set('Authorization', `Bearer ${accessToken}`);
+}

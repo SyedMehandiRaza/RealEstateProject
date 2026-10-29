@@ -66,6 +66,9 @@ export function createAuthRoutes(controller) {
     validate({ body: selectCountrySchema }),
     controller.selectCountry,
   );
+  // Any verified Account without the Developer role; no body. The service checks both against the
+  // database, since the token's roles may predate the change.
+  router.post('/me/roles/developer', authenticate, controller.becomeDeveloper);
 
   return router;
 }

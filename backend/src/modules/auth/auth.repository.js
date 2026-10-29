@@ -29,6 +29,17 @@ export function createAuthRepository(models) {
       return User.findByPk(id, { include: [withRoles], transaction });
     },
 
+    // The Account row only (no roles), locked FOR UPDATE until the transaction ends.
+    lockUserById(id, { transaction }) {
+      return User.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
+    },
+
+    // Adds a role to an Account. Throws Sequelize's UniqueConstraintError if the Account already has it
+    // (uq_user_roles_user_id_role).
+    addRole(userId, role, { transaction }) {
+      return UserRole.create({ userId, role }, { transaction });
+    },
+
     // The Account row only, locked FOR UPDATE until the transaction ends, so concurrent requests for
     // one Account (such as two resends) run one after the other.
     lockUserByEmail(email, { transaction }) {

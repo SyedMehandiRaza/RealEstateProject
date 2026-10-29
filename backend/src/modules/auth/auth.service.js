@@ -246,6 +246,28 @@ export function createAuthService({
       return { user: toUserResponse(user) };
     },
 
+    // Adds the Developer role to a verified Account and returns the updated user (SPEC-001). No new
+    // access token: the client refreshes, and /refresh puts the Account's current roles into the next
+    // one (DEC-028). The Account row is locked while the role is added, and the unique (user_id, role)
+    // index turns a second or concurrent request into 409 CONFLICT. An Account deleted since its token
+    // was issued → 401; an unverified one (no session should exist for it) → 403.
+    async becomeDeveloper({ userId }) {
+      try {
+        await sequelize.transaction(async (transaction) => {
+          const user = await repository.lockUserById(userId, { transaction });
+          if (!user) throw new AppError('UNAUTHORIZED');
+          if (user.emailVerifiedAt == null) throw new AppError('FORBIDDEN');
+          await repository.addRole(userId, 'developer', { transaction });
+        });
+      } catch (error) {
+        if (error instanceof UniqueConstraintError) throw new AppError('CONFLICT');
+        throw error;
+      }
+      const user = await repository.findUserById(userId);
+      if (!user) throw new AppError('UNAUTHORIZED');
+      return { user: toUserResponse(user) };
+    },
+
     // Stores the Buyer's country (one of COUNTRY_CODES) and returns the updated user. The route has
     // already checked the Buyer role. Calling it again replaces the country.
     async selectCountry({ userId, countryCode }) {

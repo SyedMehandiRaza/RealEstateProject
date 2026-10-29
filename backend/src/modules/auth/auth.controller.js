@@ -63,6 +63,10 @@ export function createAuthController(authService) {
       sendSuccess(res, await authService.me({ userId: req.user.id }));
     },
 
+    async becomeDeveloper(req, res) {
+      sendSuccess(res, await authService.becomeDeveloper({ userId: req.user.id }), { status: 201 });
+    },
+
     async selectCountry(req, res) {
       sendSuccess(res, await authService.selectCountry({ userId: req.user.id, ...req.validated.body }));
     },
