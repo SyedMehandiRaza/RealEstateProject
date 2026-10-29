@@ -1,0 +1,45 @@
+/* Figma 13038:4160: the field list and the actions are 32 apart; fields are 16 apart. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  width: 100%;
+}
+
+.fields,
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  width: 100%;
+}
+
+/* No error state in Figma: same colour and size as the field messages (TextInput). */
+.formError {
+  margin: 0;
+  color: var(--color-error-500);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+/* "Already have an account? Sign In" (13038:4224). */
+.switch {
+  width: 100%;
+  margin: 0;
+  color: var(--color-text-heading);
+  font-size: var(--font-size-15);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-align: center;
+}
+
+.switchLink {
+  color: var(--color-primary-500);
+  text-decoration: none;
+}
+
+.switchLink:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}

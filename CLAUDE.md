@@ -20,6 +20,7 @@ Real Estate web application. This file is the entry point for project-wide instr
 - `npm test`: all Jest suites. One workspace: `npm test -w backend`
 - `npm run test:e2e`: Playwright (`$env:E2E_WITH_API='false'` for UI only, without MySQL)
 - `npm run lint`, `npm run format`, `npm run build`
+- `npm run check`: tests, lint, `prettier --check` and build in one go (run before every commit)
 - DB: `npm run db:migrate -w backend`, `npm run db:seed -w backend`, `npm run migration:new -w backend -- <name>` (rename the generated file to `.cjs`)
 
 ## First actions
@@ -58,6 +59,10 @@ Run `/new-module <name>`. It drives each step in order and stops for approval be
 - Never run destructive commands, reset shared data, deploy to production, or perform irreversible actions without explicit approval.
 - Do not claim a task is complete until relevant tests/checks have been run or the unverified parts are clearly disclosed.
 - Update documentation when behavior, interfaces, setup, or architectural decisions change.
+
+## Branches
+
+`feature/<module>` → `testing` → `main`. Claude pushes only feature branches. Merging into `testing`, and later from `testing` into `main`, happens only when the user asks. See `.claude/rules/git-workflow.md`.
 
 ## Parallel work
 

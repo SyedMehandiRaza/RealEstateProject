@@ -23,7 +23,8 @@ e2e/
    - **Happy path** of the journey (for example create a listing, see it in the list)
    - **Client validation parity**: submit invalid input; expect the on-screen text to equal the shared message constant (import from `shared`)
    - **Server validation parity**: bypass the client (or use a rule only the server can check, such as a duplicate email); expect the same shared message rendered from `error.fields`
-   - **Visual**: `await expect(page).toHaveScreenshot('<page>.png', { fullPage: true })` at the Figma frame width, once the page has been verified against Figma with `/figma-to-module`
+   - **Visual**: `await expect(page).toHaveScreenshot('<page>.png', { fullPage: true })` at the Figma frame size, once the page has been verified against Figma with `/figma-to-module`
+   - **Responsive**: the same page at 1366x768 and 375x812 (`page.setViewportSize`), with a screenshot each and a check that there is no horizontal scroll (`document.documentElement.scrollWidth <= window.innerWidth`)
 3. Data: seed through API or test-DB helpers per test; never depend on another test's data; use unique values (timestamps) for unique columns.
 4. Run: `npx playwright test e2e/tests/<module>`. On failure, read the trace (`--trace on`) or the HTML report and fix the cause. Do not weaken assertions to make a test pass.
 5. Update screenshot baselines (`--update-snapshots`) only after confirming the new UI matches Figma, and say so in the report.

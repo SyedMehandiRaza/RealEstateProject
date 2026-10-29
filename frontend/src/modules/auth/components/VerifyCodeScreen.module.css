@@ -1,0 +1,53 @@
+/* Figma 13038:3927: the code boxes and the Verify button are 32 apart. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  width: 100%;
+}
+
+.code {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+/* No error state in Figma: same colour and size as the TextInput field messages. */
+.error {
+  margin: 0;
+  color: var(--color-error-500);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+/* "Don’t Receive the code? Resend" (13038:3942). */
+.resend {
+  width: 100%;
+  margin: 0;
+  color: var(--color-text-heading);
+  font-size: var(--font-size-15);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-align: center;
+}
+
+.resendButton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary-500);
+  font: inherit;
+  cursor: pointer;
+}
+
+.resendButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.resendButton:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}

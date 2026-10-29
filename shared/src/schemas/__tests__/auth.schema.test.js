@@ -13,6 +13,17 @@ import { authMessages as m } from '../../messages/auth.messages.js';
 import { commonMessages } from '../../messages/common.messages.js';
 import { toFieldErrors } from '../../errors/toFieldErrors.js';
 import { LIMITS } from '../../limits.js';
+import {
+  documentUploadCases,
+  forgotPasswordCases,
+  loginCases,
+  professionalInfoCases,
+  resendCodeCases,
+  resetPasswordCases,
+  selectCountryCases,
+  signUpCases,
+  verifyCodeCases,
+} from '../../testing/index.js';
 
 const L = LIMITS.auth;
 const errorsOf = (schema, input) => {
@@ -23,14 +34,7 @@ const errorsOf = (schema, input) => {
 const longText = (length) => 'a'.repeat(length);
 const emailOfLength = (length) => `${'a'.repeat(length - '@example.com'.length)}@example.com`;
 
-const validSignUp = {
-  role: 'buyer',
-  fullName: 'Sara Khan',
-  email: 'sara@example.com',
-  phone: '+971 50 123 4567',
-  password: 'secret123',
-  confirmPassword: 'secret123',
-};
+const validSignUp = signUpCases.valid;
 
 describe('signUpSchema', () => {
   it('accepts a buyer and a developer, normalizing email and phone', () => {
@@ -42,38 +46,8 @@ describe('signUpSchema', () => {
     expect(signUpSchema.parse({ ...validSignUp, role: 'developer' }).role).toBe('developer');
   });
 
-  it.each(['admin', 'agent', undefined])('rejects role %s', (role) => {
-    expect(errorsOf(signUpSchema, { ...validSignUp, role }).role).toEqual([m.role.invalid]);
-  });
-
-  it.each([
-    ['fullName', undefined, m.fullName.required],
-    ['fullName', '', m.fullName.required],
-    ['fullName', '   ', m.fullName.required],
-    ['fullName', 'A', m.fullName.min],
-    ['fullName', longText(L.fullName.max + 1), m.fullName.max],
-    ['email', undefined, m.email.required],
-    ['email', '  ', m.email.required],
-    ['email', 'not-an-email', m.email.invalid],
-    ['email', emailOfLength(L.email.max + 1), m.email.max],
-    ['phone', undefined, m.phone.required],
-    ['phone', ' ', m.phone.required],
-    ['phone', '0501234567', m.phone.invalid],
-    ['phone', '+12345', m.phone.invalid],
-    ['phone', `+${'1'.repeat(16)}`, m.phone.max],
-    ['password', undefined, m.password.required],
-    ['password', '', m.password.required],
-    ['password', 'abc1234', m.password.min],
-    ['password', `${'a'.repeat(L.password.max)}1`, m.password.max],
-    ['password', `${'é'.repeat(36)}1`, m.password.max],
-    ['password', '12345678', m.password.letter],
-    ['password', 'abcdefgh', m.password.digit],
-    ['confirmPassword', undefined, m.confirmPassword.required],
-    ['confirmPassword', '', m.confirmPassword.required],
-  ])('rejects %s=%j with its message', (field, value, message) => {
-    const input = { ...validSignUp, [field]: value };
-    if (field === 'password' && value !== undefined) input.confirmPassword = value;
-    expect(errorsOf(signUpSchema, input)[field]).toContain(message);
+  it.each(signUpCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(signUpSchema, { ...validSignUp, ...input })[field]).toContain(message);
   });
 
   it('shows only the "required" message for an empty field', () => {
@@ -96,42 +70,17 @@ describe('signUpSchema', () => {
       signUpSchema.safeParse({ ...validSignUp, password: 'abcdef12', confirmPassword: 'abcdef12' }).success,
     ).toBe(true);
   });
-
-  it('puts a password mismatch on confirmPassword', () => {
-    expect(errorsOf(signUpSchema, { ...validSignUp, confirmPassword: 'secret124' }).confirmPassword).toEqual([
-      m.confirmPassword.mismatch,
-    ]);
-  });
-
-  it('rejects unknown fields', () => {
-    expect(errorsOf(signUpSchema, { ...validSignUp, isAdmin: true })._form).toEqual([
-      commonMessages.unknownField,
-    ]);
-  });
 });
 
 describe('verifyCodeSchema', () => {
-  const valid = { email: 'sara@example.com', code: '012345' };
+  const valid = verifyCodeCases.valid;
 
   it('accepts a 6-digit code, keeping leading zeros', () => {
     expect(verifyCodeSchema.parse({ ...valid, code: ' 012345 ' })).toEqual(valid);
   });
 
-  it.each([
-    [undefined, m.code.required],
-    ['', m.code.required],
-    ['12345', m.code.invalid],
-    ['1234567', m.code.invalid],
-    ['12a456', m.code.invalid],
-  ])('rejects code %j', (code, message) => {
-    expect(errorsOf(verifyCodeSchema, { ...valid, code }).code).toEqual([message]);
-  });
-
-  it('requires a valid email and no extra fields', () => {
-    expect(errorsOf(verifyCodeSchema, { code: '123456' }).email).toEqual([m.email.required]);
-    expect(errorsOf(verifyCodeSchema, { ...valid, purpose: 'password_reset' })._form).toEqual([
-      commonMessages.unknownField,
-    ]);
+  it.each(verifyCodeCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(verifyCodeSchema, { ...valid, ...input })[field]).toEqual([message]);
   });
 });
 
@@ -140,11 +89,8 @@ describe('resendCodeSchema', () => {
     expect(resendCodeSchema.parse({ email: 'Sara@Example.com' })).toEqual({ email: 'sara@example.com' });
   });
 
-  it('rejects an invalid email and extra fields', () => {
-    expect(errorsOf(resendCodeSchema, { email: 'sara' }).email).toEqual([m.email.invalid]);
-    expect(errorsOf(resendCodeSchema, { email: 'sara@example.com', phone: '+971501234567' })._form).toEqual([
-      commonMessages.unknownField,
-    ]);
+  it.each(resendCodeCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(resendCodeSchema, { ...resendCodeCases.valid, ...input })[field]).toEqual([message]);
   });
 });
 
@@ -156,22 +102,8 @@ describe('loginSchema', () => {
     });
   });
 
-  it.each([
-    ['email', undefined, m.email.required],
-    ['email', '+971501234567', m.email.invalid],
-    ['password', undefined, m.password.required],
-    ['password', '', m.password.required],
-    ['password', longText(L.password.max + 1), m.password.max],
-  ])('rejects %s=%j', (field, value, message) => {
-    expect(
-      errorsOf(loginSchema, { email: 'sara@example.com', password: 'x', [field]: value })[field],
-    ).toEqual([message]);
-  });
-
-  it('rejects login by phone (email only, DEC-022)', () => {
-    expect(errorsOf(loginSchema, { phone: '+971501234567', password: 'x' })._form).toEqual([
-      commonMessages.unknownField,
-    ]);
+  it.each(loginCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(loginSchema, { ...loginCases.valid, ...input })[field]).toEqual([message]);
   });
 });
 
@@ -182,12 +114,10 @@ describe('forgotPasswordSchema', () => {
     });
   });
 
-  it.each([
-    [undefined, m.email.required],
-    ['', m.email.required],
-    ['sara@', m.email.invalid],
-  ])('rejects email %j', (email, message) => {
-    expect(errorsOf(forgotPasswordSchema, { email }).email).toEqual([message]);
+  it.each(forgotPasswordCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(forgotPasswordSchema, { ...forgotPasswordCases.valid, ...input })[field]).toEqual([
+      message,
+    ]);
   });
 });
 
@@ -202,6 +132,16 @@ describe('resetPasswordSchema', () => {
     expect(errorsOf(resetPasswordSchema, { ...valid, resetToken }).resetToken).toEqual([
       m.resetToken.required,
     ]);
+  });
+
+  it('accepts the shared valid case', () => {
+    expect(resetPasswordSchema.parse(resetPasswordCases.valid)).toEqual(resetPasswordCases.valid);
+  });
+
+  it.each(resetPasswordCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(resetPasswordSchema, { ...resetPasswordCases.valid, ...input })[field]).toContain(
+      message,
+    );
   });
 
   it('applies the new-password policy and the match rule', () => {
@@ -225,16 +165,20 @@ describe('selectCountrySchema', () => {
   it.each(['IN', 'ae', undefined])('rejects %j', (countryCode) => {
     expect(errorsOf(selectCountrySchema, { countryCode }).countryCode).toEqual([m.countryCode.invalid]);
   });
+
+  it('accepts the shared valid case', () => {
+    expect(selectCountrySchema.parse(selectCountryCases.valid)).toEqual(selectCountryCases.valid);
+  });
+
+  it.each(selectCountryCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(selectCountrySchema, { ...selectCountryCases.valid, ...input })[field]).toEqual([
+      message,
+    ]);
+  });
 });
 
 describe('professionalInfoSchema', () => {
-  const valid = {
-    companyName: 'Skyline Homes',
-    developerType: 'company',
-    licenseNumber: 'RERA-12345',
-    experienceLevel: '6_10',
-    location: 'Dubai Marina',
-  };
+  const valid = professionalInfoCases.valid;
 
   it('accepts a company and an individual without a company name', () => {
     expect(professionalInfoSchema.parse(valid)).toEqual(valid);
@@ -254,22 +198,8 @@ describe('professionalInfoSchema', () => {
     ]);
   });
 
-  it.each([
-    ['companyName', 42, m.companyName.invalid],
-    ['companyName', longText(L.companyName.max + 1), m.companyName.max],
-    ['developerType', 'agency', m.developerType.invalid],
-    ['developerType', undefined, m.developerType.invalid],
-    ['licenseNumber', undefined, m.licenseNumber.required],
-    ['licenseNumber', '  ', m.licenseNumber.required],
-    ['licenseNumber', longText(L.licenseNumber.max + 1), m.licenseNumber.max],
-    ['experienceLevel', '10+', m.experienceLevel.invalid],
-    ['experienceLevel', undefined, m.experienceLevel.invalid],
-    ['location', undefined, m.location.required],
-    ['location', '', m.location.required],
-    ['location', 'D', m.location.min],
-    ['location', longText(L.location.max + 1), m.location.max],
-  ])('rejects %s=%j', (field, value, message) => {
-    expect(errorsOf(professionalInfoSchema, { ...valid, [field]: value })[field]).toContain(message);
+  it.each(professionalInfoCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(professionalInfoSchema, { ...valid, ...input })[field]).toEqual([message]);
   });
 
   it('accepts the maximum lengths', () => {
@@ -353,6 +283,16 @@ describe('documentUploadSchema', () => {
     ['sizeBytes', 1.5, m.sizeBytes.invalid],
   ])('rejects %s=%j', (field, value, message) => {
     expect(errorsOf(documentUploadSchema, { ...governmentId, [field]: value })[field]).toContain(message);
+  });
+
+  it('accepts the shared valid case', () => {
+    expect(documentUploadSchema.parse(documentUploadCases.valid)).toEqual(documentUploadCases.valid);
+  });
+
+  it.each(documentUploadCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(documentUploadSchema, { ...documentUploadCases.valid, ...input })[field]).toEqual([
+      message,
+    ]);
   });
 
   it('accepts exactly 10 MB and a 255-character file name', () => {

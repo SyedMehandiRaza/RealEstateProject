@@ -1,0 +1,279 @@
+import { LIMITS } from '../limits.js';
+import { authMessages as m } from '../messages/auth.messages.js';
+import { commonMessages } from '../messages/common.messages.js';
+
+// Invalid inputs for the auth schemas, each with the field it fails on and the shared message it must
+// produce. The shared schema tests, the backend parity tests (posting each one to the API) and the
+// frontend form tests replay the same table, so all three check the same rule with the same message.
+//
+// A case is { name, input, field, message }: `input` overrides the schema's `valid` object, a value of
+// undefined means "field missing" (JSON drops it), and `field` is the key in `error.fields` (`_form`
+// for an object-level issue). A field can carry more than one message; `message` must be among them.
+
+const L = LIMITS.auth;
+const longText = (length) => 'a'.repeat(length);
+const emailOfLength = (length) => `${'a'.repeat(length - '@example.com'.length)}@example.com`;
+
+const fieldCase = (field, value, message, extra = {}) => ({
+  name: `${field}=${JSON.stringify(value) ?? 'missing'}`,
+  input: { [field]: value, ...extra },
+  field,
+  message,
+});
+
+// A new password is typed twice; the cases set both, so only the password rule fails.
+const passwordCase = (value, message) =>
+  fieldCase('password', value, message, value === undefined ? {} : { confirmPassword: value });
+
+export const signUpCases = {
+  valid: {
+    role: 'buyer',
+    fullName: 'Sara Khan',
+    email: 'sara@example.com',
+    phone: '+971 50 123 4567',
+    password: 'secret123',
+    confirmPassword: 'secret123',
+  },
+  invalid: [
+    fieldCase('role', 'admin', m.role.invalid),
+    fieldCase('role', 'agent', m.role.invalid),
+    fieldCase('role', undefined, m.role.invalid),
+    fieldCase('fullName', undefined, m.fullName.required),
+    fieldCase('fullName', '', m.fullName.required),
+    fieldCase('fullName', '   ', m.fullName.required),
+    fieldCase('fullName', 'A', m.fullName.min),
+    fieldCase('fullName', longText(L.fullName.max + 1), m.fullName.max),
+    fieldCase('email', undefined, m.email.required),
+    fieldCase('email', '  ', m.email.required),
+    fieldCase('email', 'not-an-email', m.email.invalid),
+    fieldCase('email', emailOfLength(L.email.max + 1), m.email.max),
+    fieldCase('phone', undefined, m.phone.required),
+    fieldCase('phone', ' ', m.phone.required),
+    fieldCase('phone', '0501234567', m.phone.invalid),
+    fieldCase('phone', '+12345', m.phone.invalid),
+    fieldCase('phone', `+${'1'.repeat(16)}`, m.phone.max),
+    passwordCase(undefined, m.password.required),
+    passwordCase('', m.password.required),
+    passwordCase('abc1234', m.password.min),
+    passwordCase(`${'a'.repeat(L.password.max)}1`, m.password.max),
+    passwordCase(`${'é'.repeat(36)}1`, m.password.max),
+    passwordCase('12345678', m.password.letter),
+    passwordCase('abcdefgh', m.password.digit),
+    fieldCase('confirmPassword', undefined, m.confirmPassword.required),
+    fieldCase('confirmPassword', '', m.confirmPassword.required),
+    { ...fieldCase('confirmPassword', 'secret124', m.confirmPassword.mismatch), name: 'passwords differ' },
+    {
+      name: 'unknown field',
+      input: { isAdmin: true },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};
+
+export const verifyCodeCases = {
+  valid: { email: 'sara@example.com', code: '012345' },
+  invalid: [
+    fieldCase('code', undefined, m.code.required),
+    fieldCase('code', '', m.code.required),
+    fieldCase('code', '12345', m.code.invalid),
+    fieldCase('code', '1234567', m.code.invalid),
+    fieldCase('code', '12a456', m.code.invalid),
+    fieldCase('email', undefined, m.email.required),
+    fieldCase('email', 'sara', m.email.invalid),
+    {
+      name: 'unknown field',
+      input: { purpose: 'password_reset' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};
+
+export const resendCodeCases = {
+  valid: { email: 'sara@example.com' },
+  invalid: [
+    fieldCase('email', undefined, m.email.required),
+    fieldCase('email', '  ', m.email.required),
+    fieldCase('email', 'sara', m.email.invalid),
+    fieldCase('email', emailOfLength(L.email.max + 1), m.email.max),
+    {
+      name: 'unknown field',
+      input: { phone: '+971501234567' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};
+
+// Forgot Password: the same email rules as every other auth form.
+export const forgotPasswordCases = {
+  valid: { email: 'sara@example.com' },
+  invalid: [
+    fieldCase('email', undefined, m.email.required),
+    fieldCase('email', '', m.email.required),
+    fieldCase('email', '  ', m.email.required),
+    fieldCase('email', 'sara@', m.email.invalid),
+    fieldCase('email', '+971501234567', m.email.invalid),
+    fieldCase('email', emailOfLength(L.email.max + 1), m.email.max),
+    {
+      name: 'reset by phone (email only, DEC-022)',
+      input: { phone: '+971501234567' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};
+
+// Log in checks only that a password was typed: the password policy applies to new passwords only.
+export const loginCases = {
+  valid: { email: 'sara@example.com', password: 'secret123' },
+  invalid: [
+    fieldCase('email', undefined, m.email.required),
+    fieldCase('email', '  ', m.email.required),
+    fieldCase('email', '+971501234567', m.email.invalid),
+    fieldCase('email', emailOfLength(L.email.max + 1), m.email.max),
+    fieldCase('password', undefined, m.password.required),
+    fieldCase('password', '', m.password.required),
+    fieldCase('password', longText(L.password.max + 1), m.password.max),
+    {
+      name: 'login by phone (email only, DEC-022)',
+      input: { phone: '+971501234567' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};
+
+// Reset password: a reset token plus a new password typed twice, under the sign-up password policy.
+// A missing token is a validation error; a refused one (invalid, expired, used) is the API's 401.
+export const resetPasswordCases = {
+  valid: { resetToken: 'signed.reset.token', password: 'newpass12', confirmPassword: 'newpass12' },
+  invalid: [
+    fieldCase('resetToken', undefined, m.resetToken.required),
+    fieldCase('resetToken', '', m.resetToken.required),
+    fieldCase('resetToken', '   ', m.resetToken.required),
+    fieldCase('resetToken', 42, m.resetToken.required),
+    passwordCase(undefined, m.password.required),
+    passwordCase('', m.password.required),
+    passwordCase('abc1234', m.password.min),
+    passwordCase(`${'a'.repeat(L.password.max)}1`, m.password.max),
+    passwordCase('12345678', m.password.letter),
+    passwordCase('abcdefgh', m.password.digit),
+    fieldCase('confirmPassword', undefined, m.confirmPassword.required),
+    fieldCase('confirmPassword', '', m.confirmPassword.required),
+    { ...fieldCase('confirmPassword', 'newpass13', m.confirmPassword.mismatch), name: 'passwords differ' },
+    {
+      name: 'unknown field',
+      input: { email: 'sara@example.com' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};
+
+// Select a country: one of COUNTRY_CODES, exactly as listed (no case folding).
+export const selectCountryCases = {
+  valid: { countryCode: 'AE' },
+  invalid: [
+    fieldCase('countryCode', undefined, m.countryCode.invalid),
+    fieldCase('countryCode', null, m.countryCode.invalid),
+    fieldCase('countryCode', '', m.countryCode.invalid),
+    fieldCase('countryCode', 'IN', m.countryCode.invalid),
+    fieldCase('countryCode', 'ae', m.countryCode.invalid),
+    fieldCase('countryCode', 'UAE', m.countryCode.invalid),
+    fieldCase('countryCode', 42, m.countryCode.invalid),
+    {
+      name: 'unknown field',
+      input: { country: 'United Arab Emirates' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};
+
+// Professional info (Developer). Company Name is optional, but required for a Company; an empty or
+// blank one counts as not given (the page leaves it out of the body).
+export const professionalInfoCases = {
+  valid: {
+    companyName: 'Skyline Homes',
+    developerType: 'company',
+    licenseNumber: 'RERA-12345',
+    experienceLevel: '6_10',
+    location: 'Dubai Marina',
+  },
+  invalid: [
+    fieldCase('companyName', undefined, m.companyName.required),
+    fieldCase('companyName', '', m.companyName.required),
+    fieldCase('companyName', '   ', m.companyName.required),
+    fieldCase('companyName', 42, m.companyName.invalid),
+    fieldCase('companyName', longText(L.companyName.max + 1), m.companyName.max),
+    fieldCase('developerType', undefined, m.developerType.invalid),
+    fieldCase('developerType', 'agency', m.developerType.invalid),
+    fieldCase('developerType', 'Company', m.developerType.invalid),
+    fieldCase('licenseNumber', undefined, m.licenseNumber.required),
+    fieldCase('licenseNumber', '', m.licenseNumber.required),
+    fieldCase('licenseNumber', '  ', m.licenseNumber.required),
+    fieldCase('licenseNumber', 12345, m.licenseNumber.required),
+    fieldCase('licenseNumber', longText(L.licenseNumber.max + 1), m.licenseNumber.max),
+    fieldCase('experienceLevel', undefined, m.experienceLevel.invalid),
+    fieldCase('experienceLevel', '10+', m.experienceLevel.invalid),
+    fieldCase('location', undefined, m.location.required),
+    fieldCase('location', '', m.location.required),
+    fieldCase('location', 'D', m.location.min),
+    fieldCase('location', longText(L.location.max + 1), m.location.max),
+    {
+      name: 'unknown field',
+      input: { agencyName: 'Skyline' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};
+
+// One uploaded document, as both apps build it for documentUploadSchema: the slot's kind, the
+// Government ID type, and the file's name, reported type and size. The backend parity test sends each
+// case it can express as a real multipart file part (a named part with a type and that many bytes).
+export const documentUploadCases = {
+  valid: {
+    documentKind: 'government_id',
+    idDocumentType: 'passport',
+    fileName: 'passport.pdf',
+    mimeType: 'application/pdf',
+    sizeBytes: 4_760_000,
+  },
+  invalid: [
+    fieldCase('documentKind', undefined, m.documentKind.invalid),
+    fieldCase('documentKind', 'selfie', m.documentKind.invalid),
+    fieldCase('idDocumentType', undefined, m.idDocumentType.required),
+    fieldCase('idDocumentType', '', m.idDocumentType.required),
+    fieldCase('idDocumentType', 'national_id', m.idDocumentType.required),
+    {
+      ...fieldCase('idDocumentType', 'passport', m.idDocumentType.notAllowed, {
+        documentKind: 'company_registration_certificate',
+      }),
+      name: 'idDocumentType on a certificate',
+    },
+    fieldCase('fileName', undefined, m.fileName.required),
+    fieldCase('fileName', '  ', m.fileName.required),
+    fieldCase('fileName', `${longText(L.fileName.max - 3)}.pdf`, m.fileName.max),
+    fieldCase('mimeType', undefined, m.mimeType.invalid),
+    fieldCase('mimeType', 'image/gif', m.mimeType.invalid),
+    {
+      name: 'profile photo as a PDF',
+      input: { documentKind: 'profile_photo', idDocumentType: undefined },
+      field: 'mimeType',
+      message: m.mimeType.photo,
+    },
+    fieldCase('sizeBytes', 0, m.sizeBytes.empty),
+    fieldCase('sizeBytes', L.maxFileBytes + 1, m.sizeBytes.max),
+    fieldCase('sizeBytes', '1024', m.sizeBytes.invalid),
+    fieldCase('sizeBytes', 1.5, m.sizeBytes.invalid),
+    {
+      name: 'unknown field',
+      input: { url: 'http://x' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};

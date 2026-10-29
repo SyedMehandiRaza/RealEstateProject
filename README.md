@@ -9,7 +9,7 @@ Monorepo (npm workspaces), JavaScript (ESM):
 
 ## Setup
 
-1. Node.js 24 (`.nvmrc`) and a local **MySQL 8.0.16 or newer** (target 8.4 LTS). MySQL 5.7 and MariaDB are not supported; the API exits at startup with a clear error on an older server. XAMPP ships MariaDB, so run MySQL 8.4 beside it on port 3307 (`DB_PORT=3307`).
+1. Node.js 24 (`.nvmrc`) and a local **MySQL 8.0.16 or newer** (target 8.4 LTS). MySQL 5.7 and MariaDB are not supported; the API exits at startup with a clear error on an older server. XAMPP ships MariaDB: keep XAMPP's MySQL module stopped and run MySQL 8.4 on port 3306.
 2. `npm install`
 3. `copy backend\env.example backend\.env`, then fill in DB credentials, two long random JWT secrets, the SMTP settings and the Cloudinary credentials.
 4. Create the databases `real_estate` and `real_estate_test` in MySQL.

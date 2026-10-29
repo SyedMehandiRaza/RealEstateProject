@@ -1,0 +1,68 @@
+/* Unselected rows have no border in Figma; a transparent one keeps the 52px height identical. */
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  width: 100%;
+  height: var(--size-control-height);
+  padding: var(--space-8);
+  border: 1px solid transparent;
+  border-radius: var(--radius-option);
+  cursor: pointer;
+}
+
+.option:has(.input:checked) {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-500-a05);
+}
+
+/* Not designed: keyboard focus ring in the primary colour. */
+.option:has(.input:focus-visible) {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.flag {
+  flex: none;
+  width: var(--size-flag-width);
+  height: var(--size-flag-height);
+  border-radius: var(--radius-xs);
+  object-fit: cover;
+}
+
+.label {
+  color: var(--color-text-option);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}
+
+.check {
+  display: none;
+  flex: none;
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+}
+
+.option:has(.input:checked) .check {
+  display: block;
+}
