@@ -11,16 +11,19 @@ import {
 } from '@real-estate/shared';
 import { authenticate, authorize } from '../../middlewares/authenticate.js';
 import {
+  documentUploadRateLimiter,
   loginRateLimiter,
+  oneRequestAtATime,
   passwordResetRateLimiter,
   signUpRateLimiter,
 } from '../../middlewares/rateLimiter.js';
 import { validate } from '../../middlewares/validate.js';
-import { documentUpload } from './documentUpload.js';
+import { documentUpload, rejectOversizedDocumentsBody } from './documentUpload.js';
 
 // /api/auth routes (SPEC-001). Every public route goes through its group's per-IP limiter first (DEC-039).
 export function createAuthRoutes(controller) {
   const router = Router();
+  const oneUploadPerAccount = oneRequestAtATime();
 
   router.post('/sign-up', signUpRateLimiter, validate({ body: signUpSchema }), controller.signUp);
   router.post(
@@ -88,12 +91,19 @@ export function createAuthRoutes(controller) {
     validate({ body: professionalInfoSchema }),
     controller.saveProfessionalProfile,
   );
-  // Multipart, parsed only after the role check: one file part per kind plus idDocumentType, each file
-  // checked with documentUploadSchema and sniffed (documentUpload.js).
+  // Multipart: one file part per kind plus idDocumentType, each file checked with documentUploadSchema
+  // and sniffed (documentUpload.js). The body (up to 3 x 10 MB in memory) is parsed last (TASK-053): after
+  // the role check, a declared size above the total limit, the Account's budget (10 per hour), one upload
+  // at a time per Account, and the eligibility check (403 without Professional info, 409 when nothing can
+  // be sent).
   router.post(
     '/me/documents',
     authenticate,
     authorize('developer'),
+    rejectOversizedDocumentsBody,
+    documentUploadRateLimiter,
+    oneUploadPerAccount,
+    controller.checkCanSubmitDocuments,
     documentUpload,
     controller.submitDocuments,
   );

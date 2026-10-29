@@ -3,7 +3,7 @@ import { UniqueConstraintError } from 'sequelize';
 import { AppError } from '../../utils/AppError.js';
 import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from '../../utils/password.js';
 import { toUserResponse } from './auth.presenter.js';
-import { SESSION_CHECK } from './session.service.js';
+import { RefreshRefusedError, SESSION_CHECK } from './session.service.js';
 import { CODE_CHECK, CODE_PURPOSES, ResendRefusedError } from './verificationCode.service.js';
 
 // Every failed login answers the same, whether the password was wrong, the email unknown or the limit hit.
@@ -165,21 +165,22 @@ export function createAuthService({
     // Rotates the refresh token: the presented one is revoked and a new session starts with the
     // Account's current roles. Missing, unknown, expired or revoked → 401 UNAUTHORIZED; one revoked 30 s
     // or longer ago is a reuse, which revokes every session of the Account before the 401 (committed
-    // first). One revoked less than 30 s ago only gets the 401 (DEC-039).
+    // first). One revoked less than 30 s ago only gets the 401 (DEC-039). Refusals throw
+    // RefreshRefusedError, which tells the controller whether to clear the cookie.
     async refresh({ refreshToken }) {
       const outcome = await sequelize.transaction(async (transaction) => {
         const check = await sessions.consume(refreshToken, { transaction });
-        if (check.result !== SESSION_CHECK.valid) return null;
+        if (check.result !== SESSION_CHECK.valid) return { refused: check.result };
 
         const user = await repository.findUserById(check.userId, { transaction });
-        if (!user) return null;
+        if (!user) return { refused: SESSION_CHECK.invalid };
         const userResponse = toUserResponse(user);
         const session = await sessions.start({ userId: user.id, roles: userResponse.roles }, { transaction });
-        return { user: userResponse, ...session };
+        return { session: { user: userResponse, ...session } };
       });
 
-      if (!outcome) throw new AppError('UNAUTHORIZED');
-      return outcome;
+      if (outcome.refused) throw new RefreshRefusedError(outcome.refused);
+      return outcome.session;
     },
 
     // Ends the session of the presented refresh token, if any. Always succeeds.

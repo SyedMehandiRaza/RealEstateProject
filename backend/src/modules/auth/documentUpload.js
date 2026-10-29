@@ -34,6 +34,23 @@ const parseMultipart = multer({
   },
 }).fields(DOCUMENT_KINDS.map((name) => ({ name, maxCount: 1 })));
 
+// The largest body POST /me/documents reads: every kind at the file limit, plus room for the part headers,
+// boundaries and the idDocumentType field (64 KiB, far more than they take).
+export const MAX_DOCUMENTS_BODY_BYTES = LIMITS.auth.maxFileBytes * DOCUMENT_KINDS.length + 64 * 1024;
+
+// Express middleware, before any other check that reads the database or the body (TASK-053): a declared
+// Content-Length above MAX_DOCUMENTS_BODY_BYTES is refused with 400 BAD_REQUEST (as an oversized JSON
+// body is) and the connection is closed, so the body is never read. A chunked body has no length; multer's
+// per-file and file-count limits still bound it.
+export function rejectOversizedDocumentsBody(req, res, next) {
+  const declared = Number(req.headers['content-length']);
+  if (Number.isFinite(declared) && declared > MAX_DOCUMENTS_BODY_BYTES) {
+    res.set('Connection', 'close');
+    return next(new AppError('BAD_REQUEST'));
+  }
+  next();
+}
+
 // Parts the request may not contain: an unknown file part, a second file of a kind, or extra fields.
 const UNEXPECTED_PART = new Set([
   'LIMIT_UNEXPECTED_FILE',

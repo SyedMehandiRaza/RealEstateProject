@@ -42,13 +42,15 @@ export function createAuthController(authService, onboardingService) {
       startSession(res, await authService.login(req.validated.body));
     },
 
-    // A refused refresh also clears the cookie, so the browser stops sending a dead token. Other errors
-    // (such as the database being down) keep it, so the session can resume.
+    // A refused refresh also clears the cookie, so the browser stops sending a dead token, except for a
+    // token revoked inside the grace window (keepsCookie): a concurrent tab may just have rotated it, and
+    // clearing would delete the new cookie (TASK-053). Other errors (such as the database being down) keep
+    // it, so the session can resume.
     async refresh(req, res) {
       try {
         startSession(res, await authService.refresh({ refreshToken: refreshTokenOf(req) }));
       } catch (error) {
-        if (error?.code === 'UNAUTHORIZED') clearSession(res);
+        if (error?.code === 'UNAUTHORIZED' && !error.keepsCookie) clearSession(res);
         throw error;
       }
     },
@@ -76,6 +78,13 @@ export function createAuthController(authService, onboardingService) {
         res,
         await onboardingService.saveProfessionalProfile({ userId: req.user.id, ...req.validated.body }),
       );
+    },
+
+    // Middleware before the multipart parser of POST /me/documents (TASK-053): refuses an Account that
+    // cannot submit anything before its body is read.
+    async checkCanSubmitDocuments(req, _res, next) {
+      await onboardingService.assertCanSubmitDocuments({ userId: req.user.id });
+      next();
     },
 
     async submitDocuments(req, res) {

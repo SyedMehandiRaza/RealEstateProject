@@ -1,6 +1,7 @@
 import { authMessages, commonMessages, ERROR_CODES } from '@real-estate/shared';
 import { professionalInfoCases } from '@real-estate/shared/testing';
 import models from '../../../models/index.js';
+import { createApp } from '../../../app.js';
 import { createTestApp } from '../../../test/testApp.js';
 import { documentFile } from '../../../test/documentFiles.js';
 import { seedDocument, seedDocuments } from '../../../test/verificationDocuments.js';
@@ -258,10 +259,13 @@ describe('POST /api/auth/me/documents (resubmission)', () => {
         government_id: 'rejected',
         profile_photo: 'approved',
       });
+      // Two app instances with the same fakes: one instance answers a second concurrent upload of the
+      // Account with 429 (TASK-053), so only across instances does the profile row lock decide.
+      const otherInstance = createApp(app.locals.dependencies);
 
       const results = await Promise.all([
         submitDocuments(app, accessToken, governmentIdOnly()),
-        submitDocuments(app, accessToken, governmentIdOnly()),
+        submitDocuments(otherInstance, accessToken, governmentIdOnly()),
       ]);
 
       expect(results.map((res) => res.status).sort()).toEqual([201, 409]);

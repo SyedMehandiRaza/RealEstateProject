@@ -47,6 +47,14 @@ describe('POST /api/auth/refresh', () => {
     expect(refreshCookieOf(res)).toMatch(/Path=\/api\/auth/);
   }
 
+  // A token revoked less than REUSE_GRACE_MS ago: 401, but the cookie is left alone, because another tab
+  // may just have rotated it and the browser already holds the new one (TASK-053).
+  function expectRefusedKeepingCookie(res) {
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual(UNAUTHORIZED);
+    expect(refreshCookieOf(res)).toBeUndefined();
+  }
+
   const activeSessions = () => models.RefreshToken.count({ where: { userId: user.id, revokedAt: null } });
 
   beforeEach(async () => {
@@ -172,7 +180,7 @@ describe('POST /api/auth/refresh', () => {
     const otherSession = refreshTokenOf(await logIn(app));
 
     clock.advance(REUSE_GRACE_MS - SECOND);
-    expectRefused(await refresh(app, token));
+    expectRefusedKeepingCookie(await refresh(app, token));
 
     expect(await activeSessions()).toBe(2);
     expect((await refresh(app, rotated)).status).toBe(200);
@@ -186,8 +194,9 @@ describe('POST /api/auth/refresh', () => {
     clock.advance(REUSE_GRACE_MS);
     expectRefused(await refresh(app, token));
 
-    expectRefused(await refresh(app, rotated));
-    expectRefused(await refresh(app, otherSession));
+    // The reuse just revoked these, so they are inside the grace window too: 401, cookie left alone.
+    expectRefusedKeepingCookie(await refresh(app, rotated));
+    expectRefusedKeepingCookie(await refresh(app, otherSession));
     expect(await activeSessions()).toBe(0);
   });
 
@@ -195,11 +204,11 @@ describe('POST /api/auth/refresh', () => {
     const rotated = refreshTokenOf(await refresh(app, token));
 
     clock.advance(REUSE_GRACE_MS - SECOND);
-    expectRefused(await refresh(app, token));
+    expectRefusedKeepingCookie(await refresh(app, token));
     clock.advance(SECOND);
     expectRefused(await refresh(app, token));
 
-    expectRefused(await refresh(app, rotated));
+    expectRefusedKeepingCookie(await refresh(app, rotated));
   });
 
   it("does not revoke another Account's sessions on reuse", async () => {
@@ -220,7 +229,7 @@ describe('POST /api/auth/refresh', () => {
     expect((await logOut(app, token)).status).toBe(204);
 
     clock.advance(REUSE_GRACE_MS - SECOND);
-    expectRefused(await refresh(app, token));
+    expectRefusedKeepingCookie(await refresh(app, token));
 
     expect((await refresh(app, otherSession)).status).toBe(200);
   });
@@ -232,7 +241,7 @@ describe('POST /api/auth/refresh', () => {
     clock.advance(REUSE_GRACE_MS);
     expectRefused(await refresh(app, token));
 
-    expectRefused(await refresh(app, otherSession));
+    expectRefusedKeepingCookie(await refresh(app, otherSession));
   });
 
   it('answers 401 once the Account is deleted', async () => {

@@ -14,6 +14,8 @@ try {
 }
 applyTestEnv();
 
+const E2E_HOST = '127.0.0.1';
+
 async function start() {
   const { default: databaseConfig } = await import('../config/database.cjs');
   assertTestDatabaseName(databaseConfig.test.database);
@@ -28,9 +30,11 @@ async function start() {
   await sequelize.authenticate();
   const mysqlVersion = await assertSupportedMysql(sequelize);
   const { app } = createE2eApp({ models, sequelize });
-  const server = app.listen(env.PORT, () =>
+  // Loopback only: the e2e mode has test-only routes (/api/__e2e) that must never be reachable from the
+  // network (TASK-053).
+  const server = app.listen(env.PORT, E2E_HOST, () =>
     console.log(
-      `E2E API (capture mailer, fake storage) on http://localhost:${env.PORT}, ` +
+      `E2E API (capture mailer, fake storage) on http://${E2E_HOST}:${env.PORT}, ` +
         `database ${sequelize.getDatabaseName()}, MySQL ${mysqlVersion}`,
     ),
   );

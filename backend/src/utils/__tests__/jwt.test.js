@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import {
   hashToken,
   signAccessToken,
@@ -33,6 +34,33 @@ describe('jwt utils', () => {
     expect(() => verifyRefreshToken(signAccessToken({ userId: 1, roles: ['buyer'] }))).toThrow(
       expect.objectContaining({ code: 'UNAUTHORIZED' }),
     );
+  });
+
+  // TASK-053: each token says what it is, so one kind can never pass as the other even if both were
+  // signed with one secret.
+  it('marks access tokens typ "access" and refresh tokens typ "refresh"', () => {
+    expect(jwt.decode(signAccessToken({ userId: 1, roles: ['buyer'] })).typ).toBe('access');
+    expect(jwt.decode(signRefreshToken({ userId: 1 }).token).typ).toBe('refresh');
+  });
+
+  it.each([
+    ['typ "refresh"', { typ: 'refresh' }],
+    ['no typ', {}],
+  ])('refuses an access-secret token with %s as an access token', (_name, claims) => {
+    const token = jwt.sign({ roles: ['buyer'], ...claims }, process.env.JWT_ACCESS_SECRET, { subject: '1' });
+    expect(() => verifyAccessToken(token)).toThrow(expect.objectContaining({ code: 'UNAUTHORIZED' }));
+  });
+
+  it('refuses a refresh-secret token with typ "access" as a refresh token', () => {
+    const token = jwt.sign({ typ: 'access' }, process.env.JWT_REFRESH_SECRET, { subject: '1', jwtid: 'x' });
+    expect(() => verifyRefreshToken(token)).toThrow(expect.objectContaining({ code: 'UNAUTHORIZED' }));
+  });
+
+  // Refresh tokens issued before TASK-053 have no typ and live up to 7 days; the hashed DB lookup still
+  // guards them, so they are accepted until they expire.
+  it('accepts a refresh token without typ (issued before TASK-053)', () => {
+    const token = jwt.sign({}, process.env.JWT_REFRESH_SECRET, { subject: '1', jwtid: 'x' });
+    expect(verifyRefreshToken(token)).toMatchObject({ sub: '1', jti: 'x' });
   });
 
   it('hashes tokens deterministically without returning the token', () => {

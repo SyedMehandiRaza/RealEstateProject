@@ -3,7 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 // The suite runs its own frontend and API on ports of their own (5174 and 5100 by default), so a dev
 // server on 5173/5000 (real mailer, dev database) is never reused by mistake.
 const WEB_URL = process.env.E2E_WEB_URL ?? 'http://localhost:5174';
-const API_URL = process.env.E2E_API_URL ?? 'http://localhost:5100';
+// 127.0.0.1, not localhost: the e2e API listens on the IPv4 loopback only (TASK-053).
+const API_URL = process.env.E2E_API_URL ?? 'http://127.0.0.1:5100';
 // Set E2E_WITH_API=false to run UI-only tests without starting the backend (it needs MySQL).
 export const withApi = process.env.E2E_WITH_API !== 'false';
 

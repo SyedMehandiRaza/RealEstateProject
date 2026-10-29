@@ -89,6 +89,28 @@ describe('parseEnv', () => {
     },
   );
 
+  it('rejects a JWT_REFRESH_SECRET equal to JWT_ACCESS_SECRET', () => {
+    const source = validSource();
+    source.JWT_REFRESH_SECRET = source.JWT_ACCESS_SECRET;
+    expect(() => parseEnv(source)).toThrow(/\nJWT_REFRESH_SECRET: must differ from JWT_ACCESS_SECRET/);
+  });
+
+  it('does not trust a proxy by default', () => {
+    expect(parseEnv(validSource()).TRUST_PROXY).toBe(false);
+  });
+
+  it.each([
+    ['false', false],
+    ['1', 1],
+    [' 2 ', 2],
+  ])('reads TRUST_PROXY=%p as %p', (value, expected) => {
+    expect(parseEnv({ ...validSource(), TRUST_PROXY: value }).TRUST_PROXY).toBe(expected);
+  });
+
+  it.each(['true', '0', '-1', '1.5', 'loopback', ''])('rejects TRUST_PROXY=%p', (value) => {
+    expect(() => parseEnv({ ...validSource(), TRUST_PROXY: value })).toThrow(/\nTRUST_PROXY: /);
+  });
+
   it('never puts a value into the error, only the variable name', () => {
     const source = {
       ...validSource(),

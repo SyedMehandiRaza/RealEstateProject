@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { authMessages, commonMessages, ERROR_CODES, LIMITS } from '@real-estate/shared';
 import { professionalInfoCases } from '@real-estate/shared/testing';
+import { createApp } from '../../../app.js';
 import models from '../../../models/index.js';
 import { createTestApp } from '../../../test/testApp.js';
 import { documentFile, documentSet } from '../../../test/documentFiles.js';
@@ -347,10 +348,13 @@ describe('POST /api/auth/me/documents (first submission)', () => {
 
     it('stores one set when two submissions race; the loser gets 409 and its files are deleted', async () => {
       const { accessToken, profileId } = await developerWithProfile(individual);
+      // Through two app instances with the same fakes: one instance answers a second concurrent upload of
+      // the Account with 429 (TASK-053), so only across instances does the profile row lock decide.
+      const otherInstance = createApp(app.locals.dependencies);
 
       const results = await Promise.all([
         submitDocuments(app, accessToken, documentSet('individual')),
-        submitDocuments(app, accessToken, documentSet('individual')),
+        submitDocuments(otherInstance, accessToken, documentSet('individual')),
       ]);
 
       expect(results.map((res) => res.status).sort()).toEqual([201, 409]);

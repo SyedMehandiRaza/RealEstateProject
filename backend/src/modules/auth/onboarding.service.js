@@ -17,6 +17,14 @@ const alreadySubmitted = () =>
 // PDFs are Cloudinary 'raw' assets, JPG/PNG 'image' (DEC-016, chk_verification_documents_resource_type).
 const resourceTypeOf = (mimeType) => (mimeType === 'application/pdf' ? 'raw' : 'image');
 
+// The required kinds the Developer may still send: those whose latest document is not pending or approved.
+function sendableKinds(developerType, existing) {
+  const latest = latestDocumentByKind(existing);
+  return requiredDocumentKinds(developerType).filter(
+    (kind) => !IN_REVIEW_OR_APPROVED.includes(latest[kind]?.status),
+  );
+}
+
 // Which sent kinds the Developer may submit now, given their document rows (SPEC-001, DEC-022, Q-036).
 // A kind whose latest document is pending or approved: 409 CONFLICT, before anything else. A kind the
 // Type of Developer does not require: 422. Every required kind with no document yet must be sent
@@ -33,7 +41,7 @@ function checkSubmission({ developerType, existing, documents }) {
   for (const kind of sent) {
     if (!required.includes(kind)) fields[documentFieldPath(kind, 'file')] = [commonMessages.unknownField];
   }
-  const sendable = required.filter((kind) => !IN_REVIEW_OR_APPROVED.includes(latest[kind]?.status));
+  const sendable = sendableKinds(developerType, existing);
   if (sent.length === 0 && sendable.length === 0) throw alreadySubmitted();
   const askFor =
     sent.length === 0 ? sendable : required.filter((kind) => !latest[kind] && !sent.includes(kind));
@@ -48,6 +56,15 @@ function checkSubmission({ developerType, existing, documents }) {
 export function createOnboardingService({ sequelize, repository, onboardingRepository, fileUploads, clock }) {
   const statusOf = (profile) =>
     verificationStatus({ developerType: profile.businessType, documents: profile.documents ?? [] });
+
+  // The Developer's profile with its documents. Without one: 401 if the Account is gone, else 403
+  // FORBIDDEN (no Professional info yet, so no Type of Developer).
+  async function profileForDocuments(userId) {
+    const profile = await onboardingRepository.findProfileWithDocuments(userId);
+    if (profile) return profile;
+    if (!(await repository.findUserById(userId))) throw new AppError('UNAUTHORIZED');
+    throw new AppError('FORBIDDEN');
+  }
 
   return {
     // Creates or replaces the Developer's one profile (SPEC-001: 200 { profile }). The Account row is
@@ -92,6 +109,14 @@ export function createOnboardingService({ sequelize, repository, onboardingRepos
       return statusOf(profile);
     },
 
+    // The cheap check POST /me/documents runs before its body is parsed (TASK-053): the same 401/403 as
+    // submitDocuments without a profile, and 409 CONFLICT when no required kind can be sent. Everything
+    // else is checked by submitDocuments once the files are read.
+    async assertCanSubmitDocuments({ userId }) {
+      const profile = await profileForDocuments(userId);
+      if (sendableKinds(profile.businessType, profile.documents ?? []).length === 0) throw alreadySubmitted();
+    },
+
     // Stores the sent Verification documents and returns the new Verification status (SPEC-001:
     // 201 { verification }, the GET /me/verification shape). documents: the parsed documentUploadSchema
     // values plus each file's buffer. The rules are checked before any upload, so a refused request
@@ -101,11 +126,7 @@ export function createOnboardingService({ sequelize, repository, onboardingRepos
     // submissions one gets 409. If an upload or the transaction fails, uploadAllAndSave deletes (or
     // queues as save_failed) every file that was uploaded.
     async submitDocuments({ userId, documents }) {
-      const profile = await onboardingRepository.findProfileWithDocuments(userId);
-      if (!profile) {
-        if (!(await repository.findUserById(userId))) throw new AppError('UNAUTHORIZED');
-        throw new AppError('FORBIDDEN'); // no Professional info yet
-      }
+      const profile = await profileForDocuments(userId);
       checkSubmission({ developerType: profile.businessType, existing: profile.documents, documents });
 
       const folder = `documents/${profile.id}`;

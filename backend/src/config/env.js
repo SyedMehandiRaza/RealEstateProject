@@ -15,6 +15,15 @@ const envSchema = z
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().int().positive().default(5000),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+    // How many reverse proxies sit in front of the API: Express then takes the client IP from that many
+    // X-Forwarded-For hops (the per-IP rate limits key on it). "false" (the default) ignores the header,
+    // so a client cannot forge its IP; set a hop count only when that many proxies really add it.
+    TRUST_PROXY: z
+      .string()
+      .trim()
+      .regex(/^(false|[1-9]\d?)$/, { error: 'must be false or a proxy hop count (1-99)' })
+      .default('false')
+      .transform((value) => (value === 'false' ? false : Number(value))),
     CORS_ORIGINS: z
       .string()
       .min(1)
@@ -41,6 +50,13 @@ const envSchema = z
     VERIFICATION_CODE_SECRET: z.string().min(32),
   })
   .superRefine((value, ctx) => {
+    if (value.JWT_ACCESS_SECRET === value.JWT_REFRESH_SECRET) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['JWT_REFRESH_SECRET'],
+        message: 'must differ from JWT_ACCESS_SECRET',
+      });
+    }
     if ([value.JWT_ACCESS_SECRET, value.JWT_REFRESH_SECRET].includes(value.VERIFICATION_CODE_SECRET)) {
       ctx.addIssue({
         code: 'custom',

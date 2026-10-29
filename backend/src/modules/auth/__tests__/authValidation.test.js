@@ -12,6 +12,7 @@ import {
   verifyCodeCases,
 } from '@real-estate/shared/testing';
 import { AUTH_RATE_LIMIT } from '../../../middlewares/rateLimiter.js';
+import models from '../../../models/index.js';
 import { createTestApp } from '../../../test/testApp.js';
 import { fileBytes } from '../../../test/documentFiles.js';
 import {
@@ -136,6 +137,18 @@ describe('POST /api/auth/me/documents rejects invalid files with the shared mess
   const { app, storage } = createTestApp();
   const token = signAccessToken({ userId: 1, roles: ['developer'] });
 
+  // The eligibility check runs before the body is parsed (TASK-053) and reads the profile; answer it
+  // with an Individual profile without documents, so these stay free of the database.
+  beforeEach(() => {
+    jest
+      .spyOn(models.ProfessionalProfile, 'findOne')
+      .mockResolvedValue({ id: 1, businessType: 'individual', documents: [] });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   // 9 of the 18 shared cases; a new shared case must be sorted into one group or the other here.
   it('sends every case a file part can express', () => {
     expect(multipartCases).toHaveLength(9);
@@ -149,6 +162,7 @@ describe('POST /api/auth/me/documents rejects invalid files with the shared mess
     expect(res.body.error.message).toBe(commonMessages.invalidInput);
     expect(res.body.error.fields[key]).toEqual([message]);
     expect(storage.calls).toEqual([]);
+    expect(models.ProfessionalProfile.findOne).toHaveBeenCalledTimes(1);
   });
 });
 

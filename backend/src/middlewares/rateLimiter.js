@@ -35,6 +35,37 @@ export const loginRateLimiter = createAuthLimiter();
 // Forgot password, its resend, verify code and reset.
 export const passwordResetRateLimiter = createAuthLimiter();
 
+// POST /me/documents (TASK-053, DEC-040): each submission buffers up to 3 x 10 MB, so it is limited per
+// signed-in Account (req.user, so after authenticate), not per IP. 10 per hour is an assumption.
+export const DOCUMENT_UPLOAD_RATE_LIMIT = 10;
+export const DOCUMENT_UPLOAD_RATE_WINDOW_MS = 60 * 60 * 1000;
+export const documentUploadRateLimiter = createLimiter({
+  windowMs: DOCUMENT_UPLOAD_RATE_WINDOW_MS,
+  limit: DOCUMENT_UPLOAD_RATE_LIMIT,
+  keyGenerator: (req) => `user:${req.user.id}`,
+});
+
+// At most one request at a time per signed-in Account (use after authenticate): another one while the
+// first is in flight gets 429 TOO_MANY_REQUESTS. The slot is freed when the response ends or the
+// connection closes. In memory, per router instance (one per app), like the limiters.
+export function oneRequestAtATime() {
+  const inFlight = new Set();
+  return (req, res, next) => {
+    const key = req.user.id;
+    if (inFlight.has(key)) return res.status(429).json(limitedResponse);
+    inFlight.add(key);
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      inFlight.delete(key);
+    };
+    res.once('finish', release);
+    res.once('close', release);
+    next();
+  };
+}
+
 // Tests only (called in a beforeEach for every suite): forget every client's count, so the requests of
 // one test never throttle the next.
 export function resetRateLimiters() {

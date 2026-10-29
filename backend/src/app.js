@@ -4,7 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { pinoHttp } from 'pino-http';
 import { env } from './config/env.js';
-import { logger } from './utils/logger.js';
+import { logger, serializeError } from './utils/logger.js';
 import { systemClock } from './utils/clock.js';
 import { cloudinaryStorage } from './modules/files/cloudinary.storage.js';
 import { smtpMailer } from './modules/mail/smtp.mailer.js';
@@ -49,13 +49,15 @@ export function createApp(overrides = {}) {
   app.locals.dependencies = dependencies;
 
   app.disable('x-powered-by');
-  app.set('trust proxy', 1);
+  // Off unless TRUST_PROXY names a hop count, so X-Forwarded-For cannot pick a client's per-IP budget.
+  app.set('trust proxy', env.TRUST_PROXY);
   app.use(helmet());
   app.use(cors({ origin: env.CORS_ORIGINS, credentials: true }));
   app.use(express.json({ limit: '100kb' }));
   app.use(express.urlencoded({ extended: false, limit: '100kb' }));
   app.use(cookieParser());
-  if (!env.isTest) app.use(pinoHttp({ logger }));
+  // pino-http would replace the logger's err serializer with pino's standard one (TASK-053).
+  if (!env.isTest) app.use(pinoHttp({ logger, serializers: { err: serializeError } }));
 
   app.use('/api', createApiRouter(dependencies));
 

@@ -14,6 +14,18 @@ export const SESSION_CHECK = Object.freeze({
   reused: 'reused',
 });
 
+// The 401 of a refused refresh. `result` is the SESSION_CHECK case. `keepsCookie` is true for a token
+// revoked inside the grace window: another tab may just have rotated it, so the browser already holds
+// the new cookie and clearing it would log that tab out (TASK-053).
+export class RefreshRefusedError extends AppError {
+  constructor(result) {
+    super('UNAUTHORIZED');
+    this.name = 'RefreshRefusedError';
+    this.result = result;
+    this.keepsCookie = result === SESSION_CHECK.recentlyRevoked;
+  }
+}
+
 // A refresh token revoked less than this long ago is refused without counting as a reuse (DEC-039,
 // Q-038): it covers a lost Set-Cookie and two tabs refreshing at once without navigator.locks. revoked_at
 // is a DATETIME without fractions (stored rounded down), so in practice the window is 29 to 30 s.

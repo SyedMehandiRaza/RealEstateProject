@@ -3,7 +3,7 @@ import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { authenticate, authorize } from '../authenticate.js';
 import { errorHandler } from '../errorHandler.js';
-import { signAccessToken } from '../../utils/jwt.js';
+import { signAccessToken, signRefreshToken } from '../../utils/jwt.js';
 
 const app = express();
 app.get('/me', authenticate, (req, res) => res.json(req.user));
@@ -34,6 +34,25 @@ describe('authenticate / authorize', () => {
     expect(res.body.error.code).toBe('UNAUTHORIZED');
   });
 
+  it('rejects a refresh token', async () => {
+    const res = await request(app)
+      .get('/me')
+      .set(bearer(signRefreshToken({ userId: 1 }).token));
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHORIZED');
+  });
+
+  // TASK-053: what a refresh token would be if both secrets were equal (env.js now refuses that too).
+  it('rejects a token of type refresh even when it is signed with the access secret', async () => {
+    const refreshLike = jwt.sign({ typ: 'refresh', roles: ['admin'] }, process.env.JWT_ACCESS_SECRET, {
+      subject: '1',
+      jwtid: 'x',
+    });
+    const res = await request(app).get('/me').set(bearer(refreshLike));
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHORIZED');
+  });
+
   it('rejects an expired token with TOKEN_EXPIRED', async () => {
     const expired = jwt.sign({ roles: ['buyer'] }, process.env.JWT_ACCESS_SECRET, {
       subject: '1',
@@ -60,7 +79,9 @@ describe('authenticate / authorize', () => {
   });
 
   it('treats a token without a roles list as having no roles', async () => {
-    const legacy = jwt.sign({ role: 'admin' }, process.env.JWT_ACCESS_SECRET, { subject: '1' });
+    const legacy = jwt.sign({ typ: 'access', role: 'admin' }, process.env.JWT_ACCESS_SECRET, {
+      subject: '1',
+    });
     const res = await request(app).get('/admin').set(bearer(legacy));
     expect(res.status).toBe(403);
   });
