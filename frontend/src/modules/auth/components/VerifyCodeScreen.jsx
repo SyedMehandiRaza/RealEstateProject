@@ -14,7 +14,7 @@ const CODE_ERROR_ID = 'verify-code-error';
 // Reusable for both purposes: the page passes the mutations.
 //   verify({ email, code })  -> promise of the response data (an RTK Query mutation's .unwrap())
 //   resend({ email })        -> promise
-//   onVerified(data)         -> called with verify's data
+//   onVerified(data)         -> called with verify's data (awaited when it returns a promise)
 export default function VerifyCodeScreen({ email, verify, resend, onVerified }) {
   const [formError, setFormError] = useState(null);
   const [isResending, setIsResending] = useState(false);
@@ -34,7 +34,7 @@ export default function VerifyCodeScreen({ email, verify, resend, onVerified }) 
   async function onSubmit(values) {
     setFormError(null);
     try {
-      onVerified(await verify(values));
+      await onVerified(await verify(values)); // may be async (the landing GET), Verify stays disabled
     } catch (error) {
       setFormError(applyServerErrors(error, setError));
     }

@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import { useDispatch } from 'react-redux';
-import { Navigate, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { ERROR_CODES } from '@real-estate/shared';
 import backIcon from '../../../../assets/auth/icon-back-sm.svg';
 import approvedIcon from '../../../../assets/auth/icon-status-approved.svg';
@@ -70,7 +70,7 @@ const SCREENS = {
 // Developer status screens (Pending / Approved / Reject), one route. Developer only (ProtectedRoute;
 // the API enforces it). The headline is the API's `status` (the backend owns the rule, DEC-033/035),
 // and every required document is listed with its badge (2 or 3).
-// A required kind with nothing uploaded yet opens Upload Document instead.
+// A required kind with nothing uploaded yet opens Upload Document instead (OnboardingGuard, TASK-041).
 export default function VerificationStatusPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -78,7 +78,7 @@ export default function VerificationStatusPage() {
   const { data: verification, isSuccess, error } = useGetVerificationQuery();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
 
-  // Q-034 is open: the smallest safe "Back to login" ends the session (server and memory) and opens Log in.
+  // "Back to login" ends the session (server and memory) and opens Log in (kept as is by TASK-041, Q-034).
   async function backToLogin() {
     try {
       await logout().unwrap();
@@ -105,10 +105,8 @@ export default function VerificationStatusPage() {
     return <AuthSplitLayout title="Verification status" backLabel="Go back" backTo={null} />;
   }
 
+  // A missing document or no Professional info never gets here: OnboardingGuard opens that step first.
   const documents = verification?.documents ?? [];
-  if (documents.length === 0 || documents.some((document) => document.status == null)) {
-    return <Navigate to={AUTH_PATHS.uploadDocuments} replace />;
-  }
 
   // The three DEC-035 values; anything else is shown as Under Review, the API's own default.
   const outcome = SCREENS[verification.status] ? verification.status : 'under_review';

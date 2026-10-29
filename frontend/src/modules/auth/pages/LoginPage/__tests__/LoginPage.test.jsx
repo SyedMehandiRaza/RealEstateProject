@@ -84,9 +84,15 @@ describe('LoginPage', () => {
     expect(window.sessionStorage).toHaveLength(0);
   });
 
-  it('opens Professional info for a Developer', async () => {
+  // Every landing case is in modules/auth/__tests__/landing.test.jsx (TASK-041).
+  it('opens Professional info for a Developer without one (GET /me/verification 403)', async () => {
     const user = userEvent.setup();
     mockLogin(loggedIn(userWith('buyer', 'developer')));
+    server.use(
+      http.get(apiUrl('/auth/me/verification'), () =>
+        failure(403, 'FORBIDDEN', ERROR_CODES.FORBIDDEN.message),
+      ),
+    );
     const { router } = renderLogin();
 
     await fillValidForm(user);

@@ -2,7 +2,7 @@ import { useDispatch } from 'react-redux';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { useResendVerificationMutation, useVerifyEmailMutation } from '../../api/authApi.js';
 import VerifyCodeScreen from '../../components/VerifyCodeScreen.jsx';
-import { landingPathFor } from '../../hooks/landingPath.js';
+import { useLandingPath } from '../../hooks/landing.js';
 import { AUTH_PATHS } from '../../routes.jsx';
 import { credentialsSet } from '../../store/authSlice.js';
 
@@ -14,6 +14,7 @@ export default function VerifyEmailPage() {
   const dispatch = useDispatch();
   const [verifyEmail] = useVerifyEmailMutation();
   const [resendVerification] = useResendVerificationMutation();
+  const landingPathOf = useLandingPath();
   const email = state?.email;
 
   if (!email) return <Navigate to={AUTH_PATHS.signUp} replace />;
@@ -23,10 +24,11 @@ export default function VerifyEmailPage() {
       email={email}
       verify={(body) => verifyEmail(body).unwrap()}
       resend={(body) => resendVerification(body).unwrap()}
-      onVerified={({ accessToken, user }) => {
+      onVerified={async ({ accessToken, user }) => {
         // Memory only (Redux); the refresh token is the httpOnly cookie set by the API.
         dispatch(credentialsSet({ accessToken, user }));
-        navigate(landingPathFor(user), { replace: true });
+        // Resumes onboarding at the first unfinished step (TASK-041).
+        navigate(await landingPathOf(user), { replace: true });
       }}
     />
   );

@@ -13,7 +13,7 @@ import flagSG from '../../../../assets/auth/flag-sg.png';
 import flagUS from '../../../../assets/auth/flag-us.png';
 import { applyServerErrors } from '../../../../lib/applyServerErrors.js';
 import { useSelectCountryMutation } from '../../api/authApi.js';
-import { afterCountrySelectedPath } from '../../hooks/landingPath.js';
+import { useLandingPath } from '../../hooks/landing.js';
 import { credentialsSet, selectCurrentUser } from '../../store/authSlice.js';
 import styles from './SelectCountryPage.module.css';
 
@@ -31,13 +31,14 @@ const userReplaced = (user) => (dispatch, getState) =>
 
 // Figma: Select a country (13038:3950). Buyer only (ProtectedRoute; the API enforces it too).
 // The Buyer's saved country starts selected; with none saved nothing is selected, and Continue shows
-// the shared countryCode message. Success stores the returned user and opens
-// afterCountrySelectedPath (placeholder until Q-034, TASK-041).
+// the shared countryCode message. Success stores the returned user and opens its landing path
+// (hooks/landing.js, TASK-041): home once a country is saved.
 export default function SelectCountryPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector(selectCurrentUser);
   const [selectCountry] = useSelectCountryMutation();
+  const landingPathOf = useLandingPath();
   const [formError, setFormError] = useState(null);
   const errorId = useId();
 
@@ -56,7 +57,7 @@ export default function SelectCountryPage() {
     try {
       const { user: updatedUser } = await selectCountry(values).unwrap();
       dispatch(userReplaced(updatedUser));
-      navigate(afterCountrySelectedPath(updatedUser), { replace: true });
+      navigate(await landingPathOf(updatedUser), { replace: true });
     } catch (error) {
       setFormError(applyServerErrors(error, setError));
     }

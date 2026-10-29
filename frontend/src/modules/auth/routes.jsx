@@ -1,4 +1,5 @@
 import ProtectedRoute from '../../components/routing/ProtectedRoute.jsx';
+import OnboardingGuard from './components/OnboardingGuard.jsx';
 import AuthPlaceholderPage from './pages/AuthPlaceholderPage/AuthPlaceholderPage.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage.jsx';
 import LoginPage from './pages/LoginPage/LoginPage.jsx';
@@ -12,6 +13,8 @@ import VerifyEmailPage from './pages/VerifyEmailPage/VerifyEmailPage.jsx';
 import VerifyResetCodePage from './pages/VerifyResetCodePage/VerifyResetCodePage.jsx';
 
 // Frontend routes of the auth module (also listed in the Route column of docs/modules/auth/figma.md).
+// The pages, hooks/landing.js and OnboardingGuard import these and this file imports them, so they read
+// AUTH_PATHS only at run time (inside functions), never while the modules load.
 export const AUTH_PATHS = {
   login: '/login',
   signUp: '/sign-up', // Buyer tab; the Developers tab is /sign-up?role=developer
@@ -28,6 +31,8 @@ export const AUTH_PATHS = {
 
 const placeholder = (title) => <AuthPlaceholderPage title={title} />;
 
+// Each onboarding page is wrapped in OnboardingGuard: opened out of order, it sends the Account to its
+// first unfinished step (TASK-041).
 export const authRoutes = [
   { path: AUTH_PATHS.login, element: <LoginPage /> },
   { path: AUTH_PATHS.signUp, element: <SignUpPage /> },
@@ -37,14 +42,37 @@ export const authRoutes = [
   { path: AUTH_PATHS.resetPassword, element: <ResetPasswordPage /> },
   {
     element: <ProtectedRoute roles={['buyer']} />,
-    children: [{ path: AUTH_PATHS.selectCountry, element: <SelectCountryPage /> }],
+    children: [
+      {
+        path: AUTH_PATHS.selectCountry,
+        element: (
+          <OnboardingGuard page={AUTH_PATHS.selectCountry}>
+            <SelectCountryPage />
+          </OnboardingGuard>
+        ),
+      },
+    ],
   },
   {
     element: <ProtectedRoute roles={['developer']} />,
     children: [
-      { path: AUTH_PATHS.professionalInfo, element: <ProfessionalInfoPage /> },
-      { path: AUTH_PATHS.uploadDocuments, element: <UploadDocumentsPage /> },
-      { path: AUTH_PATHS.verificationStatus, element: <VerificationStatusPage /> },
+      { path: AUTH_PATHS.professionalInfo, element: <ProfessionalInfoPage /> }, // never out of order
+      {
+        path: AUTH_PATHS.uploadDocuments,
+        element: (
+          <OnboardingGuard page={AUTH_PATHS.uploadDocuments}>
+            <UploadDocumentsPage />
+          </OnboardingGuard>
+        ),
+      },
+      {
+        path: AUTH_PATHS.verificationStatus,
+        element: (
+          <OnboardingGuard page={AUTH_PATHS.verificationStatus}>
+            <VerificationStatusPage />
+          </OnboardingGuard>
+        ),
+      },
       { path: AUTH_PATHS.plans, element: placeholder('Plans coming soon') },
     ],
   },

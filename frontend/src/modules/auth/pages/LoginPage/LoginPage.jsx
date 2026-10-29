@@ -11,7 +11,7 @@ import emailIcon from '../../../../assets/auth/icon-email.svg';
 import lockIcon from '../../../../assets/auth/icon-lock.svg';
 import { applyServerErrors } from '../../../../lib/applyServerErrors.js';
 import { useLoginMutation } from '../../api/authApi.js';
-import { landingPathFor } from '../../hooks/landingPath.js';
+import { useLandingPath } from '../../hooks/landing.js';
 import { AUTH_PATHS } from '../../routes.jsx';
 import { credentialsSet } from '../../store/authSlice.js';
 import styles from './LoginPage.module.css';
@@ -24,6 +24,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [login] = useLoginMutation();
+  const landingPathOf = useLandingPath();
   const [formError, setFormError] = useState(null);
   const [notice, setNotice] = useState(state?.passwordChanged ? authMessages.api.passwordChanged : null);
 
@@ -44,7 +45,8 @@ export default function LoginPage() {
       const { accessToken, user } = await login(values).unwrap();
       // Memory only (Redux); the refresh token is the httpOnly cookie set by the API.
       dispatch(credentialsSet({ accessToken, user }));
-      navigate(landingPathFor(user), { replace: true });
+      // Resumes onboarding at the first unfinished step (TASK-041); Log In stays disabled meanwhile.
+      navigate(await landingPathOf(user), { replace: true });
     } catch (error) {
       // Right password, unverified email: the API has sent a new code; Verify reads the email from state.
       if (error?.data?.error?.code === 'EMAIL_NOT_VERIFIED') {

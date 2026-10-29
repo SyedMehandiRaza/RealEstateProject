@@ -245,12 +245,13 @@ describe('VerificationStatusPage', () => {
     expect(column.children[2]).toContainElement(documentList());
   });
 
-  it('shows a 403 from GET /me/verification as returned', async () => {
+  // A 403 (no Professional info yet) opens Professional info instead (OnboardingGuard, TASK-041).
+  it('shows another GET /me/verification failure as returned', async () => {
     server.use(
       http.get(apiUrl('/auth/me/verification'), () =>
         HttpResponse.json(
-          { success: false, error: { code: 'FORBIDDEN', message: ERROR_CODES.FORBIDDEN.message } },
-          { status: 403 },
+          { success: false, error: { code: 'INTERNAL_ERROR', message: ERROR_CODES.INTERNAL_ERROR.message } },
+          { status: 500 },
         ),
       ),
     );
@@ -259,6 +260,6 @@ describe('VerificationStatusPage', () => {
       preloadedState: { auth: { accessToken: 'access-1', user: DEVELOPER } },
     });
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(ERROR_CODES.FORBIDDEN.message);
+    expect(await screen.findByRole('alert')).toHaveTextContent(ERROR_CODES.INTERNAL_ERROR.message);
   });
 });

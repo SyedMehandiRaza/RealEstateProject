@@ -78,9 +78,10 @@ describe('VerifyEmailPage', () => {
     });
   });
 
-  it('verifies a Developer and opens Professional info', async () => {
+  it('verifies a Developer and opens Professional info (GET /me/verification 403)', async () => {
     const u = userEvent.setup();
     mockPost('/auth/verify-email', verified(['developer']));
+    server.use(http.get(apiUrl('/auth/me/verification'), () => failure(403, 'FORBIDDEN', 'Forbidden')));
     renderVerify();
 
     await typeCode(u, '123456');

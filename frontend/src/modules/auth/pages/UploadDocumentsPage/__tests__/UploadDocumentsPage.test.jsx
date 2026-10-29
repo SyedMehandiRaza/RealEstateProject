@@ -319,17 +319,18 @@ describe('UploadDocumentsPage', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe(AUTH_PATHS.verificationStatus));
   });
 
-  it('shows a 403 from GET /me/verification in the form alert', async () => {
+  // A 403 (no Professional info yet) opens Professional info instead (OnboardingGuard, TASK-041).
+  it('shows another GET /me/verification failure in the form alert', async () => {
     server.use(
       http.get(apiUrl('/auth/me/verification'), () =>
-        failure(403, 'FORBIDDEN', ERROR_CODES.FORBIDDEN.message),
+        failure(500, 'INTERNAL_ERROR', ERROR_CODES.INTERNAL_ERROR.message),
       ),
     );
     renderWithProviders(routes, {
       initialEntries: [AUTH_PATHS.uploadDocuments],
       preloadedState: { auth: { accessToken: 'access-1', user: DEVELOPER } },
     });
-    expect(await screen.findByRole('alert')).toHaveTextContent(ERROR_CODES.FORBIDDEN.message);
+    expect(await screen.findByRole('alert')).toHaveTextContent(ERROR_CODES.INTERNAL_ERROR.message);
     expect(nextButton()).toBeDisabled();
   });
 });

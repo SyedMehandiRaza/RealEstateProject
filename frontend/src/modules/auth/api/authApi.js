@@ -7,7 +7,9 @@ const unwrap = (response) => response.data;
 // login (TASK-033), signUp / verifyEmail / resendVerification (TASK-034), the password reset
 // endpoints (TASK-036), selectCountry (TASK-035), saveProfessionalProfile (TASK-038),
 // getVerification / submitDocuments (TASK-039), logout (TASK-040), ...
-export const authApi = baseApi.injectEndpoints({
+// `Verification` tags GET /me/verification so saving Professional info drops a cached answer (for
+// example the 403 "no profile yet" that the landing rule loaded at Log in, TASK-041).
+export const authApi = baseApi.enhanceEndpoints({ addTagTypes: ['Verification'] }).injectEndpoints({
   endpoints: (build) => ({
     // loginSchema body -> 200 { accessToken, user } plus the refresh cookie;
     // 401 invalidCredentials for every failure, 403 EMAIL_NOT_VERIFIED (a new code is sent).
@@ -62,6 +64,7 @@ export const authApi = baseApi.injectEndpoints({
     saveProfessionalProfile: build.mutation({
       query: (body) => ({ url: '/auth/me/professional-profile', method: 'PUT', body }),
       transformResponse: unwrap,
+      invalidatesTags: (result) => (result ? ['Verification'] : []),
     }),
     // Refresh cookie -> 204, the token revoked and the cookie cleared; always succeeds (SPEC-001).
     logout: build.mutation({
@@ -74,6 +77,7 @@ export const authApi = baseApi.injectEndpoints({
     getVerification: build.query({
       query: () => '/auth/me/verification',
       transformResponse: unwrap,
+      providesTags: ['Verification'],
     }),
     // FormData (one file part per document kind, named after the kind, plus idDocumentType) ->
     // 201 { verification }. 422 per file under fields["documents.<kind>.<field>"]; 409 CONFLICT for a
