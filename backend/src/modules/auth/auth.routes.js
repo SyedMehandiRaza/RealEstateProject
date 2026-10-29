@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { resendCodeSchema, signUpSchema, verifyCodeSchema } from '@real-estate/shared';
+import { loginSchema, resendCodeSchema, signUpSchema, verifyCodeSchema } from '@real-estate/shared';
+import { authenticate } from '../../middlewares/authenticate.js';
 import { authRateLimiter } from '../../middlewares/rateLimiter.js';
 import { validate } from '../../middlewares/validate.js';
 
@@ -15,6 +16,10 @@ export function createAuthRoutes(controller) {
     validate({ body: resendCodeSchema }),
     controller.resendVerification,
   );
+  router.post('/login', authRateLimiter, validate({ body: loginSchema }), controller.login);
+
+  // Signed-in routes: the access token identifies the Account.
+  router.get('/me', authenticate, controller.me);
 
   return router;
 }

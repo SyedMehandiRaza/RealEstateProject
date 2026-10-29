@@ -25,3 +25,11 @@ export async function signUpAndVerify(app, mailer, overrides = {}) {
 export function resendVerification(app, email) {
   return request(app).post(RESEND_VERIFICATION).send({ email });
 }
+
+export const LOGIN = '/api/auth/login';
+export const ME = '/api/auth/me';
+
+// Logs in with the sign-up defaults unless overridden. Returns the response.
+export function logIn(app, { email = signUpCases.valid.email, password = signUpCases.valid.password } = {}) {
+  return request(app).post(LOGIN).send({ email, password });
+}

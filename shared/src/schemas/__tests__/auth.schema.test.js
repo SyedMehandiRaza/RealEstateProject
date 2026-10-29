@@ -13,7 +13,7 @@ import { authMessages as m } from '../../messages/auth.messages.js';
 import { commonMessages } from '../../messages/common.messages.js';
 import { toFieldErrors } from '../../errors/toFieldErrors.js';
 import { LIMITS } from '../../limits.js';
-import { resendCodeCases, signUpCases, verifyCodeCases } from '../../testing/index.js';
+import { loginCases, resendCodeCases, signUpCases, verifyCodeCases } from '../../testing/index.js';
 
 const L = LIMITS.auth;
 const errorsOf = (schema, input) => {
@@ -92,22 +92,8 @@ describe('loginSchema', () => {
     });
   });
 
-  it.each([
-    ['email', undefined, m.email.required],
-    ['email', '+971501234567', m.email.invalid],
-    ['password', undefined, m.password.required],
-    ['password', '', m.password.required],
-    ['password', longText(L.password.max + 1), m.password.max],
-  ])('rejects %s=%j', (field, value, message) => {
-    expect(
-      errorsOf(loginSchema, { email: 'sara@example.com', password: 'x', [field]: value })[field],
-    ).toEqual([message]);
-  });
-
-  it('rejects login by phone (email only, DEC-022)', () => {
-    expect(errorsOf(loginSchema, { phone: '+971501234567', password: 'x' })._form).toEqual([
-      commonMessages.unknownField,
-    ]);
+  it.each(loginCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(loginSchema, { ...loginCases.valid, ...input })[field]).toEqual([message]);
   });
 });
 

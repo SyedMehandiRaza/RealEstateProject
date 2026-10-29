@@ -105,3 +105,23 @@ export const resendCodeCases = {
     },
   ],
 };
+
+// Log in checks only that a password was typed: the password policy applies to new passwords only.
+export const loginCases = {
+  valid: { email: 'sara@example.com', password: 'secret123' },
+  invalid: [
+    fieldCase('email', undefined, m.email.required),
+    fieldCase('email', '  ', m.email.required),
+    fieldCase('email', '+971501234567', m.email.invalid),
+    fieldCase('email', emailOfLength(L.email.max + 1), m.email.max),
+    fieldCase('password', undefined, m.password.required),
+    fieldCase('password', '', m.password.required),
+    fieldCase('password', longText(L.password.max + 1), m.password.max),
+    {
+      name: 'login by phone (email only, DEC-022)',
+      input: { phone: '+971501234567' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};

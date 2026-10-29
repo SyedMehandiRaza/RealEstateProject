@@ -1,9 +1,13 @@
 import { authMessages } from '@real-estate/shared';
 import { UniqueConstraintError } from 'sequelize';
 import { AppError } from '../../utils/AppError.js';
-import { hashPassword } from '../../utils/password.js';
+import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from '../../utils/password.js';
 import { toUserResponse } from './auth.presenter.js';
-import { CODE_CHECK, CODE_PURPOSES } from './verificationCode.service.js';
+import { CODE_CHECK, CODE_PURPOSES, ResendRefusedError } from './verificationCode.service.js';
+
+// Every failed login answers the same, whether the password was wrong, the email unknown or the limit hit.
+const invalidCredentials = () =>
+  new AppError('UNAUTHORIZED', { message: authMessages.api.invalidCredentials });
 
 const CODE_ERRORS = {
   [CODE_CHECK.invalid]: authMessages.api.codeInvalid,
@@ -17,6 +21,7 @@ export function createAuthService({
   repository,
   verificationCodes,
   sessions,
+  loginAttempts,
   mailer,
   clock,
   logger,
@@ -30,6 +35,24 @@ export function createAuthService({
     } catch (err) {
       logger.error({ err, userId, purpose }, 'Could not send a verification code email');
     }
+  }
+
+  // Mails a new code when the resend rules allow and silently skips the email when they refuse
+  // (ResendRefusedError: cooldown or hourly cap; the previous code still works). The Account row is
+  // locked first, as for a resend, so concurrent requests cannot both pass the cooldown (DEC-026).
+  async function sendCodeIfAllowed({ userId, email, purpose }) {
+    let code;
+    try {
+      code = await sequelize.transaction(async (transaction) => {
+        // Null if the Account was deleted since it was read: nothing to send.
+        if (!(await repository.lockUserByEmail(email, { transaction }))) return null;
+        return verificationCodes.issue({ userId, purpose }, { transaction });
+      });
+    } catch (error) {
+      if (error instanceof ResendRefusedError) return;
+      throw error;
+    }
+    if (code) await mailCode({ userId, email, code, purpose });
   }
 
   return {
@@ -100,6 +123,35 @@ export function createAuthService({
 
       if (issued) await mailCode({ ...issued, email, purpose });
       return { sent: true };
+    },
+
+    // Log in by email (SPEC-001 login flow order). Wrong password, unknown email and a hit per-account
+    // limit all answer 401 invalidCredentials. The right password on an unverified email answers 403
+    // EMAIL_NOT_VERIFIED and mails a new code if the resend rules allow; otherwise a session starts.
+    async login({ email, password }) {
+      if (!loginAttempts.tryAttempt(email)) throw invalidCredentials();
+
+      const user = await repository.findUserForLogin(email);
+      // An unknown email is compared with a dummy hash, so it takes as long as a wrong password.
+      const passwordMatches = await verifyPassword(password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
+      if (!user || !passwordMatches) throw invalidCredentials();
+      loginAttempts.succeeded(email);
+
+      if (!user.emailVerifiedAt) {
+        await sendCodeIfAllowed({ userId: user.id, email, purpose: CODE_PURPOSES.emailVerification });
+        throw new AppError('EMAIL_NOT_VERIFIED');
+      }
+
+      const userResponse = toUserResponse(user);
+      const session = await sessions.start({ userId: user.id, roles: userResponse.roles });
+      return { user: userResponse, ...session };
+    },
+
+    // The signed-in Account. One deleted since its access token was issued is no longer signed in.
+    async me({ userId }) {
+      const user = await repository.findUserById(userId);
+      if (!user) throw new AppError('UNAUTHORIZED');
+      return { user: toUserResponse(user) };
     },
   };
 }

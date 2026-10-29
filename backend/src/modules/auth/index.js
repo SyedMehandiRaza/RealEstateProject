@@ -5,6 +5,7 @@ import { createAuthController } from './auth.controller.js';
 import { createAuthRepository } from './auth.repository.js';
 import { createAuthRoutes } from './auth.routes.js';
 import { createAuthService } from './auth.service.js';
+import { createLoginAttemptLimiter } from './loginAttemptLimiter.js';
 import { createSessionService } from './session.service.js';
 import { createVerificationCodeService } from './verificationCode.service.js';
 
@@ -20,6 +21,7 @@ export function createAuthRouter({ mailer, clock }) {
     repository: createAuthRepository(models),
     verificationCodes,
     sessions: createSessionService({ models }),
+    loginAttempts: createLoginAttemptLimiter({ clock }),
     mailer,
     clock,
     logger,

@@ -21,5 +21,13 @@ export function createAuthController(authService) {
     async resendVerification(req, res) {
       sendSuccess(res, await authService.resendVerification(req.validated.body));
     },
+
+    async login(req, res) {
+      startSession(res, await authService.login(req.validated.body));
+    },
+
+    async me(req, res) {
+      sendSuccess(res, await authService.me({ userId: req.user.id }));
+    },
   };
 }

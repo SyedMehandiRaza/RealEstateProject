@@ -9,6 +9,15 @@ export function createAuthRepository(models) {
       return User.findOne({ where: { email }, include: [withRoles], transaction });
     },
 
+    // Log in only: the Account with its password hash and its roles, in one query.
+    findUserForLogin(email) {
+      return User.scope('withPassword').findOne({ where: { email }, include: [withRoles] });
+    },
+
+    findUserById(id) {
+      return User.findByPk(id, { include: [withRoles] });
+    },
+
     // The Account row only, locked FOR UPDATE until the transaction ends, so concurrent requests for
     // one Account (such as two resends) run one after the other.
     lockUserByEmail(email, { transaction }) {
