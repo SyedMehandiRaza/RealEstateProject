@@ -1,6 +1,9 @@
 import bcrypt from 'bcryptjs';
 import { DUMMY_PASSWORD_HASH, hashPassword, SALT_ROUNDS, verifyPassword } from '../password.js';
 
+// Each test runs real cost-12 bcrypt hashes, which exceed Jest's 5 s default on a loaded machine.
+jest.setTimeout(30 * 1000);
+
 describe('password hashing', () => {
   it('verifies a password against its own hash only', async () => {
     const hash = await hashPassword('secret123');
