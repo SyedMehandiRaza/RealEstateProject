@@ -36,14 +36,20 @@ Each module keeps its Figma pages in `docs/modules/<module>/figma.md`:
 - Assets: use the assets returned by the MCP and saved locally under `frontend/src/assets/<module>/`. No temporary Figma URLs remain in code. Do not redraw or substitute icons.
 - Dynamic content (listings, prices, user data) comes from props, API or mocks, never baked into the markup. Text from the design becomes placeholder or mock data where it is data.
 - Forms: fields come from the shared Zod schema (`/shared-validation`); `react-hook-form` + `zodResolver`; error text placement and styling follow the Figma error state.
-- Responsiveness: implement every breakpoint frame that exists in Figma; ask before inventing one that does not.
+- Responsiveness (required for every page, even when Figma has only a desktop frame):
+  - At the frame's own width the page matches Figma exactly. Where Figma has a tablet or mobile frame, that frame is the target at its width.
+  - Every page also works at 1280x720, 1366x768, 1024x768, 768x1024 and 375x812: nothing overlaps or is cut off, no horizontal scroll, and no vertical scroll when the content would fit in the window.
+  - Never copy Figma's absolute positions as fixed pixels for the page layout. Use flex/grid, `max-width`, `min()`/`clamp()` and percentages, so the layout shrinks and grows with the window.
+  - Where Figma has no frame for a size, follow the module's documented responsive rule in `docs/modules/<module>/figma.md` (for example: below 1024 px the decorative hero is hidden and the form card fills the width). If the module has no rule yet, propose one, ask the user once, and record the answer there.
+- Text: copy every string, font size, weight, line height, letter spacing and color from `get_design_context`, not from the screenshot.
 - Accessibility: semantic elements, labels, alt text, focus states.
 
 ## 4. Verify (required)
-1. Run the frontend dev server, open the route with the Playwright MCP at the Figma frame's width, and take a screenshot.
-2. Compare it with the Figma screenshot: layout, spacing, typography, colors, assets, and states. Fix every in-scope mismatch and repeat. Note out-of-scope differences instead of changing them.
-3. Add a Playwright visual test (`toHaveScreenshot`) for the page in `e2e/` once it matches. Use `/playwright-e2e`.
-4. Add an RTL test for page behavior (render, form errors, interactions).
+1. Run the frontend dev server, open the route with the Playwright MCP at the Figma frame's size, and take a screenshot.
+2. Compare it with the Figma screenshot: layout, spacing, typography, colors, assets, and states. Check the text with the browser's computed styles (font size, weight, line height, color) against the Figma values, not only by eye. Fix every in-scope mismatch and repeat. Note out-of-scope differences instead of changing them.
+3. Resize to each size in the responsiveness list, take a screenshot at each and fix any overlap, clipping or unneeded scroll.
+4. Add Playwright visual tests (`toHaveScreenshot`) for the page in `e2e/` once it matches: at the Figma frame size and at 1366x768 and 375x812. Use `/playwright-e2e`.
+5. Add an RTL test for page behavior (render, form errors, interactions).
 
 ## 5. Close out
 - Update the `Status` column in `figma.md` (`todo`, `in-progress`, `matches-figma`, `needs-design-answer`).
