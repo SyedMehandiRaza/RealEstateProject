@@ -30,18 +30,6 @@ function mockLogin(response) {
   return requests;
 }
 
-// baseApi tries POST /auth/refresh after any 401; without a refresh cookie it answers 401 too.
-function mockRefreshUnauthorized() {
-  const calls = [];
-  server.use(
-    http.post(apiUrl('/auth/refresh'), () => {
-      calls.push(1);
-      return failure(401, 'UNAUTHORIZED', ERROR_CODES.UNAUTHORIZED.message);
-    }),
-  );
-  return calls;
-}
-
 const userWith = (...roles) => ({
   id: 7,
   fullName: 'Sara Ali',
@@ -130,7 +118,6 @@ describe('LoginPage', () => {
   it('shows 401 invalidCredentials as the form alert, exactly as returned, and stays on Log in', async () => {
     const user = userEvent.setup();
     mockLogin(() => failure(401, 'UNAUTHORIZED', authMessages.api.invalidCredentials));
-    mockRefreshUnauthorized();
     const { store, router } = renderLogin();
 
     await fillValidForm(user);
@@ -213,7 +200,6 @@ describe('LoginPage', () => {
   it('replaces the passwordChanged notice with the error of a failed attempt', async () => {
     const user = userEvent.setup();
     mockLogin(() => failure(401, 'UNAUTHORIZED', authMessages.api.invalidCredentials));
-    mockRefreshUnauthorized();
     renderLogin({ pathname: AUTH_PATHS.login, state: { passwordChanged: true } });
 
     await fillValidForm(user);

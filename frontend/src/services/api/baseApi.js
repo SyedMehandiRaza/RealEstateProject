@@ -2,9 +2,23 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { env } from '../../config/env.js';
 import { credentialsSet, loggedOut } from '../../modules/auth/store/authSlice.js';
 
-// Assumed contract (confirm when the auth API is specified):
-//   POST {apiUrl}/auth/refresh  (refresh cookie)  ->  { success: true, data: { accessToken, user } }
+// SPEC-001 (docs/execution/specs/SPEC-001-auth-api.md):
+//   POST {apiUrl}/auth/refresh  (refresh cookie)  ->  200 { success: true, data: { accessToken, user } }, rotated cookie
 export const REFRESH_PATH = '/auth/refresh';
+
+// SPEC-001 public auth routes: they take no access token, so a 401 there is the answer itself
+// (invalidCredentials, an expired reset token, ...) and must not trigger a refresh.
+const PUBLIC_AUTH_PATHS = new Set([
+  REFRESH_PATH,
+  '/auth/login',
+  '/auth/sign-up',
+  '/auth/verify-email',
+  '/auth/verify-email/resend',
+  '/auth/password/forgot',
+  '/auth/password/verify',
+  '/auth/password/resend',
+  '/auth/password/reset',
+]);
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: env.apiUrl,
@@ -16,7 +30,7 @@ const rawBaseQuery = fetchBaseQuery({
   },
 });
 
-const urlOf = (args) => (typeof args === 'string' ? args : args.url);
+const pathOf = (args) => (typeof args === 'string' ? args : args.url).split('?')[0];
 
 // One shared refresh request, so parallel 401s trigger a single refresh.
 let refreshPromise = null;
@@ -24,7 +38,7 @@ let refreshPromise = null;
 export async function baseQueryWithReauth(args, api, extraOptions) {
   let result = await rawBaseQuery(args, api, extraOptions);
 
-  if (result.error?.status === 401 && urlOf(args) !== REFRESH_PATH) {
+  if (result.error?.status === 401 && !PUBLIC_AUTH_PATHS.has(pathOf(args))) {
     refreshPromise ??= rawBaseQuery({ url: REFRESH_PATH, method: 'POST' }, api, extraOptions).finally(() => {
       refreshPromise = null;
     });

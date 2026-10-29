@@ -1,8 +1,11 @@
 import ProtectedRoute from '../../components/routing/ProtectedRoute.jsx';
 import AuthPlaceholderPage from './pages/AuthPlaceholderPage/AuthPlaceholderPage.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage.jsx';
 import LoginPage from './pages/LoginPage/LoginPage.jsx';
+import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage.jsx';
 import SignUpPage from './pages/SignUpPage/SignUpPage.jsx';
 import VerifyEmailPage from './pages/VerifyEmailPage/VerifyEmailPage.jsx';
+import VerifyResetCodePage from './pages/VerifyResetCodePage/VerifyResetCodePage.jsx';
 
 // Frontend routes of the auth module (also listed in the Route column of docs/modules/auth/figma.md).
 export const AUTH_PATHS = {
@@ -24,9 +27,9 @@ export const authRoutes = [
   { path: AUTH_PATHS.login, element: <LoginPage /> },
   { path: AUTH_PATHS.signUp, element: <SignUpPage /> },
   { path: AUTH_PATHS.verifyEmail, element: <VerifyEmailPage /> },
-  { path: AUTH_PATHS.forgotPassword, element: placeholder('Forgot Password') },
-  { path: AUTH_PATHS.verifyResetCode, element: placeholder('Verify Your Account') },
-  { path: AUTH_PATHS.resetPassword, element: placeholder('Reset Password') },
+  { path: AUTH_PATHS.forgotPassword, element: <ForgotPasswordPage /> },
+  { path: AUTH_PATHS.verifyResetCode, element: <VerifyResetCodePage /> },
+  { path: AUTH_PATHS.resetPassword, element: <ResetPasswordPage /> },
   {
     element: <ProtectedRoute roles={['buyer']} />,
     children: [{ path: AUTH_PATHS.selectCountry, element: placeholder('Select a country') }],

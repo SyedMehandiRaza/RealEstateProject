@@ -4,7 +4,8 @@ import { baseApi } from '../../../services/api/baseApi.js';
 const unwrap = (response) => response.data;
 
 // Auth endpoints (SPEC-001, all under /api/auth). Each page ticket adds its own endpoints here:
-// login (TASK-033), signUp / verifyEmail / resendVerification (TASK-034), selectCountry (TASK-035), ...
+// login (TASK-033), signUp / verifyEmail / resendVerification (TASK-034), the password reset
+// endpoints (TASK-036), selectCountry (TASK-035), ...
 export const authApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     // loginSchema body -> 200 { accessToken, user } plus the refresh cookie;
@@ -28,8 +29,37 @@ export const authApi = baseApi.injectEndpoints({
       query: (body) => ({ url: '/auth/verify-email/resend', method: 'POST', body }),
       transformResponse: unwrap,
     }),
+    // forgotPasswordSchema body -> 200 { sent: true } whether or not the Account exists; 429 as for resend.
+    forgotPassword: build.mutation({
+      query: (body) => ({ url: '/auth/password/forgot', method: 'POST', body }),
+      transformResponse: unwrap,
+    }),
+    // verifyCodeSchema body -> 200 { resetToken }, valid 10 minutes; 422 as for verify-email.
+    verifyResetCode: build.mutation({
+      query: (body) => ({ url: '/auth/password/verify', method: 'POST', body }),
+      transformResponse: unwrap,
+    }),
+    // resendCodeSchema body -> 200 { sent: true }; 429 with resendTooSoon / resendLimit.
+    resendResetCode: build.mutation({
+      query: (body) => ({ url: '/auth/password/resend', method: 'POST', body }),
+      transformResponse: unwrap,
+    }),
+    // resetPasswordSchema body -> 200 { message: passwordChanged }; every refresh token is revoked.
+    // 401 UNAUTHORIZED with resetToken.required when the token is invalid, expired or already used.
+    resetPassword: build.mutation({
+      query: (body) => ({ url: '/auth/password/reset', method: 'POST', body }),
+      transformResponse: unwrap,
+    }),
   }),
 });
 
-export const { useLoginMutation, useSignUpMutation, useVerifyEmailMutation, useResendVerificationMutation } =
-  authApi;
+export const {
+  useLoginMutation,
+  useSignUpMutation,
+  useVerifyEmailMutation,
+  useResendVerificationMutation,
+  useForgotPasswordMutation,
+  useVerifyResetCodeMutation,
+  useResendResetCodeMutation,
+  useResetPasswordMutation,
+} = authApi;

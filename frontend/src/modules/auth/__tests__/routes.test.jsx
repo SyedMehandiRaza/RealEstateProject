@@ -13,9 +13,7 @@ describe('auth routes', () => {
   it.each([
     [AUTH_PATHS.login, 'Welcome Back!'],
     [AUTH_PATHS.signUp, 'Create Your Account'],
-    [AUTH_PATHS.forgotPassword, 'Forgot Password'],
-    [AUTH_PATHS.verifyResetCode, 'Verify Your Account'],
-    [AUTH_PATHS.resetPassword, 'Reset Password'],
+    [AUTH_PATHS.forgotPassword, 'Forgot Password?'],
   ])('public route %s resolves to its page', async (path, title) => {
     renderWithProviders(routes, { initialEntries: [path] });
     expect(await heading(title)).toBeInTheDocument();
@@ -26,6 +24,20 @@ describe('auth routes', () => {
       initialEntries: [{ pathname: AUTH_PATHS.verifyEmail, state: { email: 'new.buyer@example.test' } }],
     });
     expect(await heading('Verify Your Account')).toBeInTheDocument();
+  });
+
+  it('the password reset Verify resolves with the email in the router state', async () => {
+    renderWithProviders(routes, {
+      initialEntries: [{ pathname: AUTH_PATHS.verifyResetCode, state: { email: 'reset.me@example.test' } }],
+    });
+    expect(await heading('Verify Your Account')).toBeInTheDocument();
+  });
+
+  it('Reset password resolves with a reset token in the router state', async () => {
+    renderWithProviders(routes, {
+      initialEntries: [{ pathname: AUTH_PATHS.resetPassword, state: { resetToken: 'reset-token' } }],
+    });
+    expect(await heading('Reset Password')).toBeInTheDocument();
   });
 
   it('Select a country is for buyers', async () => {
