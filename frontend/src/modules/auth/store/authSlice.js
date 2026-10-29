@@ -1,7 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 // The access token lives only in memory (Redux). The refresh token is an httpOnly cookie the JS never sees.
-const initialState = { accessToken: null, user: null };
+// `restoringSession` is true while the app-start refresh runs (api/restoreSession.js, TASK-049), so
+// protected routes wait for it instead of sending a user who still has a session to Log in.
+const initialState = { accessToken: null, user: null, restoringSession: false };
 
 const authSlice = createSlice({
   name: 'auth',
@@ -14,12 +16,19 @@ const authSlice = createSlice({
     loggedOut() {
       return initialState;
     },
+    sessionRestoreStarted(state) {
+      state.restoringSession = true;
+    },
+    sessionRestoreFinished(state) {
+      state.restoringSession = false;
+    },
   },
 });
 
-export const { credentialsSet, loggedOut } = authSlice.actions;
+export const { credentialsSet, loggedOut, sessionRestoreStarted, sessionRestoreFinished } = authSlice.actions;
 export default authSlice.reducer;
 
 export const selectAccessToken = (state) => state.auth.accessToken;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => Boolean(state.auth.accessToken);
+export const selectIsRestoringSession = (state) => Boolean(state.auth.restoringSession);

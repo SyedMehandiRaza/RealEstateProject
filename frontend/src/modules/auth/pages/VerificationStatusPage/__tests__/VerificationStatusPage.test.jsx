@@ -40,8 +40,9 @@ function mockVerification(documents, status = 'under_review') {
   );
 }
 
-const renderPage = (documents) => {
-  mockVerification(documents);
+// `status` is the API's headline (DEC-035); the page shows it as given and never derives it.
+const renderPage = (documents, status = 'under_review') => {
+  mockVerification(documents, status);
   return renderWithProviders(routes, {
     initialEntries: [AUTH_PATHS.verificationStatus],
     preloadedState: { auth: { accessToken: 'access-1', user: DEVELOPER } },
@@ -71,11 +72,14 @@ describe('VerificationStatusPage', () => {
   });
 
   it('shows Your Account is Active! when every required document is approved (Company: 3)', async () => {
-    renderPage([
-      doc('government_id', 'approved'),
-      doc('company_registration_certificate', 'approved'),
-      doc('profile_photo', 'approved'),
-    ]);
+    renderPage(
+      [
+        doc('government_id', 'approved'),
+        doc('company_registration_certificate', 'approved'),
+        doc('profile_photo', 'approved'),
+      ],
+      'active',
+    );
 
     expect(await heading('Your Account is Active!')).toBeInTheDocument();
     expect(screen.getByText('Your verification documents have been approved.')).toBeInTheDocument();
@@ -86,7 +90,10 @@ describe('VerificationStatusPage', () => {
 
   it('opens the Plans coming soon placeholder from View plan', async () => {
     const user = userEvent.setup();
-    const { router } = renderPage([doc('government_id', 'approved'), doc('profile_photo', 'approved')]);
+    const { router } = renderPage(
+      [doc('government_id', 'approved'), doc('profile_photo', 'approved')],
+      'active',
+    );
 
     await user.click(await screen.findByRole('button', { name: 'View plan' }));
 
@@ -97,11 +104,14 @@ describe('VerificationStatusPage', () => {
   it('shows Verification Unsuccessful with each rejection reason exactly as written', async () => {
     const blurry = 'Document is blurry or unreadable';
     const expired = 'The certificate expired on 2025-01-01 – please send the renewed one.';
-    renderPage([
-      doc('government_id', 'rejected', blurry),
-      doc('company_registration_certificate', 'rejected', expired),
-      doc('profile_photo', 'approved'),
-    ]);
+    renderPage(
+      [
+        doc('government_id', 'rejected', blurry),
+        doc('company_registration_certificate', 'rejected', expired),
+        doc('profile_photo', 'approved'),
+      ],
+      'unsuccessful',
+    );
 
     expect(await heading('Verification Unsuccessful')).toBeInTheDocument();
     expect(screen.getByText(/could not be approved/)).toBeInTheDocument();
@@ -115,14 +125,17 @@ describe('VerificationStatusPage', () => {
   });
 
   it.each([
-    ['approved + pending', ['approved', 'pending'], 'Your Account is Under Review'],
-    ['pending + rejected', ['pending', 'rejected'], 'Verification Unsuccessful'],
-    ['approved + rejected', ['approved', 'rejected'], 'Verification Unsuccessful'],
-  ])('mixed statuses (%s) give the headline from the latest documents', async (_name, statuses, title) => {
-    renderPage([
-      doc('government_id', statuses[0], statuses[0] === 'rejected' ? 'Wrong document' : null),
-      doc('profile_photo', statuses[1], statuses[1] === 'rejected' ? 'Face not visible' : null),
-    ]);
+    ['approved + pending', ['approved', 'pending'], 'under_review', 'Your Account is Under Review'],
+    ['pending + rejected', ['pending', 'rejected'], 'unsuccessful', 'Verification Unsuccessful'],
+    ['approved + rejected', ['approved', 'rejected'], 'unsuccessful', 'Verification Unsuccessful'],
+  ])('mixed documents (%s) show the API status headline', async (_name, statuses, status, title) => {
+    renderPage(
+      [
+        doc('government_id', statuses[0], statuses[0] === 'rejected' ? 'Wrong document' : null),
+        doc('profile_photo', statuses[1], statuses[1] === 'rejected' ? 'Face not visible' : null),
+      ],
+      status,
+    );
 
     expect(await heading(title)).toBeInTheDocument();
     const badges = { pending: 'Pending', approved: 'Approved', rejected: 'Reject' };
@@ -130,13 +143,25 @@ describe('VerificationStatusPage', () => {
     expect(within(items()[1]).getByText(badges[statuses[1]])).toBeInTheDocument();
   });
 
+  it('takes the headline from the API status, not from the document badges', async () => {
+    // Not a combination the API sends today: it proves the page holds no copy of the rule.
+    renderPage([doc('government_id', 'pending'), doc('profile_photo', 'pending')], 'active');
+
+    expect(await heading('Your Account is Active!')).toBeInTheDocument();
+    expect(within(items()[0]).getByText('Pending')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'View plan' })).toBeInTheDocument();
+  });
+
   it('Resubmit Documents opens Upload Document with only the rejected kinds', async () => {
     const user = userEvent.setup();
-    const { router } = renderPage([
-      doc('government_id', 'approved'),
-      doc('company_registration_certificate', 'pending'),
-      doc('profile_photo', 'rejected', 'Face not visible'),
-    ]);
+    const { router } = renderPage(
+      [
+        doc('government_id', 'approved'),
+        doc('company_registration_certificate', 'pending'),
+        doc('profile_photo', 'rejected', 'Face not visible'),
+      ],
+      'unsuccessful',
+    );
 
     await user.click(await screen.findByRole('button', { name: 'Resubmit Documents' }));
 
@@ -163,7 +188,7 @@ describe('VerificationStatusPage', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Welcome Back!' })).toBeInTheDocument();
     expect(logouts).toHaveLength(1);
     expect(router.state.location.pathname).toBe(AUTH_PATHS.login);
-    expect(store.getState().auth).toEqual({ accessToken: null, user: null });
+    expect(store.getState().auth).toEqual({ accessToken: null, user: null, restoringSession: false });
     expect(store.getState().api.queries).toEqual({});
   });
 

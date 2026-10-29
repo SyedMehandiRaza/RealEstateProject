@@ -81,11 +81,12 @@ describe('baseQueryWithReauth', () => {
     const result = await store.dispatch(testApi.endpoints.me.initiate());
 
     expect(result.error.status).toBe(401);
-    expect(store.getState().auth).toEqual({ accessToken: null, user: null });
+    expect(store.getState().auth).toMatchObject({ accessToken: null, user: null });
   });
 
-  // SPEC-001: these routes are public, so a 401 there is an answer (for example invalidCredentials
-  // or an expired reset token), not an expired access token.
+  // SPEC-001: these routes are public and are called while logged out, so the request carries no
+  // access token and its 401 is an answer (for example invalidCredentials or an expired reset
+  // token), not an expired access token (TASK-049: decided by the request, not by a path list).
   it.each([
     '/auth/login',
     '/auth/sign-up',
@@ -96,15 +97,43 @@ describe('baseQueryWithReauth', () => {
     '/auth/password/resend',
     '/auth/password/reset',
   ])('does not refresh after a 401 from the public %s', async (path) => {
-    server.use(http.post(apiUrl(path), unauthorized));
+    const sentAuthorization = [];
+    server.use(
+      http.post(apiUrl(path), ({ request }) => {
+        sentAuthorization.push(request.headers.get('authorization'));
+        return unauthorized();
+      }),
+    );
     const refreshCalls = mockRefresh();
-    const store = makeStore(preloadedState);
+    const store = makeStore();
 
     const result = await store.dispatch(testApi.endpoints.publicAuthCall.initiate(path));
 
     expect(result.error.status).toBe(401);
+    expect(sentAuthorization).toEqual([null]);
     expect(refreshCalls).toHaveLength(0);
-    expect(store.getState().auth.accessToken).toBe('old-token');
+  });
+
+  it('does not refresh after a 401 from any request sent without an access token', async () => {
+    server.use(meRequiringToken('new-token'));
+    const refreshCalls = mockRefresh();
+    const store = makeStore();
+
+    const result = await store.dispatch(testApi.endpoints.me.initiate());
+
+    expect(result.error.status).toBe(401);
+    expect(refreshCalls).toHaveLength(0);
+    expect(store.getState().auth.accessToken).toBeNull();
+  });
+
+  it('never refreshes again after a 401 from the refresh call itself', async () => {
+    const refreshCalls = mockRefresh(unauthorized);
+    const store = makeStore(preloadedState);
+
+    const result = await store.dispatch(testApi.endpoints.publicAuthCall.initiate('/auth/refresh'));
+
+    expect(result.error.status).toBe(401);
+    expect(refreshCalls).toHaveLength(1);
   });
 
   it('still refreshes and retries after a 401 from an authenticated endpoint', async () => {
@@ -344,7 +373,7 @@ describe('baseQueryWithReauth across tabs (navigator.locks, TASK-046)', () => {
     const result = await store.dispatch(testApi.endpoints.me.initiate());
 
     expect(result.error.status).toBe(401);
-    expect(store.getState().auth).toEqual({ accessToken: null, user: null });
+    expect(store.getState().auth).toMatchObject({ accessToken: null, user: null });
     const release = await fake.holdFromAnotherTab();
     release();
   });
@@ -352,7 +381,7 @@ describe('baseQueryWithReauth across tabs (navigator.locks, TASK-046)', () => {
   it('does not take the lock after a 401 from a public auth route', async () => {
     server.use(http.post(apiUrl('/auth/login'), unauthorized));
     const refreshCalls = mockRefresh();
-    const store = makeStore(preloadedState);
+    const store = makeStore();
 
     const result = await store.dispatch(testApi.endpoints.publicAuthCall.initiate('/auth/login'));
 

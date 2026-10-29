@@ -71,7 +71,11 @@ describe('VerifyEmailPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Select a Country' })).toBeInTheDocument();
     expect(requests).toEqual([{ email: EMAIL, code: '012345' }]);
-    expect(store.getState().auth).toEqual({ accessToken: 'access-token', user: user(['buyer']) });
+    expect(store.getState().auth).toEqual({
+      accessToken: 'access-token',
+      user: user(['buyer']),
+      restoringSession: false,
+    });
   });
 
   it('verifies a Developer and opens Professional info', async () => {

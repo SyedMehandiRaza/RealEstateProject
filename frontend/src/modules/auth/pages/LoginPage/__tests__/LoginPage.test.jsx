@@ -75,7 +75,11 @@ describe('LoginPage', () => {
 
     await waitFor(() => expect(router.state.location.pathname).toBe(AUTH_PATHS.selectCountry));
     expect(requests).toEqual([{ email: EMAIL, password: 'secret123' }]);
-    expect(store.getState().auth).toEqual({ accessToken: 'access-token-1', user: userWith('buyer') });
+    expect(store.getState().auth).toEqual({
+      accessToken: 'access-token-1',
+      user: userWith('buyer'),
+      restoringSession: false,
+    });
     expect(window.localStorage).toHaveLength(0);
     expect(window.sessionStorage).toHaveLength(0);
   });

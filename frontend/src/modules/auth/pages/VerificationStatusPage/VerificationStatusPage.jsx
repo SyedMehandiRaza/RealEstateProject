@@ -11,7 +11,6 @@ import Button from '../../../../components/ui/Button.jsx';
 import UploadedFileCard from '../../../../components/ui/UploadedFileCard.jsx';
 import { baseApi } from '../../../../services/api/baseApi.js';
 import { useGetVerificationQuery, useLogoutMutation } from '../../api/authApi.js';
-import { verificationOutcome } from '../../hooks/verificationOutcome.js';
 import { AUTH_PATHS } from '../../routes.jsx';
 import { loggedOut } from '../../store/authSlice.js';
 import styles from './VerificationStatusPage.module.css';
@@ -23,7 +22,7 @@ const KIND_LABELS = {
   profile_photo: 'Profile Photo',
 };
 
-// Copy per headline, from Figma: Pending 13038:4703, Approved 13038:4765, Reject 13038:4825.
+// Copy per API `status` (GET /auth/me/verification, DEC-035), from Figma: Pending 13038:4703, Approved 13038:4765, Reject 13038:4825.
 const SCREENS = {
   under_review: {
     lead: 'Your Account is ',
@@ -69,8 +68,8 @@ const SCREENS = {
 };
 
 // Developer status screens (Pending / Approved / Reject), one route. Developer only (ProtectedRoute;
-// the API enforces it). The headline comes from the latest document of every required kind
-// (verificationOutcome, DEC-022), and every required document is listed with its badge (2 or 3).
+// the API enforces it). The headline is the API's `status` (the backend owns the rule, DEC-033/035),
+// and every required document is listed with its badge (2 or 3).
 // A required kind with nothing uploaded yet opens Upload Document instead.
 export default function VerificationStatusPage() {
   const navigate = useNavigate();
@@ -111,7 +110,8 @@ export default function VerificationStatusPage() {
     return <Navigate to={AUTH_PATHS.uploadDocuments} replace />;
   }
 
-  const outcome = verificationOutcome(documents);
+  // The three DEC-035 values; anything else is shown as Under Review, the API's own default.
+  const outcome = SCREENS[verification.status] ? verification.status : 'under_review';
   const screen = SCREENS[outcome];
 
   return (
