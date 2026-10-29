@@ -56,7 +56,11 @@ export function createFakeQueueRepository() {
       }
     },
     async findDue(now, limit) {
-      return rows.filter((row) => row.status === 'pending' && row.nextAttemptAt <= now).slice(0, limit);
+      // Oldest due first, like the real repository's ORDER BY next_attempt_at (stable sort keeps insert order).
+      return rows
+        .filter((row) => row.status === 'pending' && row.nextAttemptAt <= now)
+        .sort((a, b) => a.nextAttemptAt - b.nextAttemptAt)
+        .slice(0, limit);
     },
     async remove(id) {
       rows.splice(

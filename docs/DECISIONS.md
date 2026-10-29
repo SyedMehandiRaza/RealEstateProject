@@ -186,3 +186,12 @@ Use one entry per meaningful decision.
 - Retention (for now; legal requirements in UAE, SG, US and UK not checked): rejected or replaced document files deleted 30 days after the decision; approved documents kept while the account exists; expired or revoked sessions purged after 30 days; verification codes 24 hours after expiry; `failed` file deletions removed 30 days after review.
 - Tickets (Q-006, confirmed 2026-10-29 by `/setup-matt-pocock-skills`): local markdown. Tickets stay in `docs/execution/BACKLOG.md` and specs in `docs/execution/specs/`, even though the repo has a GitHub remote. Default triage labels. Conventions in `docs/agents/`.
 - DB fixes applied the same day (draft migrations, not run): binary collations on hashes, UUIDs and Cloudinary ids; `USER_ROLES` moved to `shared/`; `User.scope('withPassword')`; CHECK that Profile Photo is JPG/PNG.
+
+## DEC-023: Backend test harness (TASK-017)
+
+- Status: Accepted (implementing agent, 2026-10-29; reversible)
+- Context: SPEC-001 tests drive the API over HTTP against `real_estate_test` with fake mailer, storage and clock. Unit suites must stay DB-free and fast.
+- Decision: two Jest projects, `unit` (`*.test.js`, parallel) and `integration` (`*.int.test.js`, `--runInBand`); `npm test -w backend` runs both. The integration project migrates once with the real `sequelize-cli` (global setup) and deletes every row of every table before each test, with no per-file code. Three guards refuse a database whose name does not end in `_test`: worker setup, global setup, and the cleanup itself. `createApp({ mailer, storage, clock })` takes production defaults and rejects unknown names or missing methods. Rate limiters live in module-level stores that a shared `beforeEach` resets.
+- Mailer interface (assumed, TASK-018 may refine): `sendVerificationCode({ to, code, purpose })`. Until TASK-018, the default mailer throws.
+- The migration round trip (down to zero, then up) is opt-in (`TEST_MIGRATION_ROUNDTRIP=true`), because it drops every table of the test DB and the agent's tooling does not allow it unattended. The default suite checks that every migration is applied and has `up`/`down`.
+- Alternatives rejected: per-test transactions rolled back (they don't cover code that opens its own transactions, such as user deletion); TRUNCATE (slower than DELETE on near-empty InnoDB tables); an in-process migrator (it would duplicate sequelize-cli).

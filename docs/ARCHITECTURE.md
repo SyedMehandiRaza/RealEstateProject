@@ -55,8 +55,32 @@ E2E: `E2E_WEB_URL`, `E2E_API_URL`, `E2E_WITH_API`.
 
 ## Environments
 
-- Local development: local MySQL; separate `<db>_test` database for tests (Jest setup refuses other names)
+- Local development: local MySQL; separate `<db>_test` database for tests (Jest setup refuses other names; see "Backend tests")
 - Integration/test, Staging, Production: unknown
+
+## Backend tests (TASK-017)
+
+Two Jest projects in `backend/jest.config.js`. `npm test -w backend` (and the root `npm test`) runs both: unit first in parallel, then integration serially (`--runInBand`).
+
+| Project     | Files           | Database                                                                                 |
+| ----------- | --------------- | ---------------------------------------------------------------------------------------- |
+| unit        | `*.test.js`     | none: in-memory fakes from `backend/src/test/` only                                      |
+| integration | `*.int.test.js` | `real_estate_test` (`DB_NAME_TEST`), migrated once per run and emptied before every test |
+
+How to write an integration test:
+
+1. Name the file `<thing>.int.test.js` inside a `__tests__/` folder. Nothing else is needed for the database: `src/test/globalSetup.js` refuses any database whose name does not end in `_test` and runs `sequelize-cli db:migrate`, and `src/test/integrationSetup.js` deletes every row of every table (except `sequelize_meta`/`sequelize_data`) before each test and closes the connection after the file.
+2. Build the app with `createTestApp()` from `src/test/testApp.js`. It returns `{ app, mailer, storage, clock }`: the app built by `createApp({ mailer, storage, clock })` with a fake mailer (`mailer.lastCodeFor(email, purpose?)` reads the code from the "email", `failNextSends(n)` simulates SMTP failures), the in-memory Cloudinary fake (`storage.calls`, `storage.assets`) and a test clock (`clock.advance(ms)`, `clock.set(date)`). Pass any of them to replace one fake.
+3. Drive it with supertest (`request(app).post(...)`), then assert on the response, `mailer.messages`, rows via `models`, and queued file deletions (`models.PendingFileDeletion`).
+
+Rules:
+
+- `createApp()` without arguments uses the real dependencies (`cloudinaryStorage`, `systemClock` from `src/utils/clock.js`, the mailer from TASK-018). An unknown dependency name or one missing a method throws, so a typo cannot fall back to the real service.
+- Services read the time from the injected `clock.now()`, never `new Date()`, so boundaries (9:59 vs 10:00) are testable.
+- Rate limiters are created with `createLimiter` in `middlewares/rateLimiter.js`; every suite resets them in a `beforeEach` (`src/test/setupAfterEnv.js`).
+- Integration files must run serially (they share one database); a parallel run fails with a clear error.
+- A repository with an in-memory fake gets a contract suite run against both (example: `src/test/queueRepositoryContract.js`).
+- The migration round trip (all down, then up) drops every test table, so it is opt-in: `$env:TEST_MIGRATION_ROUNDTRIP='true'; npm run test:integration -w backend`.
 
 ## Architecture constraints
 

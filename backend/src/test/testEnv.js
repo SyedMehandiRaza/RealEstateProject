@@ -1,0 +1,27 @@
+// Test-only environment, shared by jest.setup.js (every test worker) and globalSetup.js (the parent process).
+// Dummy secrets; never real credentials.
+export function applyTestEnv() {
+  process.env.NODE_ENV = 'test';
+  process.env.LOG_LEVEL = 'silent';
+  process.env.CORS_ORIGINS ??= 'http://localhost:5173';
+  process.env.JWT_ACCESS_SECRET ??= 'test-access-secret-at-least-32-characters-long';
+  process.env.JWT_REFRESH_SECRET ??= 'test-refresh-secret-at-least-32-characters-long';
+  process.env.DB_NAME_TEST ??= 'real_estate_test';
+  process.env.CLOUDINARY_CLOUD_NAME ??= 'test-cloud';
+  process.env.CLOUDINARY_API_KEY ??= 'test-key';
+  process.env.CLOUDINARY_API_SECRET ??= 'test-secret';
+  assertTestDatabaseName(process.env.DB_NAME_TEST);
+}
+
+// The only database tests may touch is one whose name ends in "_test". Checked before migrating and before
+// every cleanup, so a misconfigured DB_NAME_TEST can never wipe the dev or production database.
+const TEST_DB_NAME = /^\w+_test$/;
+
+export function assertTestDatabaseName(name) {
+  if (typeof name !== 'string' || !TEST_DB_NAME.test(name)) {
+    throw new Error(
+      `Refusing to run tests against database "${name ?? ''}": its name must end with "_test". ` +
+        'Set DB_NAME_TEST to a dedicated test database such as real_estate_test.',
+    );
+  }
+}
