@@ -51,5 +51,5 @@ Goal (2026-10-29, /chief-of-staff): auth module fully built and tested (API, UI 
 - Done: TASK-017..045 written (to-tickets, 2026-10-29). TASK-017 backend test harness (2026-10-29): unit/integration Jest projects, `createTestApp()` with fake mailer, storage and clock, `_test` guard, per-test cleanup (DEC-023, ARCHITECTURE.md "Backend tests").
 - Next: TASK-018 mailer (implements the `sendVerificationCode({ to, code, purpose })` interface assumed in DEC-023 and replaces the throwing default in `app.js`), then TASK-019 sign up + verify.
 - Unverified: the migration round trip test (opt-in, `$env:TEST_MIGRATION_ROUNDTRIP='true'; npm run test:integration -w backend`) was not run by the agent; the user should run it once.
-- Blockers: Q-034 (post-login routing, blocks TASK-041), Q-035 (Become-a-developer link, Agent tab; blocks TASK-037), Q-036 (missing-document message, blocks TASK-028). Not blocking: Q-033, Q-037 (assumptions in force).
+- Blockers: Q-034 (post-login routing, blocks TASK-041), Q-035 (Become-a-developer link, Agent tab; blocks TASK-037), . Not blocking: Q-033, Q-037 (assumptions in force). User to run once: `$env:TEST_MIGRATION_ROUNDTRIP='true'; npm run test:integration -w backend` (undo:all was blocked for agents).
 - Per ticket: `npm run check` passes, commit with the TASK id, BACKLOG status Done, update this file.
