@@ -1,0 +1,112 @@
+.page {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  min-height: 100vh;
+  padding: var(--space-24);
+  background:
+    var(--gradient-auth-hero),
+    url('../../assets/auth/hero-background.jpg') center / cover no-repeat;
+}
+
+/* Left half: positions are taken from the frame (header at 47/73, tagline top 199 px above the bottom). */
+.hero {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.heroHeader {
+  position: absolute;
+  top: var(--space-73);
+  left: var(--space-47);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: var(--size-auth-hero-header-width);
+  pointer-events: auto;
+}
+
+.brand {
+  margin: 0;
+  color: var(--color-white);
+  font-size: var(--font-size-24);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-white);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.back:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: 4px;
+}
+
+.tagline {
+  position: absolute;
+  top: calc(100% - var(--space-199));
+  left: var(--space-47);
+  width: var(--size-auth-tagline-width);
+  margin: 0;
+  color: var(--color-white);
+  font-size: var(--font-size-30);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}
+
+.card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-auth-card-width);
+  min-height: calc(100vh - 2 * var(--space-24));
+  padding: var(--space-48) 0;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: var(--size-auth-content-width);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  width: var(--size-auth-heading-width);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}
+
+.title {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-size: var(--font-size-24);
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: var(--font-size-14);
+}

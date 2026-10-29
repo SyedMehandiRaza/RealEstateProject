@@ -1,0 +1,62 @@
+.group {
+  display: flex;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.box {
+  position: relative;
+  display: flex;
+  flex: 1 0 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 1px;
+  height: var(--size-control-height);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+}
+
+.box:focus-within {
+  border-color: var(--color-primary-500);
+}
+
+.invalid,
+.invalid:focus-within {
+  border-color: var(--color-error-500);
+}
+
+.input {
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--space-16);
+  border: 0;
+  border-radius: var(--radius-md);
+  outline: none;
+  background: transparent;
+  color: var(--color-text-placeholder);
+  caret-color: transparent;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-20);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-align: center;
+}
+
+/* Figma draws the cursor as a 2 x 36 px bar in the focused empty box. */
+.caret {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: none;
+  width: var(--space-2);
+  height: var(--size-otp-caret-height);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-500);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.input:focus:placeholder-shown + .caret {
+  display: block;
+}
