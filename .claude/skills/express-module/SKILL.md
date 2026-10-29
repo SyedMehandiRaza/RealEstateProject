@@ -24,7 +24,7 @@ Rules: `.claude/rules/backend.md`, `.claude/rules/validation.md`, `.claude/rules
 3. **Unit-test** non-trivial service logic separately (mock the repository/model).
 4. **Refactor** with all tests green.
 5. List endpoints: validated `page`/`pageSize`/sort allow-list/filters, `findAndCountAll` with `limit`/`offset`, `meta` in the response, `include` with explicit `attributes` (no password or hash columns), and no N+1.
-6. Update the module README (Interfaces section) and `docs/execution/STATUS.md`.
+6. Update the module README (Interfaces section) and `docs/execution/<module>/STATUS.md`.
 
 ## Done when
 - [ ] Tests for success, validation (exact messages), auth, not-found and conflict pass

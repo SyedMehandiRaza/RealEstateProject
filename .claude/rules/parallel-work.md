@@ -24,8 +24,17 @@
 - Do not check out the same branch in multiple worktrees at the same time.
 - Worktrees share repository history but have separate working files and uncommitted changes.
 - A commit in one worktree does not automatically update another worktree's files; merge, rebase, or cherry-pick as appropriate.
-- Worktrees do not isolate databases, external services, credentials, or arbitrary filesystem access.
+- Worktrees do not isolate databases, external services, credentials, or arbitrary filesystem access. Module folders get their own databases and ports through `backend/.env` and `.env.worktree` (`docs/execution/README.md`).
 - Avoid multiple agents editing the same file concurrently.
+
+### Naming sub-agent worktrees
+A session that gives a ticket to a sub-agent in its own worktree names the branch and folder after the ticket, so anyone can tell what each one is doing:
+- Branch: `agent/<module>/<TICKET-ID>-<slug>`, for example `agent/property/PROP-004-list-properties`.
+- Folder: `.claude/worktrees/<TICKET-ID>-<slug>`, for example `.claude/worktrees/PROP-004-list-properties`.
+- Create it yourself before starting the sub-agent: `git worktree add -b agent/property/PROP-004-list-properties .claude/worktrees/PROP-004-list-properties feature/property`. Then start the sub-agent **without** the automatic worktree option and tell it the folder's absolute path, that it works and commits only there, and on which branch.
+- If a worktree was created automatically (`worktree-agent-<random>`), rename its branch right away: `git branch -m worktree-agent-<random> agent/<module>/<TICKET-ID>-<slug>`.
+- After its commits are merged or cherry-picked onto the module branch: `git worktree remove .claude/worktrees/<TICKET-ID>-<slug>`. Keep the branch unless the user asks to delete it.
+- One sub-agent per ticket, and never two sub-agents editing the same file at once (shared/, migrations, routes/index.js, models/index.js are done by the module session itself, not by sub-agents in parallel).
 
 ## Completion report
 Each task owner reports: files changed, implementation summary, tests run and results, migration/API changes, assumptions, risks, and remaining work.

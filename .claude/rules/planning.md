@@ -10,5 +10,5 @@ For new features or substantial changes:
 6. Break the work into small tasks with acceptance criteria and verification steps.
 7. Identify which tasks can safely run in parallel and which must be sequential.
 8. Do not block on low-impact details if a reversible, clearly documented assumption is safe; do not assume high-impact business, security, financial, or data-retention rules.
-9. Keep `docs/execution/STATUS.md` current for multi-step work.
+9. Keep `docs/execution/<module>/STATUS.md` (auth: `docs/execution/STATUS.md`) current for multi-step work.
 10. When the user asks for implementation immediately, use judgment: do not create unnecessary planning overhead for small, clear tasks.

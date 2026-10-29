@@ -21,7 +21,7 @@ If any of these files don't exist, **proceed silently**. Don't flag their absenc
     │   ├── README.md
     │   ├── _template/
     │   └── auth/               ← README.md, db.md, figma.md
-    └── execution/              ← BACKLOG.md, QUESTIONS.md, STATUS.md, specs/
+    └── execution/              ← README.md, <module>/ (board, STATUS, tickets/, questions/, decisions/, specs/); auth: BACKLOG.md, QUESTIONS.md
 ```
 
 ## Use the glossary's vocabulary
