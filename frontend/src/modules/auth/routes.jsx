@@ -1,5 +1,7 @@
 import ProtectedRoute from '../../components/routing/ProtectedRoute.jsx';
 import AuthPlaceholderPage from './pages/AuthPlaceholderPage/AuthPlaceholderPage.jsx';
+import SignUpPage from './pages/SignUpPage/SignUpPage.jsx';
+import VerifyEmailPage from './pages/VerifyEmailPage/VerifyEmailPage.jsx';
 
 // Frontend routes of the auth module (also listed in the Route column of docs/modules/auth/figma.md).
 export const AUTH_PATHS = {
@@ -19,8 +21,8 @@ const placeholder = (title) => <AuthPlaceholderPage title={title} />;
 
 export const authRoutes = [
   { path: AUTH_PATHS.login, element: placeholder('Welcome Back!') },
-  { path: AUTH_PATHS.signUp, element: placeholder('Create Your Account') },
-  { path: AUTH_PATHS.verifyEmail, element: placeholder('Verify Your Account') },
+  { path: AUTH_PATHS.signUp, element: <SignUpPage /> },
+  { path: AUTH_PATHS.verifyEmail, element: <VerifyEmailPage /> },
   { path: AUTH_PATHS.forgotPassword, element: placeholder('Forgot Password') },
   { path: AUTH_PATHS.verifyResetCode, element: placeholder('Verify Your Account') },
   { path: AUTH_PATHS.resetPassword, element: placeholder('Reset Password') },

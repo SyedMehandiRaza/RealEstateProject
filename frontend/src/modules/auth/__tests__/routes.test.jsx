@@ -13,13 +13,19 @@ describe('auth routes', () => {
   it.each([
     [AUTH_PATHS.login, 'Welcome Back!'],
     [AUTH_PATHS.signUp, 'Create Your Account'],
-    [AUTH_PATHS.verifyEmail, 'Verify Your Account'],
     [AUTH_PATHS.forgotPassword, 'Forgot Password'],
     [AUTH_PATHS.verifyResetCode, 'Verify Your Account'],
     [AUTH_PATHS.resetPassword, 'Reset Password'],
-  ])('public route %s resolves to its placeholder page', async (path, title) => {
+  ])('public route %s resolves to its page', async (path, title) => {
     renderWithProviders(routes, { initialEntries: [path] });
     expect(await heading(title)).toBeInTheDocument();
+  });
+
+  it('Verify email resolves when the email comes in the router state', async () => {
+    renderWithProviders(routes, {
+      initialEntries: [{ pathname: AUTH_PATHS.verifyEmail, state: { email: 'new.buyer@example.test' } }],
+    });
+    expect(await heading('Verify Your Account')).toBeInTheDocument();
   });
 
   it('Select a country is for buyers', async () => {
