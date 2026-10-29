@@ -5,7 +5,8 @@ const unwrap = (response) => response.data;
 
 // Auth endpoints (SPEC-001, all under /api/auth). Each page ticket adds its own endpoints here:
 // login (TASK-033), signUp / verifyEmail / resendVerification (TASK-034), the password reset
-// endpoints (TASK-036), selectCountry (TASK-035), saveProfessionalProfile (TASK-038), ...
+// endpoints (TASK-036), selectCountry (TASK-035), saveProfessionalProfile (TASK-038),
+// getVerification / submitDocuments (TASK-039), ...
 export const authApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     // loginSchema body -> 200 { accessToken, user } plus the refresh cookie;
@@ -62,6 +63,31 @@ export const authApi = baseApi.injectEndpoints({
       query: (body) => ({ url: '/auth/me/professional-profile', method: 'PUT', body }),
       transformResponse: unwrap,
     }),
+    // GET -> 200 { status, documents } (Developer only, 403 otherwise). `documents` holds one entry per
+    // required kind (2 for an Individual, 3 for a Company, DEC-022) with the latest document's status.
+    // Assumed entry shape until TASK-030 lands: { documentKind, status: null | DOCUMENT_STATUSES, rejectionReason }.
+    getVerification: build.query({
+      query: () => '/auth/me/verification',
+      transformResponse: unwrap,
+    }),
+    // FormData (one file part per document kind, named after the kind, plus idDocumentType) ->
+    // 201 { verification }. 422 per file under fields["documents.<kind>.<field>"]; 409 CONFLICT for a
+    // kind whose latest document is pending or approved. The new status replaces the cached GET.
+    submitDocuments: build.mutation({
+      query: (formData) => ({ url: '/auth/me/documents', method: 'POST', body: formData }),
+      transformResponse: unwrap,
+      async onQueryStarted(_formData, { dispatch, queryFulfilled }) {
+        let data;
+        try {
+          ({ data } = await queryFulfilled);
+        } catch {
+          return; // The page shows the failure from the mutation result.
+        }
+        if (data?.verification) {
+          dispatch(authApi.util.upsertQueryData('getVerification', undefined, data.verification));
+        }
+      },
+    }),
   }),
 });
 
@@ -76,4 +102,6 @@ export const {
   useResetPasswordMutation,
   useSelectCountryMutation,
   useSaveProfessionalProfileMutation,
+  useGetVerificationQuery,
+  useSubmitDocumentsMutation,
 } = authApi;

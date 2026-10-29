@@ -1,0 +1,24 @@
+/* Figma 13038:4595: label, type Select and dropzone (or file card) are 8 apart. */
+.slot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+/* 13038:4607: 14 px regular in the heading colour, as the Select label. */
+.label {
+  color: var(--color-text-heading);
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+/* No error state in Figma: same colour and size as FileDropzone's message. */
+.error {
+  margin: 0;
+  color: var(--color-error-500);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}

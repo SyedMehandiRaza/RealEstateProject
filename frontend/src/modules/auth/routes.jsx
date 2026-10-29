@@ -6,6 +6,7 @@ import ProfessionalInfoPage from './pages/ProfessionalInfoPage/ProfessionalInfoP
 import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage.jsx';
 import SelectCountryPage from './pages/SelectCountryPage/SelectCountryPage.jsx';
 import SignUpPage from './pages/SignUpPage/SignUpPage.jsx';
+import UploadDocumentsPage from './pages/UploadDocumentsPage/UploadDocumentsPage.jsx';
 import VerifyEmailPage from './pages/VerifyEmailPage/VerifyEmailPage.jsx';
 import VerifyResetCodePage from './pages/VerifyResetCodePage/VerifyResetCodePage.jsx';
 
@@ -40,7 +41,7 @@ export const authRoutes = [
     element: <ProtectedRoute roles={['developer']} />,
     children: [
       { path: AUTH_PATHS.professionalInfo, element: <ProfessionalInfoPage /> },
-      { path: AUTH_PATHS.uploadDocuments, element: placeholder('Upload Document') },
+      { path: AUTH_PATHS.uploadDocuments, element: <UploadDocumentsPage /> },
       { path: AUTH_PATHS.verificationStatus, element: placeholder('Verification status') },
     ],
   },

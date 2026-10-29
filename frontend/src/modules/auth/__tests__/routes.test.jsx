@@ -1,6 +1,8 @@
 import { screen } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 import { routes } from '../../../app/routes.jsx';
 import { renderWithProviders } from '../../../test/renderWithProviders.jsx';
+import { apiUrl, server } from '../../../test/server.js';
 import { AUTH_PATHS } from '../routes.jsx';
 import { authApi } from '../api/authApi.js';
 import { baseApi } from '../../../services/api/baseApi.js';
@@ -58,9 +60,20 @@ describe('auth routes', () => {
 
   it.each([
     [AUTH_PATHS.professionalInfo, 'Professional Information'],
-    [AUTH_PATHS.uploadDocuments, 'Upload Document'],
+    [AUTH_PATHS.uploadDocuments, 'Upload Documents'],
     [AUTH_PATHS.verificationStatus, 'Verification status'],
   ])('developer route %s resolves for a developer', async (path, title) => {
+    server.use(
+      http.get(apiUrl('/auth/me/verification'), () =>
+        HttpResponse.json({
+          success: true,
+          data: {
+            status: 'under_review',
+            documents: [{ documentKind: 'government_id', status: null, rejectionReason: null }],
+          },
+        }),
+      ),
+    );
     renderWithProviders(routes, { initialEntries: [path], preloadedState: loggedIn('developer') });
     expect(await heading(title)).toBeInTheDocument();
   });
