@@ -2,6 +2,7 @@ import request from 'supertest';
 import { ERROR_CODES } from '@real-estate/shared';
 import { createApp } from '../app.js';
 import { cloudinaryStorage } from '../modules/files/cloudinary.storage.js';
+import { smtpMailer } from '../modules/mail/smtp.mailer.js';
 import { createFakeMailer } from '../test/fakeMailer.js';
 import { createTestApp } from '../test/testApp.js';
 import { systemClock } from '../utils/clock.js';
@@ -38,11 +39,11 @@ describe('app', () => {
 });
 
 describe('createApp dependencies', () => {
-  it('defaults to the real storage and clock when nothing is injected', () => {
+  it('defaults to the real mailer, storage and clock when nothing is injected', () => {
     const { dependencies } = createApp().locals;
     expect(dependencies.storage).toBe(cloudinaryStorage);
     expect(dependencies.clock).toBe(systemClock);
-    expect(typeof dependencies.mailer.sendVerificationCode).toBe('function');
+    expect(dependencies.mailer).toBe(smtpMailer);
   });
 
   it('uses the injected fakes', () => {

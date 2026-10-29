@@ -10,6 +10,13 @@ export function applyTestEnv() {
   process.env.CLOUDINARY_CLOUD_NAME ??= 'test-cloud';
   process.env.CLOUDINARY_API_KEY ??= 'test-key';
   process.env.CLOUDINARY_API_SECRET ??= 'test-secret';
+  // The real SMTP mailer refuses to send when NODE_ENV=test, so these never reach a server.
+  process.env.SMTP_SERVICE_HOST ??= 'smtp.invalid';
+  process.env.SMTP_SERVICE_PORT ??= '465';
+  process.env.SMTP_USER_NAME ??= 'test-mailer@example.com';
+  process.env.SMTP_USER_PASSWORD ??= 'test-smtp-password';
+  process.env.MAIL_FROM ??= 'Real Estate <no-reply@example.com>';
+  process.env.VERIFICATION_CODE_SECRET ??= 'test-verification-code-secret-at-least-32-chars';
   assertTestDatabaseName(process.env.DB_NAME_TEST);
 }
 

@@ -9,3 +9,5 @@
 - 2026-10-29 (TASK-017): the auto-mode classifier blocks `sequelize-cli db:migrate:undo:all`, even on `real_estate_test`. The migration round trip test is opt-in (`TEST_MIGRATION_ROUNDTRIP=true`) for the user to run.
 - 2026-10-29 (TASK-017): the fake queue repository makes new rows due at epoch 0, but MySQL makes them due at insert time (wall clock). An integration test whose clock is behind real time will not see freshly queued files as due.
 - 2026-10-29 (TASK-017): DATETIME columns have no fractional seconds and MySQL rounds them, so compare stored times in whole seconds.
+- 2026-10-29 (TASK-018): nodemon from a dev server that is already running restarts on every save under `backend/src`, so a probe of `/api/health` can hit that server instead of yours. Check who owns port 5000 (`Get-NetTCPConnection -LocalPort 5000`) before stopping anything, and never kill processes you did not start.
+- 2026-10-29 (TASK-018): the default `smtpMailer` throws under `NODE_ENV=test`. A test that sends mail must use `createTestApp()` or inject a fake mailer.

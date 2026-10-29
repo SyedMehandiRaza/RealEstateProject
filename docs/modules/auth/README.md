@@ -39,7 +39,7 @@ Sign up, verify email, log in, recover a password, and onboard professionals. Us
 ## Interfaces
 
 - API contract: `docs/execution/specs/SPEC-001-auth-api.md` (ready-for-agent). Validation: shared auth schemas (see `db.md`). Assumed so far: `POST /api/auth/refresh` returns `{ data: { accessToken, user } }` (ARCHITECTURE.md).
-- Env vars (new, names only): `SMTP_SERVICE_HOST`, `SMTP_SERVICE_PORT`, `SMTP_USER_NAME`, `SMTP_USER_PASSWORD`, `MAIL_FROM`; Cloudinary credentials (proposed `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, Q-030); plus a code-hashing secret (name TBD, Q-009).
+- Env vars (names only, validated in `backend/src/config/env.js`): `SMTP_SERVICE_HOST`, `SMTP_SERVICE_PORT`, `SMTP_USER_NAME`, `SMTP_USER_PASSWORD`, `MAIL_FROM`, `VERIFICATION_CODE_SECRET` (Q-009, DEC-021); Cloudinary `CERTIFICATE_STORAGE`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (Q-030).
 
 ## UI/design references
 
@@ -47,7 +47,7 @@ Sign up, verify email, log in, recover a password, and onboard professionals. Us
 
 ## Dependencies
 
-- A mailer service (nodemailer, port 465, secure). Not built yet.
+- Mailer `backend/src/modules/mail/smtp.mailer.js`: `sendVerificationCode({ to, code, purpose })`, nodemailer over SMTP port 465, secure (DEC-024). Built 2026-10-29 (TASK-018).
 - Cloudinary file services in `backend/src/modules/files/` (upload with compensation, deletion outbox and worker, daily orphan cleanup, DEC-018). Built 2026-10-29; signed delivery URLs are not built yet.
 
 ## Acceptance criteria

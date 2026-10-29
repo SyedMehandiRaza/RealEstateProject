@@ -49,7 +49,7 @@ Access token in the JSON response, then in Redux memory and the `Authorization: 
 
 ## Environment variables (names only)
 
-Backend (`backend/env.example`): `NODE_ENV`, `PORT`, `LOG_LEVEL`, `CORS_ORIGINS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_NAME_TEST`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`, `CERTIFICATE_STORAGE` (only `cloudinary`), `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`. Planned for the mailer (not validated yet): `SMTP_SERVICE_HOST`, `SMTP_SERVICE_PORT`, `SMTP_USER_NAME`, `SMTP_USER_PASSWORD`, `MAIL_FROM`.
+Backend (`backend/env.example`): `NODE_ENV`, `PORT`, `LOG_LEVEL`, `CORS_ORIGINS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_NAME_TEST`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`, `CERTIFICATE_STORAGE` (only `cloudinary`), `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `SMTP_SERVICE_HOST`, `SMTP_SERVICE_PORT` (only 465), `SMTP_USER_NAME`, `SMTP_USER_PASSWORD`, `MAIL_FROM`, `VERIFICATION_CODE_SECRET` (32+ characters, not equal to a JWT secret). All are validated at startup by `parseEnv` in `backend/src/config/env.js`; the error names the variable, never the value.
 Frontend (`frontend/env.example`): `VITE_API_URL`.
 E2E: `E2E_WEB_URL`, `E2E_API_URL`, `E2E_WITH_API`.
 
@@ -75,7 +75,7 @@ How to write an integration test:
 
 Rules:
 
-- `createApp()` without arguments uses the real dependencies (`cloudinaryStorage`, `systemClock` from `src/utils/clock.js`, the mailer from TASK-018). An unknown dependency name or one missing a method throws, so a typo cannot fall back to the real service.
+- `createApp()` without arguments uses the real dependencies (`cloudinaryStorage`, `systemClock` from `src/utils/clock.js`, `smtpMailer` from `src/modules/mail/smtp.mailer.js`, DEC-024). Under `NODE_ENV=test` the real mailer refuses to send. An unknown dependency name or one missing a method throws, so a typo cannot fall back to the real service.
 - Services read the time from the injected `clock.now()`, never `new Date()`, so boundaries (9:59 vs 10:00) are testable.
 - Rate limiters are created with `createLimiter` in `middlewares/rateLimiter.js`; every suite resets them in a `beforeEach` (`src/test/setupAfterEnv.js`).
 - Integration files must run serially (they share one database); a parallel run fails with a clear error.

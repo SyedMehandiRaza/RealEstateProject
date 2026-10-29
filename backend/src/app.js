@@ -7,16 +7,10 @@ import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { systemClock } from './utils/clock.js';
 import { cloudinaryStorage } from './modules/files/cloudinary.storage.js';
+import { smtpMailer } from './modules/mail/smtp.mailer.js';
 import { createApiRouter } from './routes/index.js';
 import { notFound } from './middlewares/notFound.js';
 import { errorHandler } from './middlewares/errorHandler.js';
-
-// Placeholder until the nodemailer mailer exists (TASK-018 replaces it). No route sends mail yet.
-const unconfiguredMailer = {
-  async sendVerificationCode() {
-    throw new Error('Mailer is not configured yet (TASK-018)');
-  },
-};
 
 // The external dependencies createApp accepts, and the methods each must implement.
 const DEPENDENCY_METHODS = {
@@ -45,7 +39,7 @@ function assertDependencies(overrides) {
 export function createApp(overrides = {}) {
   assertDependencies(overrides);
   const dependencies = Object.freeze({
-    mailer: unconfiguredMailer,
+    mailer: smtpMailer,
     storage: cloudinaryStorage,
     clock: systemClock,
     ...overrides,

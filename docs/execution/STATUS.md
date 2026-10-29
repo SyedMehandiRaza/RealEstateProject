@@ -40,7 +40,7 @@ Goal (2026-10-29, /chief-of-staff): auth module fully built and tested (API, UI 
 ## Risks and assumptions
 
 - Auth DB draft: 19 of 24 field-inventory rows are ASSUMED (required-ness not shown in Figma). MySQL 8.0.16+ is required (DEC-020). The migrations run on MySQL 8.4.9 (up and down).
-- The API now fails fast without `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` and `CLOUDINARY_API_SECRET` in `backend/.env`.
+- The API now fails fast without `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` and `CLOUDINARY_API_SECRET` in `backend/.env`, and (TASK-018) without `SMTP_SERVICE_HOST`, `SMTP_SERVICE_PORT` (465), `SMTP_USER_NAME`, `SMTP_USER_PASSWORD`, `MAIL_FROM` and `VERIFICATION_CODE_SECRET`. The local `.env` has them all (startup checked 2026-10-29). No real email has been sent yet.
 - File jobs run inside every API instance; there is no row locking yet (TASK-015).
 - The refresh endpoint contract (`POST /api/auth/refresh` returns `{ data: { accessToken, user } }`) is assumed in `frontend/src/services/api/baseApi.js`; confirm it in the auth spec.
 - Env templates are named `env.example` (not `.env.example`) because the project's deny rule on `.env.*` files also blocks the example file.
@@ -49,7 +49,8 @@ Goal (2026-10-29, /chief-of-staff): auth module fully built and tested (API, UI 
 ## Next actions
 
 - Done: TASK-017..045 written (to-tickets, 2026-10-29). TASK-017 backend test harness (2026-10-29): unit/integration Jest projects, `createTestApp()` with fake mailer, storage and clock, `_test` guard, per-test cleanup (DEC-023, ARCHITECTURE.md "Backend tests").
-- Next: TASK-018 mailer (implements the `sendVerificationCode({ to, code, purpose })` interface assumed in DEC-023 and replaces the throwing default in `app.js`), then TASK-019 sign up + verify.
+- Done: TASK-018 mailer (2026-10-29, DEC-024): `smtpMailer` (nodemailer, 465, secure) is the `createApp` default; SMTP, `MAIL_FROM` and `VERIFICATION_CODE_SECRET` validated at startup by `parseEnv`.
+- Next: TASK-019 sign up + verify.
 - Unverified: the migration round trip test (opt-in, `$env:TEST_MIGRATION_ROUNDTRIP='true'; npm run test:integration -w backend`) was not run by the agent; the user should run it once.
 - Blockers: Q-034 (post-login routing, blocks TASK-041), Q-035 (Become-a-developer link, Agent tab; blocks TASK-037). Not blocking: Q-033, Q-037 (assumptions in force). User to run once: `$env:TEST_MIGRATION_ROUNDTRIP='true'; npm run test:integration -w backend` (undo:all was blocked for agents).
 - Per ticket: `npm run check` passes, commit with the TASK id, BACKLOG status Done, update this file.
