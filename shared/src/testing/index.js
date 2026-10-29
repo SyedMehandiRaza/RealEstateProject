@@ -3,6 +3,7 @@ export {
   forgotPasswordCases,
   loginCases,
   resendCodeCases,
+  resetPasswordCases,
   signUpCases,
   verifyCodeCases,
 } from './authValidationCases.js';

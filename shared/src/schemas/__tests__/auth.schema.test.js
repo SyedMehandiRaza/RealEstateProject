@@ -17,6 +17,7 @@ import {
   forgotPasswordCases,
   loginCases,
   resendCodeCases,
+  resetPasswordCases,
   signUpCases,
   verifyCodeCases,
 } from '../../testing/index.js';
@@ -128,6 +129,16 @@ describe('resetPasswordSchema', () => {
     expect(errorsOf(resetPasswordSchema, { ...valid, resetToken }).resetToken).toEqual([
       m.resetToken.required,
     ]);
+  });
+
+  it('accepts the shared valid case', () => {
+    expect(resetPasswordSchema.parse(resetPasswordCases.valid)).toEqual(resetPasswordCases.valid);
+  });
+
+  it.each(resetPasswordCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(resetPasswordSchema, { ...resetPasswordCases.valid, ...input })[field]).toContain(
+      message,
+    );
   });
 
   it('applies the new-password policy and the match rule', () => {

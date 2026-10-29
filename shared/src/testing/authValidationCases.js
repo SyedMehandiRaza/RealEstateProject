@@ -144,3 +144,30 @@ export const loginCases = {
     },
   ],
 };
+
+// Reset password: a reset token plus a new password typed twice, under the sign-up password policy.
+// A missing token is a validation error; a refused one (invalid, expired, used) is the API's 401.
+export const resetPasswordCases = {
+  valid: { resetToken: 'signed.reset.token', password: 'newpass12', confirmPassword: 'newpass12' },
+  invalid: [
+    fieldCase('resetToken', undefined, m.resetToken.required),
+    fieldCase('resetToken', '', m.resetToken.required),
+    fieldCase('resetToken', '   ', m.resetToken.required),
+    fieldCase('resetToken', 42, m.resetToken.required),
+    passwordCase(undefined, m.password.required),
+    passwordCase('', m.password.required),
+    passwordCase('abc1234', m.password.min),
+    passwordCase(`${'a'.repeat(L.password.max)}1`, m.password.max),
+    passwordCase('12345678', m.password.letter),
+    passwordCase('abcdefgh', m.password.digit),
+    fieldCase('confirmPassword', undefined, m.confirmPassword.required),
+    fieldCase('confirmPassword', '', m.confirmPassword.required),
+    { ...fieldCase('confirmPassword', 'newpass13', m.confirmPassword.mismatch), name: 'passwords differ' },
+    {
+      name: 'unknown field',
+      input: { email: 'sara@example.com' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};

@@ -4,6 +4,7 @@ import {
   forgotPasswordCases,
   loginCases,
   resendCodeCases,
+  resetPasswordCases,
   signUpCases,
   verifyCodeCases,
 } from '@real-estate/shared/testing';
@@ -21,6 +22,7 @@ const ROUTES = [
   ['POST /api/auth/password/forgot', '/api/auth/password/forgot', forgotPasswordCases],
   ['POST /api/auth/password/resend', '/api/auth/password/resend', resendCodeCases],
   ['POST /api/auth/password/verify', '/api/auth/password/verify', verifyCodeCases],
+  ['POST /api/auth/password/reset', '/api/auth/password/reset', resetPasswordCases],
 ];
 
 describe.each(ROUTES)('%s rejects invalid input with the shared messages', (_name, path, cases) => {
@@ -56,6 +58,7 @@ describe('per-IP auth limiter', () => {
       ['/api/auth/password/forgot', forgotPasswordCases.valid],
       ['/api/auth/password/resend', resendCodeCases.valid],
       ['/api/auth/password/verify', verifyCodeCases.valid],
+      ['/api/auth/password/reset', resetPasswordCases.valid],
     ];
     const passwordAnswers = [];
     for (const [path, body] of passwordRoutes) passwordAnswers.push(await request(app).post(path).send(body));

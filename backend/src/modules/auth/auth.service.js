@@ -10,6 +10,9 @@ import { CODE_CHECK, CODE_PURPOSES, ResendRefusedError } from './verificationCod
 const invalidCredentials = () =>
   new AppError('UNAUTHORIZED', { message: authMessages.api.invalidCredentials });
 
+// Every refused reset token (invalid, expired, used, or its Account gone) answers the same (SPEC-001).
+const resetTokenRefused = () => new AppError('UNAUTHORIZED', { message: authMessages.resetToken.required });
+
 const CODE_ERRORS = {
   [CODE_CHECK.invalid]: authMessages.api.codeInvalid,
   [CODE_CHECK.tooManyAttempts]: authMessages.api.codeTooManyAttempts,
@@ -192,7 +195,7 @@ export function createAuthService({
 
     // Accepts the newest password_reset code and returns a reset token (10 min) bound to the Account's
     // current password hash. Wrong, expired, used or dead codes and unknown emails answer as on
-    // verify-email. No session starts and the email is not marked verified; the reset is TASK-024.
+    // verify-email. No session starts and the email is not marked verified; resetPassword uses the token.
     async verifyPasswordReset({ email, code }) {
       // A wrong guess is stored even though the request fails: the outcome leaves the transaction as a
       // value and the error is thrown after the commit.
@@ -211,6 +214,29 @@ export function createAuthService({
       }
       const { id: userId, passwordHash } = outcome.user;
       return { resetToken: resetTokens.issue({ userId, passwordHash }) };
+    },
+
+    // Sets a new password with a reset token and revokes every refresh token of the Account, so every
+    // device is logged out. The token is bound to the password hash it was issued for, so once the hash
+    // changes it is refused: single-use. The Account row is locked while the hash is checked and
+    // replaced, so two resets with one token cannot both pass. Access tokens already issued stay valid
+    // until they expire (they are not stored). Refused tokens → 401 with resetToken.required.
+    async resetPassword({ resetToken, password }) {
+      const claims = resetTokens.read(resetToken);
+      if (!claims) throw resetTokenRefused();
+      // Hashed before the transaction, so the row lock is not held during bcrypt.
+      const passwordHash = await hashPassword(password);
+
+      const changed = await sequelize.transaction(async (transaction) => {
+        const user = await repository.lockUserWithPasswordById(claims.userId, { transaction });
+        if (!user || !resetTokens.matchesPassword(claims, user.passwordHash)) return false;
+        await user.update({ passwordHash }, { transaction });
+        await sessions.revokeAll(user.id, { transaction });
+        return true;
+      });
+
+      if (!changed) throw resetTokenRefused();
+      return { message: authMessages.api.passwordChanged };
     },
 
     // The signed-in Account. One deleted since its access token was issued is no longer signed in.

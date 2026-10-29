@@ -33,6 +33,11 @@ export function createAuthController(authService) {
       sendSuccess(res, await authService.verifyPasswordReset(req.validated.body));
     },
 
+    // No session starts: the client goes to Log in with the returned message.
+    async resetPassword(req, res) {
+      sendSuccess(res, await authService.resetPassword(req.validated.body));
+    },
+
     async login(req, res) {
       startSession(res, await authService.login(req.validated.body));
     },

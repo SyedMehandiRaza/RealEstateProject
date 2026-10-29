@@ -3,6 +3,7 @@ import {
   forgotPasswordSchema,
   loginSchema,
   resendCodeSchema,
+  resetPasswordSchema,
   signUpSchema,
   verifyCodeSchema,
 } from '@real-estate/shared';
@@ -40,6 +41,12 @@ export function createAuthRoutes(controller) {
     authRateLimiter,
     validate({ body: verifyCodeSchema }),
     controller.verifyPasswordReset,
+  );
+  router.post(
+    '/password/reset',
+    authRateLimiter,
+    validate({ body: resetPasswordSchema }),
+    controller.resetPassword,
   );
 
   // Refresh-cookie routes. Not public, so not behind the per-IP limiter, which every page load's refresh

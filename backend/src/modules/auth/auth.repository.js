@@ -19,6 +19,12 @@ export function createAuthRepository(models) {
       return User.scope('withPassword').findOne({ where: { email }, transaction });
     },
 
+    // Password reset only: the Account with its password hash, locked FOR UPDATE until the transaction
+    // ends, so two resets with one token run in turn and the second sees the new hash.
+    lockUserWithPasswordById(id, { transaction }) {
+      return User.scope('withPassword').findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
+    },
+
     findUserById(id, { transaction } = {}) {
       return User.findByPk(id, { include: [withRoles], transaction });
     },

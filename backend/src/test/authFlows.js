@@ -74,3 +74,18 @@ export function resendPasswordReset(app, email) {
 export function verifyPasswordReset(app, { email, code }) {
   return request(app).post(VERIFY_PASSWORD_RESET).send({ email, code });
 }
+
+export const RESET_PASSWORD = '/api/auth/password/reset';
+
+// Asks for a password_reset code and verifies it. Returns the reset token. The resend cooldown is per
+// purpose, so a second call for one Account needs `clock.advance(60 * 1000)` first.
+export async function obtainResetToken(app, mailer, email) {
+  await forgotPassword(app, email);
+  const res = await verifyPasswordReset(app, { email, code: mailer.lastCodeFor(email, 'password_reset') });
+  return res.body.data.resetToken;
+}
+
+// Sets a new password with a reset token (confirmPassword defaults to the same password). Returns the response.
+export function resetPassword(app, { resetToken, password, confirmPassword = password }) {
+  return request(app).post(RESET_PASSWORD).send({ resetToken, password, confirmPassword });
+}
