@@ -73,6 +73,25 @@ test.describe('Password reset', () => {
     });
     expect(mail.ok()).toBe(false);
   });
+
+  // TASK-054 (Q-044, DEC-041): 3 dead reset codes in 24 h pause new ones; the page shows the 429 as returned.
+  test('after 3 dead reset codes, Forgot Password shows the shared pause message and no code is sent', async ({
+    page,
+    request,
+    harness,
+  }) => {
+    const buyer = await harness.seedBuyer({ deadResetCodes: 3 });
+    const forgot = new ForgotPasswordPage(page);
+    await forgot.goto();
+    await forgot.requestCode(buyer.email);
+
+    await expect(forgot.alert).toHaveText(m.api.resetCodesPaused);
+    await expect(page).toHaveURL('/forgot-password');
+    const mail = await request.get('/api/__e2e/mail/latest', {
+      params: { email: buyer.email, purpose: 'password_reset' },
+    });
+    expect(mail.ok()).toBe(false);
+  });
 });
 
 test.describe('Validation parity', () => {

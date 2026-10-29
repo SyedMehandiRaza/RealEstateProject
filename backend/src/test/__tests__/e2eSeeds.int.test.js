@@ -1,7 +1,7 @@
 import request from 'supertest';
-import { ERROR_CODES } from '@real-estate/shared';
+import { authMessages, ERROR_CODES } from '@real-estate/shared';
 import models, { sequelize } from '../../models/index.js';
-import { getVerification, logIn } from '../authFlows.js';
+import { forgotPassword, getVerification, logIn } from '../authFlows.js';
 import { createE2eApp } from '../e2eApp.js';
 import { E2E_BASE_PATH } from '../e2eMode.js';
 import { SeedError, seedAccount, setDocumentReview } from '../e2eSeeds.js';
@@ -96,6 +96,18 @@ describe('e2e seed fixtures', () => {
       seed({ role: 'developer', documents: { company_registration_certificate: 'pending' } }),
     ).rejects.toThrow(/not required for a individual developer/);
     await expect(seed({ role: 'developer', documents: 'lost' })).rejects.toThrow(/unknown status/);
+    await expect(seed({ deadResetCodes: 4 })).rejects.toThrow(/deadResetCodes must be/);
+    await expect(seed({ deadResetCodes: '3' })).rejects.toThrow(/deadResetCodes must be/);
+  });
+
+  it('seeds dead password_reset codes that pause new reset codes (TASK-054)', async () => {
+    const buyer = await seed({ deadResetCodes: 3 });
+    const res = await forgotPassword(app, buyer.email);
+    expect(res.status).toBe(429);
+    expect(res.body.error.message).toBe(authMessages.api.resetCodesPaused);
+
+    const two = await seed({ deadResetCodes: 2 });
+    expect((await forgotPassword(app, two.email)).status).toBe(200);
   });
 
   describe('setDocumentReview', () => {

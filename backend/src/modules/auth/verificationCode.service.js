@@ -24,9 +24,16 @@ export const RESEND_COOLDOWN_MS = 60 * 1000;
 export const MAX_CODES_PER_HOUR = 5;
 const HOUR_MS = 60 * 60 * 1000;
 
-// Thrown by issue() when the resend rules refuse a new code: 429 TOO_MANY_REQUESTS with resendTooSoon(n)
-// or resendLimit. Nothing was written, so the caller's transaction is unharmed; a caller that sends a
-// code only if the rules allow (log in of an unverified Account, TASK-021) catches this class.
+// Reset guessing cap (Q-044, DEC-041), password_reset only: once 3 dead codes (MAX_ATTEMPTS wrong
+// guesses each) were created within 24 h of each other, no new reset code until 24 h after the newest of
+// them was created. A code can only be guessed in its 10 minutes, so it dies within 10 min of created_at.
+export const DEAD_RESET_CODES_CAP = 3;
+export const RESET_PAUSE_MS = 24 * HOUR_MS;
+
+// Thrown by issue() when the resend rules refuse a new code: 429 TOO_MANY_REQUESTS with resendTooSoon(n),
+// resendLimit or resetCodesPaused. Nothing was written, so the caller's transaction is unharmed; a
+// caller that sends a code only if the rules allow (log in of an unverified Account, TASK-021) catches
+// this class.
 export class ResendRefusedError extends AppError {
   constructor(message) {
     super('TOO_MANY_REQUESTS', { message });
@@ -58,6 +65,32 @@ export function isSameCode(code, storedHash, secret) {
 export function createVerificationCodeService({ models, clock, secret, random = crypto.randomInt }) {
   const { VerificationCode } = models;
 
+  // True while the reset guessing cap is in force: some DEAD_RESET_CODES_CAP consecutive dead
+  // password_reset codes span less than 24 h and the newest of them is less than 24 h old. Only codes
+  // created in the last 48 h can matter. Wrong guesses below MAX_ATTEMPTS do not count.
+  async function resetCodesPaused({ userId, now, transaction }) {
+    const dead = await VerificationCode.findAll({
+      attributes: ['createdAt'],
+      where: {
+        userId,
+        purpose: CODE_PURPOSES.passwordReset,
+        attempts: { [Op.gte]: MAX_ATTEMPTS },
+        createdAt: { [Op.gt]: new Date(now.getTime() - 2 * RESET_PAUSE_MS) },
+      },
+      order: [
+        ['createdAt', 'ASC'],
+        ['id', 'ASC'],
+      ],
+      transaction,
+    });
+    return dead.some((code, i) => {
+      if (i < DEAD_RESET_CODES_CAP - 1) return false;
+      const newest = code.createdAt.getTime();
+      const oldest = dead[i - DEAD_RESET_CODES_CAP + 1].createdAt.getTime();
+      return newest - oldest < RESET_PAUSE_MS && now.getTime() < newest + RESET_PAUSE_MS;
+    });
+  }
+
   return {
     // Stores a new code for the Account and purpose and returns it in clear for the mailer only. Applies
     // the resend rules first and throws ResendRefusedError when they refuse; the hourly cap is checked
@@ -67,6 +100,10 @@ export function createVerificationCodeService({ models, clock, secret, random = 
     // Account, the caller locks the Account row in that transaction first.
     async issue({ userId, purpose }, { transaction } = {}) {
       const now = toWholeSeconds(clock.now());
+      // The longest refusal first, as for the hourly cap below.
+      if (purpose === CODE_PURPOSES.passwordReset && (await resetCodesPaused({ userId, now, transaction }))) {
+        throw new ResendRefusedError(authMessages.api.resetCodesPaused);
+      }
       const recent = await VerificationCode.findAll({
         attributes: ['createdAt'],
         where: { userId, purpose, createdAt: { [Op.gt]: new Date(now.getTime() - HOUR_MS) } },

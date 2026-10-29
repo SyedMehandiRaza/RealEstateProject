@@ -392,7 +392,7 @@ Retention periods are confirmed "for now" (DEC-022). Legal retention rules for U
 - `verification_documents.original_filename`: personal data, because filenames often contain the person's name (e.g. `john_passport.pdf`). Same retention as the document; never used as the Cloudinary `public_id`. Proposed: rejected and superseded files deleted 30 days after the decision; approved ones kept while the account is active (Q-026).
 - `verification_documents.rejection_reason`, `reviewed_by`: review audit. Same as the document.
 - `refresh_tokens`: credential-equivalent hashes. Purge rows 30 days after `expires_at` or `revoked_at`.
-- `verification_codes`: hashes only. Purge rows 24 hours after `expires_at`.
+- `verification_codes`: hashes only. Purge rows 24 hours after `expires_at`, except `password_reset` rows, kept at least 48 hours after `created_at`: the reset guessing cap counts dead codes of the last 48 h (DEC-041, TASK-054). No purge job exists yet.
 - Not stored by design: SMTP settings and credentials, mail bodies, plaintext codes and tokens, IP addresses and user agents.
 
 ## Assumptions and open questions

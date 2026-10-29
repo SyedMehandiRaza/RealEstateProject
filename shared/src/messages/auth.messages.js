@@ -100,6 +100,8 @@ export const authMessages = {
     codeTooManyAttempts: 'Too many wrong attempts. Please request a new code',
     resendTooSoon: (seconds) => `Please wait ${seconds} seconds before requesting a new code`,
     resendLimit: 'Too many codes requested. Please try again later',
+    // 429 from forgot/resend password while the reset guessing cap is in force (Q-044, DEC-041).
+    resetCodesPaused: 'Too many wrong codes. For your security, new codes are paused for up to 24 hours',
     emailNotVerified: 'Please verify your email. We have sent you a new code',
     passwordChanged: 'Password changed. Please log in',
     documentsUnderReview: 'Your account is under review',

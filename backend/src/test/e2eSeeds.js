@@ -2,6 +2,12 @@ import { DOCUMENT_STATUSES } from '@real-estate/shared';
 import { hashPassword } from '../utils/password.js';
 import { toWholeSeconds } from '../utils/time.js';
 import { latestDocumentByKind, requiredDocumentKinds } from '../modules/auth/verificationStatus.js';
+import {
+  CODE_PURPOSES,
+  CODE_TTL_MS,
+  DEAD_RESET_CODES_CAP,
+  MAX_ATTEMPTS,
+} from '../modules/auth/verificationCode.service.js';
 
 // Seed data for the e2e harness (TASK-042), written straight into the test database because some states
 // (a reviewed document) have no API: document review is admin-only and not built yet. Rows satisfy every
@@ -69,6 +75,20 @@ function documentRow(profileId, documentKind, status, { rejectionReason, created
   };
 }
 
+// A password_reset code that took MAX_ATTEMPTS wrong guesses, created `minutesAgo` before `now`. Its
+// hash matches no code (all zeros is no HMAC output in practice), so it could never be accepted anyway.
+function deadResetCodeRow(userId, now, minutesAgo) {
+  const createdAt = new Date(now.getTime() - minutesAgo * 60_000);
+  return {
+    userId,
+    purpose: CODE_PURPOSES.passwordReset,
+    codeHash: '0'.repeat(64),
+    attempts: MAX_ATTEMPTS,
+    expiresAt: new Date(createdAt.getTime() + CODE_TTL_MS),
+    createdAt,
+  };
+}
+
 const documentSummary = ({ id, documentKind, status, rejectionReason }) => ({
   id,
   documentKind,
@@ -84,6 +104,8 @@ const documentSummary = ({ id, documentKind, status, rejectionReason }) => ({
 // - documents: Developers with Professional info only. One status for every required kind
 //   ('pending' | 'approved' | 'rejected') or a map such as { government_id: 'rejected', profile_photo:
 //   'approved' }; rejectionReason applies to the rejected ones. Omitted: no documents.
+// - deadResetCodes: 0 (default) to DEAD_RESET_CODES_CAP password_reset codes used up by wrong guesses,
+//   dated a minute apart and at least two minutes back, so the resend cooldown is over (TASK-054).
 // Returns { id, email, password, roles, professionalProfileId, documents }.
 export async function seedAccount(models, sequelize, options = {}) {
   const {
@@ -97,6 +119,7 @@ export async function seedAccount(models, sequelize, options = {}) {
     developerType = 'individual',
     documents,
     rejectionReason = SEED_DEFAULTS.rejectionReason,
+    deadResetCodes = 0,
   } = options;
   check(ROLES.includes(role), `role must be one of ${ROLES.join(', ')}`);
   check(typeof email === 'string' && email.includes('@'), 'email must be an email address');
@@ -107,6 +130,10 @@ export async function seedAccount(models, sequelize, options = {}) {
   );
   check(!professionalInfo || role === 'developer', 'professionalInfo is for Developers only');
   check(documents === undefined || professionalInfo, 'documents need a Developer with professionalInfo');
+  check(
+    Number.isInteger(deadResetCodes) && deadResetCodes >= 0 && deadResetCodes <= DEAD_RESET_CODES_CAP,
+    `deadResetCodes must be an integer from 0 to ${DEAD_RESET_CODES_CAP}`,
+  );
   const statuses = documents === undefined ? {} : documentStatuses(documents, developerType);
 
   const passwordHash = await hashPassword(password);
@@ -139,6 +166,12 @@ export async function seedAccount(models, sequelize, options = {}) {
       documentRow(profile.id, kind, status, { rejectionReason, createdAt, reviewedAt: now }),
     );
     const created = await models.VerificationDocument.bulkCreate(rows, { transaction });
+    await models.VerificationCode.bulkCreate(
+      Array.from({ length: deadResetCodes }, (_, i) =>
+        deadResetCodeRow(user.id, now, deadResetCodes + 1 - i),
+      ),
+      { transaction },
+    );
 
     return {
       id: user.id,
