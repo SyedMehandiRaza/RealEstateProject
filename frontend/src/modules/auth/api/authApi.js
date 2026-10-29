@@ -69,7 +69,8 @@ export const authApi = baseApi.injectEndpoints({
     }),
     // GET -> 200 { status, documents } (Developer only, 403 otherwise). `documents` holds one entry per
     // required kind (2 for an Individual, 3 for a Company, DEC-022) with the latest document's status.
-    // Assumed entry shape until TASK-030 lands: { documentKind, status: null | DOCUMENT_STATUSES, rejectionReason }.
+    // Entry shape (TASK-030, DEC-035): { documentKind, status: null | DOCUMENT_STATUSES, rejectionReason,
+    // fileName, sizeBytes }; all but documentKind are null for a kind with no document yet.
     getVerification: build.query({
       query: () => '/auth/me/verification',
       transformResponse: unwrap,

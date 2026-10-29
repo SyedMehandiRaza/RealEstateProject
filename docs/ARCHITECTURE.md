@@ -51,7 +51,7 @@ Access token in the JSON response, then in Redux memory and the `Authorization: 
 
 Backend (`backend/env.example`): `NODE_ENV`, `PORT`, `LOG_LEVEL`, `CORS_ORIGINS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_NAME_TEST`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`, `CERTIFICATE_STORAGE` (only `cloudinary`), `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `SMTP_SERVICE_HOST`, `SMTP_SERVICE_PORT` (only 465), `SMTP_USER_NAME`, `SMTP_USER_PASSWORD`, `MAIL_FROM`, `VERIFICATION_CODE_SECRET` (32+ characters, not equal to a JWT secret). All are validated at startup by `parseEnv` in `backend/src/config/env.js`; the error names the variable, never the value.
 Frontend (`frontend/env.example`): `VITE_API_URL`.
-E2E: `E2E_WEB_URL`, `E2E_API_URL`, `E2E_WITH_API`.
+E2E: `E2E_WEB_URL` (default `http://localhost:5174`), `E2E_API_URL` (default `http://localhost:5100`), `E2E_WITH_API`. Frontend dev server (Node side, `vite.config.js`): `API_PROXY_TARGET` (default `http://localhost:5000`), set by the e2e config. The e2e start mode (`npm run start:e2e -w backend`, DEC-036) applies the backend test env itself (`NODE_ENV=test`, `DB_NAME_TEST`, dummy secrets) before `backend/.env` is read, so only settings it leaves unset (such as the DB connection) come from that file.
 
 ## Environments
 
@@ -83,6 +83,12 @@ Rules:
 - The migration round trip (all down, then up) drops every test table, so it is opt-in: `$env:TEST_MIGRATION_ROUNDTRIP='true'; npm run test:integration -w backend`.
 - Validation parity (DEC-025): the invalid inputs of each shared schema live once in `shared/src/testing/` and are imported as `@real-estate/shared/testing` (`signUpCases`, `verifyCodeCases`, ...; each `{ valid, invalid: [{ name, input, field, message }] }`). The shared schema test and the backend parity test (`modules/<module>/__tests__/<module>Validation.test.js`, a unit test: validation answers before any query) replay the same rows. Add a schema's cases there when its first route is built.
 - Auth journeys for integration tests: `src/test/authFlows.js` (`signUp(app, overrides)`, `signUpAndVerify(app, mailer, overrides)`).
+
+## E2E harness (TASK-042, DEC-036)
+
+- `npm run start:e2e -w backend` (`src/test/e2eServer.js`) runs the API for Playwright: `NODE_ENV=test` only, `real_estate_test` (migrated at startup, `_test` guard), `createE2eApp` (`src/test/e2eApp.js`) = `createApp` with the capture mailer, fake storage and real clock behind test-only routes at `/api/__e2e` (`status`, `reset`, `mail/latest`, `storage`, `seed/accounts`, `seed/document-reviews`). No file jobs. The production entry points never import `src/test/`, so no other mode has these routes.
+- Seeds (`src/test/e2eSeeds.js`): `seedAccount(models, sequelize, options)` and `setDocumentReview(models, options)`; also usable from integration tests.
+- The Playwright side is `e2e/fixtures/harness.js`; see `e2e/README.md`. E2E and the integration tests share `real_estate_test`: never run them at the same time.
 
 ## Architecture constraints
 
