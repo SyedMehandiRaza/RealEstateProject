@@ -32,14 +32,30 @@ const rawBaseQuery = fetchBaseQuery({
 
 const pathOf = (args) => (typeof args === 'string' ? args : args.url).split('?')[0];
 
-// One shared refresh request, so parallel 401s trigger a single refresh.
+// Web Locks name shared by every tab of this origin (TASK-046, Q-038, DEC-028).
+export const REFRESH_LOCK = 'auth-refresh';
+
+// The API revokes every session of the Account when a refresh token that was already rotated comes
+// back. Two tabs share one cookie, so two refreshes in flight at once would log the user out
+// everywhere. The lock makes tabs refresh one after the other: a tab that waited sends its request
+// after the first tab's response has stored the rotated cookie in the shared jar, so it presents the
+// new cookie (one more rotation, no reuse). Without `navigator.locks` (old browsers, jsdom) the
+// refresh runs directly, shared only inside this tab.
+function withRefreshLock(task) {
+  const locks = globalThis.navigator?.locks;
+  return typeof locks?.request === 'function' ? locks.request(REFRESH_LOCK, task) : task();
+}
+
+// One shared refresh per tab, so parallel 401s in this tab trigger a single refresh (and one lock).
 let refreshPromise = null;
 
 export async function baseQueryWithReauth(args, api, extraOptions) {
   let result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error?.status === 401 && !PUBLIC_AUTH_PATHS.has(pathOf(args))) {
-    refreshPromise ??= rawBaseQuery({ url: REFRESH_PATH, method: 'POST' }, api, extraOptions).finally(() => {
+    refreshPromise ??= withRefreshLock(() =>
+      rawBaseQuery({ url: REFRESH_PATH, method: 'POST' }, api, extraOptions),
+    ).finally(() => {
       refreshPromise = null;
     });
     const refreshResult = await refreshPromise;
