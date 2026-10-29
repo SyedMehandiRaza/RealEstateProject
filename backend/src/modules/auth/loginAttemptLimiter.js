@@ -1,7 +1,7 @@
 // Login attempt limiter (SPEC-001, DEC-022): at most 10 failed logins per email in any rolling 15 minutes,
-// on top of the per-IP authRateLimiter. Unknown emails are counted like real ones, so a refusal never
-// reveals which Accounts exist, and a successful login clears the count. State lives in process memory:
-// it is per API instance and starts empty on restart (no schema change).
+// on top of the per-IP loginRateLimiter. Unknown emails are counted like real ones, so a refusal never
+// reveals which Accounts exist, and a successful login or password reset clears the count. State lives
+// in process memory: it is per API instance and starts empty on restart (no schema change).
 
 export const MAX_FAILED_LOGINS = 10;
 export const FAILED_LOGIN_WINDOW_MS = 15 * 60 * 1000;
@@ -50,6 +50,11 @@ export function createLoginAttemptLimiter({
 
     // The password was right: forget the email's failures.
     succeeded(email) {
+      failures.delete(email);
+    },
+
+    // The email's password was reset (DEC-039): forget its failures, so the new password logs in at once.
+    clear(email) {
       failures.delete(email);
     },
 

@@ -54,6 +54,17 @@ describe('login attempt limiter', () => {
     expect(limiter.tryAttempt(EMAIL)).toBe(false);
   });
 
+  it('clear lifts a block for that email only (a password reset, DEC-039)', () => {
+    fail(10);
+    fail(10, 'omar@example.com');
+    expect(limiter.tryAttempt(EMAIL)).toBe(false);
+
+    limiter.clear(EMAIL);
+
+    expect(limiter.tryAttempt(EMAIL)).toBe(true);
+    expect(limiter.tryAttempt('omar@example.com')).toBe(false);
+  });
+
   it('a failure stops counting exactly 15 minutes after it happened', () => {
     fail(1);
     clock.advance(5 * 60 * SECOND);

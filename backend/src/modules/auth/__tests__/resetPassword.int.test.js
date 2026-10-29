@@ -15,6 +15,7 @@ import {
   signUpAndVerify,
 } from '../../../test/authFlows.js';
 import { signAccessToken } from '../../../utils/jwt.js';
+import { MAX_FAILED_LOGINS } from '../loginAttemptLimiter.js';
 import { createResetTokens } from '../resetToken.js';
 
 // TASK-024: POST /api/auth/password/reset (SPEC-001). Validation parity is in authValidation.test.js.
@@ -113,6 +114,28 @@ describe('POST /api/auth/password/reset', () => {
       const answers = await Promise.all([reset(resetToken, 'first123'), reset(resetToken, 'second12')]);
 
       expect(answers.map((res) => res.status).sort()).toEqual([200, 401]);
+    });
+
+    // DEC-039 (Q-040): a successful reset clears the per-account login lockout for that email.
+    it('clears the login lockout: after 10 failures and a reset, the new password logs in at once', async () => {
+      for (let i = 0; i < MAX_FAILED_LOGINS; i += 1) {
+        expect((await logIn(app, { email: EMAIL, password: 'wrongpass1' })).status).toBe(401);
+      }
+      expect((await logIn(app, { email: EMAIL, password: OLD_PASSWORD })).status).toBe(401);
+
+      expect((await reset(resetToken)).status).toBe(200);
+
+      expect((await logIn(app, { email: EMAIL, password: NEW_PASSWORD })).status).toBe(200);
+    });
+
+    it('keeps the lockout when the reset is refused', async () => {
+      for (let i = 0; i < MAX_FAILED_LOGINS; i += 1) {
+        expect((await logIn(app, { email: EMAIL, password: 'wrongpass1' })).status).toBe(401);
+      }
+
+      expect((await reset('not-a-reset-token')).status).toBe(401);
+
+      expect((await logIn(app, { email: EMAIL, password: OLD_PASSWORD })).status).toBe(401);
     });
 
     it('accepts a reset to the same password as before', async () => {

@@ -11,9 +11,20 @@ import {
   signUpCases,
   verifyCodeCases,
 } from '@real-estate/shared/testing';
+import { AUTH_RATE_LIMIT } from '../../../middlewares/rateLimiter.js';
 import { createTestApp } from '../../../test/testApp.js';
 import { fileBytes } from '../../../test/documentFiles.js';
-import { submitDocuments } from '../../../test/authFlows.js';
+import {
+  FORGOT_PASSWORD,
+  LOGIN,
+  RESEND_PASSWORD_RESET,
+  RESEND_VERIFICATION,
+  RESET_PASSWORD,
+  SIGN_UP,
+  submitDocuments,
+  VERIFY_EMAIL,
+  VERIFY_PASSWORD_RESET,
+} from '../../../test/authFlows.js';
 import { signAccessToken } from '../../../utils/jwt.js';
 
 // Validation parity: every invalid payload of the shared schema tests, posted to the API, comes back as
@@ -141,32 +152,36 @@ describe('POST /api/auth/me/documents rejects invalid files with the shared mess
   });
 });
 
-describe('per-IP auth limiter', () => {
-  it('applies one shared count to sign-up, verify-email, its resend, login and the password reset routes', async () => {
-    const { app } = createTestApp();
-    const invalid = { ...signUpCases.valid, role: 'admin' };
-    for (let i = 0; i < 20; i += 1) {
-      expect((await request(app).post('/api/auth/sign-up').send(invalid)).status).toBe(422);
-    }
+// TASK-050 (DEC-039, Q-041): each public auth route group has its own per-IP budget of 20 requests per
+// 15 minutes. Every request here has an empty body, so it is counted and then answers 422 before any
+// query; a throttled one answers 429.
+describe('per-IP auth limiters, one per route group', () => {
+  const GROUPS = {
+    'sign-up/verify': [SIGN_UP, VERIFY_EMAIL, RESEND_VERIFICATION],
+    login: [LOGIN],
+    'password reset': [FORGOT_PASSWORD, RESEND_PASSWORD_RESET, VERIFY_PASSWORD_RESET, RESET_PASSWORD],
+  };
 
-    const signUp = await request(app).post('/api/auth/sign-up').send(invalid);
-    const verify = await request(app).post('/api/auth/verify-email').send(verifyCodeCases.valid);
-    const resend = await request(app).post('/api/auth/verify-email/resend').send(resendCodeCases.valid);
-    const login = await request(app).post('/api/auth/login').send(loginCases.valid);
-    const passwordRoutes = [
-      ['/api/auth/password/forgot', forgotPasswordCases.valid],
-      ['/api/auth/password/resend', resendCodeCases.valid],
-      ['/api/auth/password/verify', verifyCodeCases.valid],
-      ['/api/auth/password/reset', resetPasswordCases.valid],
-    ];
-    const passwordAnswers = [];
-    for (const [path, body] of passwordRoutes) passwordAnswers.push(await request(app).post(path).send(body));
+  it.each(Object.entries(GROUPS))(
+    'the %s group shares one budget of 20 across its routes and leaves the other groups alone',
+    async (name, paths) => {
+      const { app } = createTestApp();
+      const post = (path) => request(app).post(path).send({});
+      const otherPaths = Object.entries(GROUPS)
+        .filter(([other]) => other !== name)
+        .flatMap(([, others]) => others);
 
-    expect(signUp.status).toBe(429);
-    expect(signUp.body.error.code).toBe('TOO_MANY_REQUESTS');
-    expect(verify.status).toBe(429);
-    expect(resend.status).toBe(429);
-    expect(login.status).toBe(429);
-    for (const res of passwordAnswers) expect(res.status).toBe(429);
-  });
+      // Spread the 20 requests over every route of the group.
+      for (let i = 0; i < AUTH_RATE_LIMIT; i += 1) {
+        expect((await post(paths[i % paths.length])).status).toBe(422);
+      }
+
+      for (const path of paths) {
+        const res = await post(path);
+        expect(res.status).toBe(429);
+        expect(res.body.error.code).toBe('TOO_MANY_REQUESTS');
+      }
+      for (const path of otherPaths) expect((await post(path)).status).toBe(422);
+    },
+  );
 });

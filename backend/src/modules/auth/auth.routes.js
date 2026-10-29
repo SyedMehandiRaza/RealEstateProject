@@ -10,50 +10,58 @@ import {
   verifyCodeSchema,
 } from '@real-estate/shared';
 import { authenticate, authorize } from '../../middlewares/authenticate.js';
-import { authRateLimiter } from '../../middlewares/rateLimiter.js';
+import {
+  loginRateLimiter,
+  passwordResetRateLimiter,
+  signUpRateLimiter,
+} from '../../middlewares/rateLimiter.js';
 import { validate } from '../../middlewares/validate.js';
 import { documentUpload } from './documentUpload.js';
 
-// /api/auth routes (SPEC-001). Every public route goes through the per-IP limiter first.
+// /api/auth routes (SPEC-001). Every public route goes through its group's per-IP limiter first (DEC-039).
 export function createAuthRoutes(controller) {
   const router = Router();
 
-  router.post('/sign-up', authRateLimiter, validate({ body: signUpSchema }), controller.signUp);
-  router.post('/verify-email', authRateLimiter, validate({ body: verifyCodeSchema }), controller.verifyEmail);
+  router.post('/sign-up', signUpRateLimiter, validate({ body: signUpSchema }), controller.signUp);
+  router.post(
+    '/verify-email',
+    signUpRateLimiter,
+    validate({ body: verifyCodeSchema }),
+    controller.verifyEmail,
+  );
   router.post(
     '/verify-email/resend',
-    authRateLimiter,
+    signUpRateLimiter,
     validate({ body: resendCodeSchema }),
     controller.resendVerification,
   );
-  router.post('/login', authRateLimiter, validate({ body: loginSchema }), controller.login);
+  router.post('/login', loginRateLimiter, validate({ body: loginSchema }), controller.login);
   router.post(
     '/password/forgot',
-    authRateLimiter,
+    passwordResetRateLimiter,
     validate({ body: forgotPasswordSchema }),
     controller.requestPasswordReset,
   );
   router.post(
     '/password/resend',
-    authRateLimiter,
+    passwordResetRateLimiter,
     validate({ body: resendCodeSchema }),
     controller.requestPasswordReset,
   );
   router.post(
     '/password/verify',
-    authRateLimiter,
+    passwordResetRateLimiter,
     validate({ body: verifyCodeSchema }),
     controller.verifyPasswordReset,
   );
   router.post(
     '/password/reset',
-    authRateLimiter,
+    passwordResetRateLimiter,
     validate({ body: resetPasswordSchema }),
     controller.resetPassword,
   );
 
-  // Refresh-cookie routes. Not public, so not behind the per-IP limiter, which every page load's refresh
-  // would otherwise share with sign-up and login (DEC-028).
+  // Refresh-cookie routes. Not public, so not behind a per-IP limiter: every page load refreshes (DEC-028).
   router.post('/refresh', controller.refresh);
   router.post('/logout', controller.logout);
 

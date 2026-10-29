@@ -14,6 +14,7 @@ import {
   signUpAndVerify,
 } from '../../../test/authFlows.js';
 import { hashToken, signAccessToken, signRefreshToken, verifyAccessToken } from '../../../utils/jwt.js';
+import { REUSE_GRACE_MS } from '../session.service.js';
 
 const EMAIL = signUpCases.valid.email;
 const SECOND = 1000;
@@ -46,8 +47,12 @@ describe('POST /api/auth/refresh', () => {
     expect(refreshCookieOf(res)).toMatch(/Path=\/api\/auth/);
   }
 
+  const activeSessions = () => models.RefreshToken.count({ where: { userId: user.id, revokedAt: null } });
+
   beforeEach(async () => {
     ({ app, mailer, clock } = createTestApp());
+    // revoked_at is a DATETIME without fractions: a whole-second clock keeps the grace boundary exact.
+    clock.set(Math.floor(Date.now() / SECOND) * SECOND);
     const verified = await signUpAndVerify(app, mailer);
     expect(verified.status).toBe(200);
     token = refreshTokenOf(verified);
@@ -158,15 +163,43 @@ describe('POST /api/auth/refresh', () => {
     expect((await refresh(app, next)).status).toBe(200);
   });
 
-  it('treats a rotated token presented again as reuse: 401 and every session of the Account revoked', async () => {
+  it('uses a 30 s grace window (DEC-039, Q-038)', () => {
+    expect(REUSE_GRACE_MS).toBe(30 * SECOND);
+  });
+
+  it('answers a rotated token presented again 29 s later with 401 only: every session keeps working', async () => {
     const rotated = refreshTokenOf(await refresh(app, token));
     const otherSession = refreshTokenOf(await logIn(app));
 
+    clock.advance(REUSE_GRACE_MS - SECOND);
+    expectRefused(await refresh(app, token));
+
+    expect(await activeSessions()).toBe(2);
+    expect((await refresh(app, rotated)).status).toBe(200);
+    expect((await refresh(app, otherSession)).status).toBe(200);
+  });
+
+  it('treats a rotated token presented again 30 s later as reuse: 401 and every session of the Account revoked', async () => {
+    const rotated = refreshTokenOf(await refresh(app, token));
+    const otherSession = refreshTokenOf(await logIn(app));
+
+    clock.advance(REUSE_GRACE_MS);
     expectRefused(await refresh(app, token));
 
     expectRefused(await refresh(app, rotated));
     expectRefused(await refresh(app, otherSession));
-    expect(await models.RefreshToken.count({ where: { userId: user.id, revokedAt: null } })).toBe(0);
+    expect(await activeSessions()).toBe(0);
+  });
+
+  it('measures the grace window from the revocation, not from the first refused try', async () => {
+    const rotated = refreshTokenOf(await refresh(app, token));
+
+    clock.advance(REUSE_GRACE_MS - SECOND);
+    expectRefused(await refresh(app, token));
+    clock.advance(SECOND);
+    expectRefused(await refresh(app, token));
+
+    expectRefused(await refresh(app, rotated));
   });
 
   it("does not revoke another Account's sessions on reuse", async () => {
@@ -174,17 +207,29 @@ describe('POST /api/auth/refresh', () => {
     const otherToken = refreshTokenOf(otherVerified);
     await refresh(app, token);
 
+    clock.advance(REUSE_GRACE_MS);
     expectRefused(await refresh(app, token));
 
     expect((await refresh(app, otherToken)).status).toBe(200);
   });
 
-  // ASSUMED (Q-038): the table cannot tell a rotated token from a logged-out one, so any revoked token
-  // presented to refresh counts as reuse.
-  it('treats a logged-out token presented to refresh as reuse too', async () => {
+  // The table cannot tell a rotated token from a logged-out one, so the grace window and the reuse rule
+  // apply to a logged-out token too (DEC-028, DEC-039).
+  it('answers a logged-out token presented to refresh within 30 s with 401 only', async () => {
     const otherSession = refreshTokenOf(await logIn(app));
     expect((await logOut(app, token)).status).toBe(204);
 
+    clock.advance(REUSE_GRACE_MS - SECOND);
+    expectRefused(await refresh(app, token));
+
+    expect((await refresh(app, otherSession)).status).toBe(200);
+  });
+
+  it('treats a logged-out token presented to refresh 30 s later as reuse', async () => {
+    const otherSession = refreshTokenOf(await logIn(app));
+    expect((await logOut(app, token)).status).toBe(204);
+
+    clock.advance(REUSE_GRACE_MS);
     expectRefused(await refresh(app, token));
 
     expectRefused(await refresh(app, otherSession));

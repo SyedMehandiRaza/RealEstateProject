@@ -114,7 +114,7 @@ An auth API that drives the Figma journeys exactly as designed, for Buyers and D
 - **Existing building blocks reused:**
   - shared schemas (`signUpSchema`, `verifyCodeSchema`, `resendCodeSchema`, `loginSchema`, `forgotPasswordSchema`, `resetPasswordSchema`, `selectCountrySchema`, `professionalInfoSchema`, `documentUploadSchema`) with the `validate` middleware;
   - `authenticate` / `authorize` with a roles list (DEC-019);
-  - the per-IP `authRateLimiter` (20 requests per 15 minutes on every auth route);
+  - the per-IP limiters (20 requests per 15 minutes each; since TASK-050, DEC-039, one per route group: `signUpRateLimiter` for sign-up/verify-email/resend, `loginRateLimiter`, `passwordResetRateLimiter` for forgot/resend/verify/reset);
   - the refresh cookie helpers;
   - the files module (`uploadAndSave`, deletion outbox, DEC-018);
   - the user models, including `User.scope('withPassword')` for login and reset only.

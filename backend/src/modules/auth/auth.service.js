@@ -163,8 +163,9 @@ export function createAuthService({
     },
 
     // Rotates the refresh token: the presented one is revoked and a new session starts with the
-    // Account's current roles. Missing, unknown, expired or revoked → 401 UNAUTHORIZED; a revoked one is
-    // a reuse, which revokes every session of the Account before the 401 (committed first).
+    // Account's current roles. Missing, unknown, expired or revoked → 401 UNAUTHORIZED; one revoked 30 s
+    // or longer ago is a reuse, which revokes every session of the Account before the 401 (committed
+    // first). One revoked less than 30 s ago only gets the 401 (DEC-039).
     async refresh({ refreshToken }) {
       const outcome = await sequelize.transaction(async (transaction) => {
         const check = await sessions.consume(refreshToken, { transaction });
@@ -216,8 +217,9 @@ export function createAuthService({
       return { resetToken: resetTokens.issue({ userId, passwordHash }) };
     },
 
-    // Sets a new password with a reset token and revokes every refresh token of the Account, so every
-    // device is logged out. The token is bound to the password hash it was issued for, so once the hash
+    // Sets a new password with a reset token, revokes every refresh token of the Account, so every
+    // device is logged out, and clears the email's failed-login count, so the new password logs in at
+    // once (DEC-039). The token is bound to the password hash it was issued for, so once the hash
     // changes it is refused: single-use. The Account row is locked while the hash is checked and
     // replaced, so two resets with one token cannot both pass. Access tokens already issued stay valid
     // until they expire (they are not stored). Refused tokens → 401 with resetToken.required.
@@ -227,15 +229,18 @@ export function createAuthService({
       // Hashed before the transaction, so the row lock is not held during bcrypt.
       const passwordHash = await hashPassword(password);
 
-      const changed = await sequelize.transaction(async (transaction) => {
+      // The Account's email once its password changed, else null.
+      const changedEmail = await sequelize.transaction(async (transaction) => {
         const user = await repository.lockUserWithPasswordById(claims.userId, { transaction });
-        if (!user || !resetTokens.matchesPassword(claims, user.passwordHash)) return false;
+        if (!user || !resetTokens.matchesPassword(claims, user.passwordHash)) return null;
         await user.update({ passwordHash }, { transaction });
         await sessions.revokeAll(user.id, { transaction });
-        return true;
+        return user.email;
       });
 
-      if (!changed) throw resetTokenRefused();
+      if (!changedEmail) throw resetTokenRefused();
+      // After the commit: a reset that rolled back leaves the count alone.
+      loginAttempts.clear(changedEmail);
       return { message: authMessages.api.passwordChanged };
     },
 
