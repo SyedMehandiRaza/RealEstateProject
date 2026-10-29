@@ -50,11 +50,13 @@ test.describe('Buyer journey', () => {
     await expect(page).toHaveURL('/');
     await noTokenInBrowserStorage(page);
 
-    // Log in (TASK-033, built against MSW) with the real API: the saved country comes back selected.
+    // Log in (TASK-033, built against MSW) with the real API: a Buyer with a country goes home
+    // (TASK-041), and Select a country, opened again, shows the saved one selected.
     const login = new LoginPage(page);
     await login.goto();
     await login.logIn({ email, password });
-    await expect(page).toHaveURL('/onboarding/country');
+    await expect(page).toHaveURL('/');
+    await page.goto('/onboarding/country');
     await expect(country.country('United Arab Emirates')).toBeChecked();
     await noTokenInBrowserStorage(page);
   });

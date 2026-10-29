@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs';
 import { authMessages, LIMITS } from '@real-estate/shared';
 import { professionalInfoCases, signUpCases } from '@real-estate/shared/testing';
 import { expect, test } from '../../fixtures/harness.js';
-import { openInApp } from '../../fixtures/navigation.js';
 import { forbidRequests, formCases, sendPastClient } from '../../fixtures/parity.js';
 import { expectPageScreenshot } from '../../fixtures/visual.js';
 import { LoginPage } from '../../pages/auth/LoginPage.page.js';
@@ -32,14 +31,12 @@ async function signUpDeveloper(page, harness, email) {
   await expect(page).toHaveURL('/developer/professional-info');
 }
 
-// Log in lands every Developer on Professional info until post-login routing exists (TASK-041), so the
-// spec then opens the screen it needs inside the app (a reload would end the in-memory session).
-async function logInAndOpen(page, credentials, path) {
+// Log in resumes onboarding at the first unfinished step (TASK-041); `landing` is where it must land.
+async function logIn(page, credentials, landing) {
   const login = new LoginPage(page);
   await login.goto();
   await login.logIn(credentials);
-  await expect(page).toHaveURL('/developer/professional-info');
-  if (path) await openInApp(page, path);
+  await expect(page).toHaveURL(landing);
 }
 
 const uploads = (calls) => calls.filter(([operation]) => operation === 'upload');
@@ -80,7 +77,9 @@ test.describe('Developer onboarding', () => {
     await expect(page).toHaveURL('/login');
 
     await harness.setDocumentReview({ email, status: 'approved' });
-    await logInAndOpen(page, { email, password }, '/developer/status');
+    // Active: Log in goes home; the status screen still shows Approved when opened.
+    await logIn(page, { email, password }, '/');
+    await page.goto('/developer/status');
     await expect(status.heading('active')).toBeVisible();
     await expect(status.document('passport.pdf')).toContainText('Approved');
     await expect(status.document('photo.png')).toContainText('Approved');
@@ -123,7 +122,7 @@ test.describe('Developer onboarding', () => {
       status: 'rejected',
       rejectionReason,
     });
-    await logInAndOpen(page, { email, password }, '/developer/status');
+    await logIn(page, { email, password }, '/developer/status');
     await expect(status.heading('unsuccessful')).toBeVisible();
     await expect(status.document('passport.pdf')).toContainText('Reject');
     await expect(status.document('passport.pdf')).toContainText(`Reject reason: ${rejectionReason}`);
@@ -153,7 +152,7 @@ test.describe('Developer onboarding', () => {
 test.describe('Validation parity', () => {
   test('Professional info shows the shared messages before any request', async ({ page, harness }) => {
     const developer = await harness.seedDeveloper({ professionalInfo: false });
-    await logInAndOpen(page, developer);
+    await logIn(page, developer, '/developer/professional-info');
     const noSaveRequest = forbidRequests(page, '/api/auth/me/professional-profile');
     const info = new ProfessionalInfoPage(page);
 
@@ -180,7 +179,7 @@ test.describe('Validation parity', () => {
     harness,
   }) => {
     const developer = await harness.seedDeveloper({ professionalInfo: false });
-    await logInAndOpen(page, developer);
+    await logIn(page, developer, '/developer/professional-info');
     const answers = await sendPastClient(
       page,
       '/api/auth/me/professional-profile',
@@ -199,7 +198,7 @@ test.describe('Validation parity', () => {
     harness,
   }) => {
     const developer = await harness.seedDeveloper();
-    await logInAndOpen(page, developer, '/developer/documents');
+    await logIn(page, developer, '/developer/documents');
     const upload = new UploadDocumentsPage(page);
     await expect(upload.heading).toBeVisible();
     const noUploadRequest = forbidRequests(page, '/api/auth/me/documents');
@@ -233,7 +232,7 @@ test.describe('Validation parity', () => {
     harness,
   }) => {
     const developer = await harness.seedDeveloper();
-    await logInAndOpen(page, developer, '/developer/documents');
+    await logIn(page, developer, '/developer/documents');
     const upload = new UploadDocumentsPage(page);
     await expect(upload.heading).toBeVisible();
 
@@ -256,7 +255,7 @@ test.describe('Validation parity', () => {
 test.describe('Visual', () => {
   test('Professional info and Upload Document (empty and with files)', async ({ page, harness }) => {
     const developer = await harness.seedDeveloper({ professionalInfo: false });
-    await logInAndOpen(page, developer);
+    await logIn(page, developer, '/developer/professional-info');
     const info = new ProfessionalInfoPage(page);
     await expect(info.heading).toBeVisible();
     await expectPageScreenshot(page, 'professional-info.png');
@@ -274,14 +273,20 @@ test.describe('Visual', () => {
     await expectPageScreenshot(page, 'upload-documents-uploaded.png');
   });
 
-  for (const [outcome, documents, name] of [
-    ['under_review', 'pending', 'status-pending.png'],
-    ['active', 'approved', 'status-approved.png'],
-    ['unsuccessful', { government_id: 'rejected', profile_photo: 'approved' }, 'status-reject.png'],
+  for (const [outcome, documents, landing, name] of [
+    ['under_review', 'pending', '/developer/status', 'status-pending.png'],
+    ['active', 'approved', '/', 'status-approved.png'],
+    [
+      'unsuccessful',
+      { government_id: 'rejected', profile_photo: 'approved' },
+      '/developer/status',
+      'status-reject.png',
+    ],
   ]) {
     test(`status screen: ${name}`, async ({ page, harness }) => {
       const developer = await harness.seedDeveloper({ documents });
-      await logInAndOpen(page, developer, '/developer/status');
+      await logIn(page, developer, landing);
+      if (landing !== '/developer/status') await page.goto('/developer/status');
       const status = new VerificationStatusPage(page);
       await expect(status.heading(outcome)).toBeVisible();
       await expect(status.documents).toHaveCount(2);

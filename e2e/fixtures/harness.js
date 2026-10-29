@@ -68,6 +68,30 @@ export function createHarness(request) {
         .post(`${BASE}/seed/document-reviews`, { data: { email, documentKind, status, rejectionReason } })
         .then(dataOf),
 
+    // States the seeds do not cover go through the public API, like a user would (each logs in once, so
+    // it counts towards the login limiter). A Buyer's saved country (PUT /me/country):
+    async selectCountry({ email, password }, countryCode) {
+      const { accessToken } = await request
+        .post('/api/auth/login', { data: { email, password } })
+        .then(dataOf);
+      await request
+        .put('/api/auth/me/country', {
+          data: { countryCode },
+          headers: { authorization: `Bearer ${accessToken}` },
+        })
+        .then(dataOf);
+    },
+    // Adds the Developer role to a seeded Buyer (POST /me/roles/developer): a dual-role Account with no
+    // Professional info.
+    async becomeDeveloper({ email, password }) {
+      const { accessToken } = await request
+        .post('/api/auth/login', { data: { email, password } })
+        .then(dataOf);
+      await request
+        .post('/api/auth/me/roles/developer', { headers: { authorization: `Bearer ${accessToken}` } })
+        .then(dataOf);
+    },
+
     // [operation, publicId] pairs the fake storage received (uploads and destroys); nothing reaches Cloudinary.
     storageCalls: () =>
       request
