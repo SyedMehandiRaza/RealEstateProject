@@ -20,6 +20,7 @@ Real Estate web application. This file is the entry point for project-wide instr
 - `npm test`: all Jest suites. One workspace: `npm test -w backend`
 - `npm run test:e2e`: Playwright (`$env:E2E_WITH_API='false'` for UI only, without MySQL)
 - `npm run lint`, `npm run format`, `npm run build`
+- `npm run check`: tests, lint, `prettier --check` and build in one go (run before every commit)
 - DB: `npm run db:migrate -w backend`, `npm run db:seed -w backend`, `npm run migration:new -w backend -- <name>` (rename the generated file to `.cjs`)
 
 ## First actions

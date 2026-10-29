@@ -6,7 +6,7 @@
 
 ## Current milestone
 
-Auth module (buyer + developer; agent deferred): foundations built (MySQL check, multi-role accounts, Cloudinary file cleanup). Auth grill done (DEC-021, DEC-022). Shared validation done (TASK-008). Auth API spec written (SPEC-001). Next: TASK-009 (mailer), TASK-010 (auth API), TASK-011 (developer onboarding). Tickets: `BACKLOG.md`
+Goal (2026-10-29, /chief-of-staff): auth module fully built and tested (API, UI from Figma, e2e) per SPEC-001. Branch `feature/auth` (baseline `72a116d` on main), one commit per ticket, never pushed. Tickets TASK-017 to TASK-045 in `BACKLOG.md`. Goal memory: `wiki/index.md`.
 
 ## Completed
 
@@ -48,5 +48,7 @@ Auth module (buyer + developer; agent deferred): foundations built (MySQL check,
 
 ## Next actions
 
-1. Integration tests against `real_estate_test` (TASK-006): repository, user deletion CASCADE
-2. Implement SPEC-001: TASK-009, TASK-010, TASK-011
+- Done: TASK-017..045 written (to-tickets, 2026-10-29).
+- Next: TASK-017 (backend test harness on real_estate_test), then TASK-018 mailer, TASK-019 sign up + verify.
+- Blockers: Q-034 (post-login routing, blocks TASK-041), Q-035 (Become-a-developer link, Agent tab; blocks TASK-037), Q-036 (missing-document message, blocks TASK-028). Not blocking: Q-033, Q-037 (assumptions in force).
+- Per ticket: `npm run check` passes, commit with the TASK id, BACKLOG status Done, update this file.
