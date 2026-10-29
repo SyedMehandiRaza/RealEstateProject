@@ -13,6 +13,8 @@ Memory for the long-running goal "auth module fully built and tested" (started 2
 
 - [user-preferences.md](user-preferences.md): how the user wants this goal run (autonomy, commits, stop conditions)
 
+- [review-watchlist.md](review-watchlist.md): items to check in the final code, DB and security reviews
+
 ## Recurring problems
 
 - [gotchas.md](gotchas.md): traps already hit (babel-jest, shell, secrets)
