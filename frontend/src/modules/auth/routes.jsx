@@ -2,6 +2,7 @@ import ProtectedRoute from '../../components/routing/ProtectedRoute.jsx';
 import AuthPlaceholderPage from './pages/AuthPlaceholderPage/AuthPlaceholderPage.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage.jsx';
 import LoginPage from './pages/LoginPage/LoginPage.jsx';
+import ProfessionalInfoPage from './pages/ProfessionalInfoPage/ProfessionalInfoPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage.jsx';
 import SelectCountryPage from './pages/SelectCountryPage/SelectCountryPage.jsx';
 import SignUpPage from './pages/SignUpPage/SignUpPage.jsx';
@@ -38,7 +39,7 @@ export const authRoutes = [
   {
     element: <ProtectedRoute roles={['developer']} />,
     children: [
-      { path: AUTH_PATHS.professionalInfo, element: placeholder('Professional info') },
+      { path: AUTH_PATHS.professionalInfo, element: <ProfessionalInfoPage /> },
       { path: AUTH_PATHS.uploadDocuments, element: placeholder('Upload Document') },
       { path: AUTH_PATHS.verificationStatus, element: placeholder('Verification status') },
     ],

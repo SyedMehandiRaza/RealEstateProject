@@ -57,7 +57,7 @@ describe('auth routes', () => {
   });
 
   it.each([
-    [AUTH_PATHS.professionalInfo, 'Professional info'],
+    [AUTH_PATHS.professionalInfo, 'Professional Information'],
     [AUTH_PATHS.uploadDocuments, 'Upload Document'],
     [AUTH_PATHS.verificationStatus, 'Verification status'],
   ])('developer route %s resolves for a developer', async (path, title) => {

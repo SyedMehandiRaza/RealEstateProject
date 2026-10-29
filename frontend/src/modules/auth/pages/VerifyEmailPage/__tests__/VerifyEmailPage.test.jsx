@@ -82,7 +82,7 @@ describe('VerifyEmailPage', () => {
     await typeCode(u, '123456');
     await u.click(screen.getByRole('button', { name: 'Verify' }));
 
-    expect(await screen.findByRole('heading', { name: 'Professional info' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Professional Information' })).toBeInTheDocument();
   });
 
   it('shows the shared messages for a missing or short code and sends nothing', async () => {

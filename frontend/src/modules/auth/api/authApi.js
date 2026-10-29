@@ -5,7 +5,7 @@ const unwrap = (response) => response.data;
 
 // Auth endpoints (SPEC-001, all under /api/auth). Each page ticket adds its own endpoints here:
 // login (TASK-033), signUp / verifyEmail / resendVerification (TASK-034), the password reset
-// endpoints (TASK-036), selectCountry (TASK-035), ...
+// endpoints (TASK-036), selectCountry (TASK-035), saveProfessionalProfile (TASK-038), ...
 export const authApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     // loginSchema body -> 200 { accessToken, user } plus the refresh cookie;
@@ -56,6 +56,12 @@ export const authApi = baseApi.injectEndpoints({
       query: (body) => ({ url: '/auth/me/country', method: 'PUT', body }),
       transformResponse: unwrap,
     }),
+    // professionalInfoSchema body -> 200 { profile } (creates or replaces the Developer's profile).
+    // 403 FORBIDDEN without the Developer role; 422 per field (companyName.required for a Company).
+    saveProfessionalProfile: build.mutation({
+      query: (body) => ({ url: '/auth/me/professional-profile', method: 'PUT', body }),
+      transformResponse: unwrap,
+    }),
   }),
 });
 
@@ -69,4 +75,5 @@ export const {
   useResendResetCodeMutation,
   useResetPasswordMutation,
   useSelectCountryMutation,
+  useSaveProfessionalProfileMutation,
 } = authApi;
