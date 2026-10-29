@@ -69,7 +69,7 @@ describe('VerifyEmailPage', () => {
     await typeCode(u, '012345');
     await u.click(screen.getByRole('button', { name: 'Verify' }));
 
-    expect(await screen.findByRole('heading', { name: 'Select a country' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Select a Country' })).toBeInTheDocument();
     expect(requests).toEqual([{ email: EMAIL, code: '012345' }]);
     expect(store.getState().auth).toEqual({ accessToken: 'access-token', user: user(['buyer']) });
   });

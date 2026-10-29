@@ -45,7 +45,15 @@ describe('auth routes', () => {
       initialEntries: [AUTH_PATHS.selectCountry],
       preloadedState: loggedIn('buyer'),
     });
-    expect(await heading('Select a country')).toBeInTheDocument();
+    expect(await heading('Select a Country')).toBeInTheDocument();
+  });
+
+  it('sends a developer-only account away from Select a country', async () => {
+    renderWithProviders(routes, {
+      initialEntries: [AUTH_PATHS.selectCountry],
+      preloadedState: loggedIn('developer'),
+    });
+    expect(await heading('Real Estate')).toBeInTheDocument();
   });
 
   it.each([

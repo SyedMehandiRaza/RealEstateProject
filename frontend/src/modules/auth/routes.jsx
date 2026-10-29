@@ -3,6 +3,7 @@ import AuthPlaceholderPage from './pages/AuthPlaceholderPage/AuthPlaceholderPage
 import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage.jsx';
 import LoginPage from './pages/LoginPage/LoginPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage.jsx';
+import SelectCountryPage from './pages/SelectCountryPage/SelectCountryPage.jsx';
 import SignUpPage from './pages/SignUpPage/SignUpPage.jsx';
 import VerifyEmailPage from './pages/VerifyEmailPage/VerifyEmailPage.jsx';
 import VerifyResetCodePage from './pages/VerifyResetCodePage/VerifyResetCodePage.jsx';
@@ -32,7 +33,7 @@ export const authRoutes = [
   { path: AUTH_PATHS.resetPassword, element: <ResetPasswordPage /> },
   {
     element: <ProtectedRoute roles={['buyer']} />,
-    children: [{ path: AUTH_PATHS.selectCountry, element: placeholder('Select a country') }],
+    children: [{ path: AUTH_PATHS.selectCountry, element: <SelectCountryPage /> }],
   },
   {
     element: <ProtectedRoute roles={['developer']} />,

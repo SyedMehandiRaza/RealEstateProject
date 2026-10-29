@@ -5,3 +5,7 @@ import { AUTH_PATHS } from '../routes.jsx';
 // Professional info, everyone else to Select a country.
 export const landingPathFor = (user) =>
   user?.roles?.includes('developer') ? AUTH_PATHS.professionalInfo : AUTH_PATHS.selectCountry;
+
+// Where a Buyer goes after saving a country on Select a country.
+// Q-034 is open, so this is the smallest assumption (home); TASK-041 replaces it with the real rule.
+export const afterCountrySelectedPath = () => '/';

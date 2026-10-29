@@ -50,6 +50,12 @@ export const authApi = baseApi.injectEndpoints({
       query: (body) => ({ url: '/auth/password/reset', method: 'POST', body }),
       transformResponse: unwrap,
     }),
+    // selectCountrySchema body -> 200 { user } with user.preferredCountryCode (Buyer only).
+    // 403 FORBIDDEN without the Buyer role; 422 countryCode.invalid outside COUNTRY_CODES.
+    selectCountry: build.mutation({
+      query: (body) => ({ url: '/auth/me/country', method: 'PUT', body }),
+      transformResponse: unwrap,
+    }),
   }),
 });
 
@@ -62,4 +68,5 @@ export const {
   useVerifyResetCodeMutation,
   useResendResetCodeMutation,
   useResetPasswordMutation,
+  useSelectCountryMutation,
 } = authApi;

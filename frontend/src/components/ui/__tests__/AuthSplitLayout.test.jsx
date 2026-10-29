@@ -26,6 +26,29 @@ describe('AuthSplitLayout', () => {
     expect(screen.getByRole('main')).toHaveTextContent('form here');
   });
 
+  it.each([
+    [20, 'var(--space-20)'],
+    [30, 'var(--space-30)'],
+    [32, 'var(--space-32)'],
+    [48, 'var(--space-48)'],
+    [undefined, 'var(--space-32)'],
+    [31, 'var(--space-32)'],
+  ])('contentGap %s puts %s between the heading and the content', async (contentGap, gap) => {
+    renderWithProviders([
+      {
+        path: '/',
+        element: (
+          <AuthSplitLayout title="Reset Password" contentGap={contentGap}>
+            <p>form here</p>
+          </AuthSplitLayout>
+        ),
+      },
+    ]);
+    const heading = await screen.findByRole('heading', { level: 1, name: 'Reset Password' });
+    // heading -> heading block -> content column holding the heading block and the children
+    expect(heading.parentElement.parentElement.style.gap).toBe(gap);
+  });
+
   it('"Back to home" links to / by default', async () => {
     renderWithProviders(
       [

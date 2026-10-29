@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
       tagline="Almost done — let’s secure your account with a new password."
       backLabel="Go back"
       backTo={null}
-      contentGap={32}
+      contentGap={30}
     >
       <form className={styles.form} noValidate onSubmit={handleSubmit(onSubmit)}>
         <TextInput

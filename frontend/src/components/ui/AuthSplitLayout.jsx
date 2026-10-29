@@ -3,8 +3,13 @@ import backIcon from '../../assets/auth/icon-back.svg';
 import styles from './AuthSplitLayout.module.css';
 
 // Gap between the heading block and the content below it, per Figma frame:
-// 20 on Sign Up, 32 on Log in and the password screens, 48 on Verify.
-const GAPS = { 20: 'var(--space-20)', 32: 'var(--space-32)', 48: 'var(--space-48)' };
+// 20 on Sign Up, 30 on Reset password, 32 on Log in, 48 on Verify, Forgot Password and Select a country.
+const GAPS = {
+  20: 'var(--space-20)',
+  30: 'var(--space-30)',
+  32: 'var(--space-32)',
+  48: 'var(--space-48)',
+};
 
 // Layout shared by every Auth Module frame: hero image with the "Real Estate" mark, a back link and a
 // tagline on the left; a white rounded card on the right holding the page heading and content.
