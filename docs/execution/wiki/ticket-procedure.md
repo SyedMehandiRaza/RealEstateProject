@@ -4,7 +4,7 @@ Written 2026-10-29 for the auth goal. Every implementing agent follows this for 
 
 ## Before coding
 
-1. Read `CLAUDE.md`, the `.claude/rules/*` files relevant to the ticket, `docs/agents/*`, your ticket's row in `docs/execution/BACKLOG.md`, the spec it links (`docs/execution/specs/SPEC-001-auth-api.md`), `docs/modules/auth/` and the DEC/Q entries it cites. Read [gotchas.md](gotchas.md) and [environment.md](environment.md).
+1. Read `CLAUDE.md`, the `.claude/rules/*` files relevant to the ticket, `docs/agents/*`, your ticket's row in `docs/execution/BACKLOG.md`, the spec it links (`docs/execution/specs/SPEC-001-auth-api.md`), `docs/modules/auth/` and the DEC/Q entries it cites. Read [gotchas.md](gotchas.md) and [environment.md](environment.md). Backend tickets: also read [frontend-contract-pins.md](frontend-contract-pins.md) and match it.
 2. Follow `.claude/skills/implement/SKILL.md` and `.claude/skills/tdd/SKILL.md` (red, green, refactor, one vertical slice at a time). Backend: also `.claude/skills/express-module/SKILL.md` and `.claude/skills/jest-testing/SKILL.md`. Frontend: `.claude/skills/figma-to-module/SKILL.md`. E2E: `.claude/skills/playwright-e2e/SKILL.md`.
 
 ## Hard rules

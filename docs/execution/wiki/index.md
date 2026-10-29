@@ -9,6 +9,7 @@ Memory for the long-running goal "auth module fully built and tested" (started 2
 ## Working agreements
 
 - [ticket-procedure.md](ticket-procedure.md): the steps every implementing agent follows for one ticket
+- [frontend-contract-pins.md](frontend-contract-pins.md): response shapes the frontend already assumes; backend tickets must match them
 
 - [user-preferences.md](user-preferences.md): how the user wants this goal run (autonomy, commits, stop conditions)
 
