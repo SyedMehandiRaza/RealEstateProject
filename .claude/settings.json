@@ -1,0 +1,52 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm test:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "PowerShell(npm test:*)",
+      "PowerShell(npm run test:*)",
+      "PowerShell(npm run lint:*)",
+      "PowerShell(npm run build:*)",
+      "PowerShell(npx jest:*)",
+      "PowerShell(npx playwright test:*)",
+      "PowerShell(git status:*)",
+      "PowerShell(git diff:*)",
+      "PowerShell(git log:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(./secrets/**)",
+      "Bash(npx sequelize-cli db:drop:*)",
+      "Bash(npx sequelize-cli db:migrate:undo:all:*)",
+      "Bash(npx sequelize-cli db:seed:undo:all:*)",
+      "PowerShell(npx sequelize-cli db:drop:*)",
+      "PowerShell(npx sequelize-cli db:migrate:undo:all:*)",
+      "PowerShell(npx sequelize-cli db:seed:undo:all:*)"
+    ],
+    "ask": [
+      "Bash(npx sequelize-cli db:migrate:*)",
+      "Bash(npx sequelize-cli db:seed:*)",
+      "PowerShell(npx sequelize-cli db:migrate:*)",
+      "PowerShell(npx sequelize-cli db:seed:*)",
+      "Bash(git push:*)",
+      "PowerShell(git push:*)"
+    ]
+  },
+  "enabledPlugins": {
+    "figma@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "watch": ["src", ".env", "../shared/src"],
+  "ext": "js,cjs,json",
+  "ignore": ["**/__tests__/**", "src/migrations/**", "src/seeders/**"]
+}
