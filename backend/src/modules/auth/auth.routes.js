@@ -4,10 +4,11 @@ import {
   loginSchema,
   resendCodeSchema,
   resetPasswordSchema,
+  selectCountrySchema,
   signUpSchema,
   verifyCodeSchema,
 } from '@real-estate/shared';
-import { authenticate } from '../../middlewares/authenticate.js';
+import { authenticate, authorize } from '../../middlewares/authenticate.js';
 import { authRateLimiter } from '../../middlewares/rateLimiter.js';
 import { validate } from '../../middlewares/validate.js';
 
@@ -56,6 +57,15 @@ export function createAuthRoutes(controller) {
 
   // Signed-in routes: the access token identifies the Account.
   router.get('/me', authenticate, controller.me);
+  // Roles come from the access token; they are only ever added, so a Buyer token's role still holds.
+  // authorize runs before validate: a non-Buyer gets 403 whatever it sends.
+  router.put(
+    '/me/country',
+    authenticate,
+    authorize('buyer'),
+    validate({ body: selectCountrySchema }),
+    controller.selectCountry,
+  );
 
   return router;
 }

@@ -264,3 +264,11 @@ Use one entry per meaningful decision.
 - Decision (single use): the row lock makes two concurrent resets with one token run in turn; the second sees the new hash and gets 401. A reset to the same password as before is allowed (no rule forbids it), and it still kills the token, because bcrypt salts every hash.
 - Assumption (Q-040): access tokens already issued are stateless and stay valid until they expire (`JWT_ACCESS_EXPIRES_IN`, 15 min by default); only refresh tokens are revoked. The per-account login limiter is not cleared by a reset.
 - Alternatives rejected: hashing inside the transaction (holds the row lock for about 0.3 s of bcrypt); a `fields.resetToken` 422 for a refused token (SPEC-001 says 401); starting a session on success (SPEC-001 and the Figma flow return to Log in).
+
+## DEC-031: Select country (TASK-025)
+
+- Status: Accepted (implementing agent, 2026-10-29; reversible). Applies SPEC-001's PUT `/me/country` row and the TASK-035 frontend pin.
+- Decision (route): PUT `/api/auth/me/country` runs `authenticate`, `authorize('buyer')`, then `validate({ body: selectCountrySchema })`, then `authService.selectCountry`, which loads the Account with its roles, sets `preferred_country_code` and returns 200 `{ user }` (the same `user` shape as `/me`). No per-IP limiter (signed-in route, like `/me`). Any later call replaces the country.
+- Decision (authorization): the Buyer check uses the roles in the access token. Roles are only ever added (TASK-026), never removed, so a token that says Buyer is never stale in a way that matters; an Account that gains the Buyer role later needs a refreshed token. `authorize` runs before `validate`, so a non-Buyer gets 403 `FORBIDDEN` whatever it sends, and a Buyer gets 422 `fields.countryCode = [countryCode.invalid]` outside AE/SG/US/GB. An Account deleted since its token was issued → 401 `UNAUTHORIZED`.
+- Decision (parity): `selectCountryCases` join `@real-estate/shared/testing`; the backend parity test sends them with a signed Buyer access token for an Account that need not exist (validation answers before any query).
+- Alternatives rejected: checking the role in the service from the database (one more rule site; validation would then answer before the 403); a dedicated repository update returning affected rows (mysql2's affected-row count for an unchanged value is driver-flag dependent).

@@ -171,3 +171,23 @@ export const resetPasswordCases = {
     },
   ],
 };
+
+// Select a country: one of COUNTRY_CODES, exactly as listed (no case folding).
+export const selectCountryCases = {
+  valid: { countryCode: 'AE' },
+  invalid: [
+    fieldCase('countryCode', undefined, m.countryCode.invalid),
+    fieldCase('countryCode', null, m.countryCode.invalid),
+    fieldCase('countryCode', '', m.countryCode.invalid),
+    fieldCase('countryCode', 'IN', m.countryCode.invalid),
+    fieldCase('countryCode', 'ae', m.countryCode.invalid),
+    fieldCase('countryCode', 'UAE', m.countryCode.invalid),
+    fieldCase('countryCode', 42, m.countryCode.invalid),
+    {
+      name: 'unknown field',
+      input: { country: 'United Arab Emirates' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};

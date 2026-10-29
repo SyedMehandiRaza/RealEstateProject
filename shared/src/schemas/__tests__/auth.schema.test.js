@@ -18,6 +18,7 @@ import {
   loginCases,
   resendCodeCases,
   resetPasswordCases,
+  selectCountryCases,
   signUpCases,
   verifyCodeCases,
 } from '../../testing/index.js';
@@ -161,6 +162,16 @@ describe('selectCountrySchema', () => {
 
   it.each(['IN', 'ae', undefined])('rejects %j', (countryCode) => {
     expect(errorsOf(selectCountrySchema, { countryCode }).countryCode).toEqual([m.countryCode.invalid]);
+  });
+
+  it('accepts the shared valid case', () => {
+    expect(selectCountrySchema.parse(selectCountryCases.valid)).toEqual(selectCountryCases.valid);
+  });
+
+  it.each(selectCountryCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(selectCountrySchema, { ...selectCountryCases.valid, ...input })[field]).toEqual([
+      message,
+    ]);
   });
 });
 

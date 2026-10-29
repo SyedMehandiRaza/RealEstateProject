@@ -5,10 +5,12 @@ import {
   loginCases,
   resendCodeCases,
   resetPasswordCases,
+  selectCountryCases,
   signUpCases,
   verifyCodeCases,
 } from '@real-estate/shared/testing';
 import { createTestApp } from '../../../test/testApp.js';
+import { signAccessToken } from '../../../utils/jwt.js';
 
 // Validation parity: every invalid payload of the shared schema tests, posted to the API, comes back as
 // 422 with the same shared message under the same field. Validation runs before any query, so these
@@ -39,6 +41,25 @@ describe.each(ROUTES)('%s rejects invalid input with the shared messages', (_nam
     expect(res.body.error.message).toBe(commonMessages.invalidInput);
     expect(res.body.error.fields[field]).toContain(message);
     expect(mailer.messages).toEqual([]);
+  });
+});
+
+// Signed-in routes validate after authenticate and authorize, so these send a Buyer access token. The
+// Account in the token need not exist: validation answers before any query.
+describe('PUT /api/auth/me/country rejects invalid input with the shared messages', () => {
+  const { app } = createTestApp();
+  const token = signAccessToken({ userId: 1, roles: ['buyer'] });
+
+  it.each(selectCountryCases.invalid)('$name', async ({ input, field, message }) => {
+    const res = await request(app)
+      .put('/api/auth/me/country')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...selectCountryCases.valid, ...input });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.message).toBe(commonMessages.invalidInput);
+    expect(res.body.error.fields[field]).toEqual([message]);
   });
 });
 

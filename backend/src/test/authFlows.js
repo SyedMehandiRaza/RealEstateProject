@@ -89,3 +89,10 @@ export async function obtainResetToken(app, mailer, email) {
 export function resetPassword(app, { resetToken, password, confirmPassword = password }) {
   return request(app).post(RESET_PASSWORD).send({ resetToken, password, confirmPassword });
 }
+
+export const SELECT_COUNTRY = '/api/auth/me/country';
+
+// PUT /me/country with an access token. Returns the response ({ user } on success).
+export function selectCountry(app, accessToken, countryCode) {
+  return request(app).put(SELECT_COUNTRY).set('Authorization', `Bearer ${accessToken}`).send({ countryCode });
+}

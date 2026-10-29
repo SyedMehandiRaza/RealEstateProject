@@ -245,5 +245,14 @@ export function createAuthService({
       if (!user) throw new AppError('UNAUTHORIZED');
       return { user: toUserResponse(user) };
     },
+
+    // Stores the Buyer's country (one of COUNTRY_CODES) and returns the updated user. The route has
+    // already checked the Buyer role. Calling it again replaces the country.
+    async selectCountry({ userId, countryCode }) {
+      const user = await repository.findUserById(userId);
+      if (!user) throw new AppError('UNAUTHORIZED');
+      await user.update({ preferredCountryCode: countryCode });
+      return { user: toUserResponse(user) };
+    },
   };
 }
