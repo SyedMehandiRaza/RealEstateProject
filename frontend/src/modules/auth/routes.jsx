@@ -1,5 +1,6 @@
 import ProtectedRoute from '../../components/routing/ProtectedRoute.jsx';
 import AuthPlaceholderPage from './pages/AuthPlaceholderPage/AuthPlaceholderPage.jsx';
+import LoginPage from './pages/LoginPage/LoginPage.jsx';
 import SignUpPage from './pages/SignUpPage/SignUpPage.jsx';
 import VerifyEmailPage from './pages/VerifyEmailPage/VerifyEmailPage.jsx';
 
@@ -20,7 +21,7 @@ export const AUTH_PATHS = {
 const placeholder = (title) => <AuthPlaceholderPage title={title} />;
 
 export const authRoutes = [
-  { path: AUTH_PATHS.login, element: placeholder('Welcome Back!') },
+  { path: AUTH_PATHS.login, element: <LoginPage /> },
   { path: AUTH_PATHS.signUp, element: <SignUpPage /> },
   { path: AUTH_PATHS.verifyEmail, element: <VerifyEmailPage /> },
   { path: AUTH_PATHS.forgotPassword, element: placeholder('Forgot Password') },

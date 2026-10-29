@@ -7,6 +7,12 @@ const unwrap = (response) => response.data;
 // login (TASK-033), signUp / verifyEmail / resendVerification (TASK-034), selectCountry (TASK-035), ...
 export const authApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
+    // loginSchema body -> 200 { accessToken, user } plus the refresh cookie;
+    // 401 invalidCredentials for every failure, 403 EMAIL_NOT_VERIFIED (a new code is sent).
+    login: build.mutation({
+      query: (body) => ({ url: '/auth/login', method: 'POST', body }),
+      transformResponse: unwrap,
+    }),
     // signUpSchema body -> 201 { email }; a verification code is emailed.
     signUp: build.mutation({
       query: (body) => ({ url: '/auth/sign-up', method: 'POST', body }),
@@ -25,4 +31,5 @@ export const authApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useSignUpMutation, useVerifyEmailMutation, useResendVerificationMutation } = authApi;
+export const { useLoginMutation, useSignUpMutation, useVerifyEmailMutation, useResendVerificationMutation } =
+  authApi;

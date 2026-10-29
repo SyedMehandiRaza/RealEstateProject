@@ -2,12 +2,9 @@ import { useDispatch } from 'react-redux';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { useResendVerificationMutation, useVerifyEmailMutation } from '../../api/authApi.js';
 import VerifyCodeScreen from '../../components/VerifyCodeScreen.jsx';
+import { landingPathFor } from '../../hooks/landingPath.js';
 import { AUTH_PATHS } from '../../routes.jsx';
 import { credentialsSet } from '../../store/authSlice.js';
-
-// After verifying, a Developer continues to Professional info and a Buyer to Select a country.
-const nextPathFor = (user) =>
-  user?.roles?.includes('developer') ? AUTH_PATHS.professionalInfo : AUTH_PATHS.selectCountry;
 
 // Figma: Verify (buyer 13038:3920, developer 13038:4022). The email arrives in the router state from
 // Sign up (or Log in for an unverified account); it is never put in the URL.
@@ -29,7 +26,7 @@ export default function VerifyEmailPage() {
       onVerified={({ accessToken, user }) => {
         // Memory only (Redux); the refresh token is the httpOnly cookie set by the API.
         dispatch(credentialsSet({ accessToken, user }));
-        navigate(nextPathFor(user), { replace: true });
+        navigate(landingPathFor(user), { replace: true });
       }}
     />
   );
