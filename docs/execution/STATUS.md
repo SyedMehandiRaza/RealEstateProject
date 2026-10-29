@@ -34,7 +34,7 @@ Goal (2026-10-29, /chief-of-staff): auth module fully built and tested (API, UI 
 - Jest: shared 112/112, backend 70/70, frontend 13/13 passed
 - ESLint clean, Prettier clean, Vite build OK, `node --check` on both migrations
 - Playwright not re-run in this change
-- 2026-10-29: local MySQL 8.4.9 on port 3307 (XAMPP's MariaDB stays on 3306). Both migrations applied to `real_estate` and `real_estate_test`; on the test DB both were rolled back and re-applied cleanly. The API starts (nodemon), passes the version check and `/api/health` returns 200.
+- 2026-10-29: local MySQL 8.4.9 on port 3306 (XAMPP's MariaDB is stopped; moved from 3307 on 2026-10-29). Both migrations applied to `real_estate` and `real_estate_test`; on the test DB both were rolled back and re-applied cleanly. The API starts (nodemon), passes the version check and `/api/health` returns 200.
 - Not verified: the Sequelize repository and the real Cloudinary adapter (no integration tests against MySQL yet, no call made to Cloudinary).
 
 ## Risks and assumptions

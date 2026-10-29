@@ -60,6 +60,10 @@ Run `/new-module <name>`. It drives each step in order and stops for approval be
 - Do not claim a task is complete until relevant tests/checks have been run or the unverified parts are clearly disclosed.
 - Update documentation when behavior, interfaces, setup, or architectural decisions change.
 
+## Branches
+
+`feature/<module>` → `testing` → `main`. Claude pushes only feature branches. Merging into `testing`, and later from `testing` into `main`, happens only when the user asks. See `.claude/rules/git-workflow.md`.
+
 ## Parallel work
 
 - Before parallelizing, define task boundaries, dependencies, file ownership, interfaces, and acceptance criteria.
