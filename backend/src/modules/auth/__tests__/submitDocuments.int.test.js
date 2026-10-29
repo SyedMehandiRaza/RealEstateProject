@@ -407,6 +407,83 @@ describe('POST /api/auth/me/documents (first submission)', () => {
     });
   });
 
+  describe('parallel uploads (TASK-048)', () => {
+    // Holds every upload until all `expected` have started, so a sequential upload loop would hang
+    // (and time out) instead of passing. failing: indexes, in start order, of uploads that reject.
+    function holdUntilAllStarted(expected, { failing = [] } = {}) {
+      const upload = storage.upload.bind(storage);
+      let started = 0;
+      let release;
+      const allStarted = new Promise((resolve) => {
+        release = resolve;
+      });
+      storage.upload = async (buffer, options) => {
+        const index = started;
+        started += 1;
+        if (started === expected) release();
+        await allStarted;
+        if (failing.includes(index)) throw new Error('Cloudinary unavailable');
+        return upload(buffer, options);
+      };
+    }
+
+    it('starts every upload before any finishes and stores all of them', async () => {
+      const { accessToken, profileId } = await developerWithProfile(company);
+      holdUntilAllStarted(3);
+
+      const res = await submitDocuments(app, accessToken, documentSet('company'));
+
+      expect(res.status).toBe(201);
+      const rows = await documentsOf(profileId);
+      expect(rows).toHaveLength(3);
+      expect(storedFiles(storage).sort()).toEqual(rows.map((row) => row.cloudinaryPublicId).sort());
+    });
+
+    it('deletes the other uploads when the first one fails, and saves nothing', async () => {
+      const { accessToken, profileId } = await developerWithProfile(company);
+      holdUntilAllStarted(3, { failing: [0] });
+
+      const res = await submitDocuments(app, accessToken, documentSet('company'));
+
+      expect(res.status).toBe(500);
+      expect(res.body).toEqual(errorBody('INTERNAL_ERROR'));
+      expect(storage.calls.filter(([call]) => call === 'upload')).toHaveLength(2);
+      expect(storage.calls.filter(([call]) => call === 'destroy')).toHaveLength(2);
+      expect(storedFiles(storage)).toEqual([]);
+      expect(await documentsOf(profileId)).toEqual([]);
+    });
+
+    it('queues the successful uploads whose delete fails when another upload fails', async () => {
+      const { accessToken, profileId } = await developerWithProfile(company);
+      holdUntilAllStarted(3, { failing: [1] });
+      storage.failNextDestroys(2);
+
+      const res = await submitDocuments(app, accessToken, documentSet('company'));
+
+      expect(res.status).toBe(500);
+      const uploaded = storage.calls.filter(([call]) => call === 'upload').map(([, publicId]) => publicId);
+      expect(uploaded).toHaveLength(2);
+      const queued = await queuedDeletions();
+      expect(queued.map((row) => row.publicId).sort()).toEqual(uploaded.sort());
+      expect(queued.every((row) => row.reason === 'save_failed')).toBe(true);
+      expect(await documentsOf(profileId)).toEqual([]);
+    });
+
+    it('deletes every file when the save fails after the parallel uploads', async () => {
+      const { accessToken, profileId } = await developerWithProfile(company);
+      holdUntilAllStarted(3);
+      jest.spyOn(models.VerificationDocument, 'bulkCreate').mockRejectedValueOnce(new Error('DB down'));
+
+      const res = await submitDocuments(app, accessToken, documentSet('company'));
+
+      expect(res.status).toBe(500);
+      expect(storage.calls.filter(([call]) => call === 'upload')).toHaveLength(3);
+      expect(storage.calls.filter(([call]) => call === 'destroy')).toHaveLength(3);
+      expect(storedFiles(storage)).toEqual([]);
+      expect(await documentsOf(profileId)).toEqual([]);
+    });
+  });
+
   describe('access', () => {
     it('answers 403 FORBIDDEN for a Developer without Professional info, uploading nothing', async () => {
       const { accessToken } = (await signUpAndVerify(app, mailer, { role: 'developer' })).body.data;

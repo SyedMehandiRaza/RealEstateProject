@@ -148,7 +148,7 @@ All routes are under `/api/auth`. Success bodies are `{ success: true, data }`; 
   - First submission: every required kind must be present.
   - Resubmission: only kinds whose latest document is rejected are accepted.
   - Each file is checked against `documentUploadSchema` (built from the part's name, reported type and size). Then its first bytes are sniffed for PDF, JPEG or PNG; a mismatch is a 422 with `mimeType.invalid`.
-  - Each file goes through `uploadAndSave` under `realestate/<env>/documents/<profile id>/` as an authenticated asset. All rows are saved in one transaction, and any uploads already made are compensated if a later file fails.
+  - The files are uploaded in parallel (`uploadAllAndSave`, DEC-038) under `realestate/<env>/documents/<profile id>/` as authenticated assets. All rows are saved in one transaction after every upload succeeded, and every successful upload is compensated if another upload or the save fails.
   - Multipart parsing needs a new dependency, `multer`, with memory storage limited to 10 MB per file and 3 files.
 - **Reset permission:** a signed token (purpose `password_reset`, subject the Account, 10 minutes). It carries a fingerprint of the Account's current password hash, so it stops working the moment the password changes. That makes it single-use with no schema change.
 - **Sign-up and roles:** sign-up creates the Account, its first role and the first code in one transaction. The code is mailed after commit. "Become a developer" adds a `user_roles` row. Roles are read at login and refresh in the same query as the Account (no N+1).

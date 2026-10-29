@@ -2,6 +2,8 @@ import crypto from 'node:crypto';
 import { authMessages, LIMITS } from '@real-estate/shared';
 import { Op } from 'sequelize';
 import { AppError } from '../../utils/AppError.js';
+import { constantTimeEqual } from '../../utils/constantTimeEqual.js';
+import { toWholeSeconds } from '../../utils/time.js';
 
 // Verification codes (SPEC-001, DEC-015, DEC-021, DEC-026): issues and checks the 6-digit codes emailed
 // for a purpose. Codes come from a cryptographic random source, keep their leading zeros and are stored only
@@ -50,13 +52,8 @@ export const hashCode = (code, secret) => crypto.createHmac('sha256', secret).up
 // Constant-time comparison of a submitted code with the stored HMAC.
 export function isSameCode(code, storedHash, secret) {
   const expected = Buffer.from(hashCode(code, secret), 'hex');
-  const actual = Buffer.from(storedHash, 'hex');
-  return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+  return constantTimeEqual(Buffer.from(storedHash, 'hex'), expected);
 }
-
-// DATETIME columns keep whole seconds. Working in whole seconds here means the stored times are exactly
-// the ones computed, so a code dies at exactly 10:00 however the driver treats a fraction.
-const toWholeSeconds = (date) => new Date(Math.floor(date.getTime() / 1000) * 1000);
 
 export function createVerificationCodeService({ models, clock, secret, random = crypto.randomInt }) {
   const { VerificationCode } = models;

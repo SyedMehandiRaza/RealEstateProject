@@ -1,5 +1,6 @@
 import { DOCUMENT_STATUSES } from '@real-estate/shared';
 import { hashPassword } from '../utils/password.js';
+import { toWholeSeconds } from '../utils/time.js';
 import { latestDocumentByKind, requiredDocumentKinds } from '../modules/auth/verificationStatus.js';
 
 // Seed data for the e2e harness (TASK-042), written straight into the test database because some states
@@ -31,7 +32,6 @@ const check = (condition, message) => {
 
 // DATETIME keeps whole seconds; seeded documents are dated a minute back, so a document the app stores
 // during the test (dated now) is the latest of its kind.
-const wholeSeconds = (date) => new Date(Math.floor(date.getTime() / 1000) * 1000);
 const SEEDED_DOCUMENT_AGE_MS = 60_000;
 
 let seeded = 0;
@@ -110,7 +110,7 @@ export async function seedAccount(models, sequelize, options = {}) {
   const statuses = documents === undefined ? {} : documentStatuses(documents, developerType);
 
   const passwordHash = await hashPassword(password);
-  const now = wholeSeconds(new Date());
+  const now = toWholeSeconds(new Date());
 
   return sequelize.transaction(async (transaction) => {
     const user = await models.User.create(
@@ -181,7 +181,7 @@ export async function setDocumentReview(
     throw new SeedError(`${email} has no ${documentKind ?? 'verification'} document to review`, 404);
   }
 
-  const reviewedAt = wholeSeconds(new Date());
+  const reviewedAt = toWholeSeconds(new Date());
   for (const document of targets) {
     await document.update({
       status,

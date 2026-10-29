@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
+import { constantTimeEqual } from '../../utils/constantTimeEqual.js';
 
 // Reset permission (SPEC-001, DEC-029): returned when a password_reset code is accepted and presented to
 // POST /password/reset (TASK-024). A JWT with purpose `password_reset`, subject the Account and 10 minutes
@@ -58,9 +59,7 @@ export function createResetTokens({ parentSecret, clock }) {
 
     // True while the Account's password hash is the one the token was issued for (constant time).
     matchesPassword({ fingerprint }, passwordHash) {
-      const expected = Buffer.from(fingerprintOf(passwordHash));
-      const actual = Buffer.from(fingerprint);
-      return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+      return constantTimeEqual(Buffer.from(fingerprint), Buffer.from(fingerprintOf(passwordHash)));
     },
   };
 }

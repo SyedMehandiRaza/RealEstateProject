@@ -1,5 +1,6 @@
 import { authMessages, commonMessages } from '@real-estate/shared';
 import { AppError } from '../../utils/AppError.js';
+import { toWholeSeconds } from '../../utils/time.js';
 import { toProfileResponse } from './auth.presenter.js';
 import { documentFieldPath } from './documentUpload.js';
 import {
@@ -15,9 +16,6 @@ const alreadySubmitted = () =>
 
 // PDFs are Cloudinary 'raw' assets, JPG/PNG 'image' (DEC-016, chk_verification_documents_resource_type).
 const resourceTypeOf = (mimeType) => (mimeType === 'application/pdf' ? 'raw' : 'image');
-
-// DATETIME keeps whole seconds; the stored time and the one used for "latest" must be the same.
-const wholeSeconds = (date) => new Date(Math.floor(date.getTime() / 1000) * 1000);
 
 // Which sent kinds the Developer may submit now, given their document rows (SPEC-001, DEC-022, Q-036).
 // A kind whose latest document is pending or approved: 409 CONFLICT, before anything else. A kind the
@@ -97,11 +95,11 @@ export function createOnboardingService({ sequelize, repository, onboardingRepos
     // Stores the sent Verification documents and returns the new Verification status (SPEC-001:
     // 201 { verification }, the GET /me/verification shape). documents: the parsed documentUploadSchema
     // values plus each file's buffer. The rules are checked before any upload, so a refused request
-    // uploads nothing. Each file then goes through uploadAndSave under documents/<profile id>/; the rows
-    // are written in one transaction after the last upload, never with Cloudinary inside it (DEC-018).
-    // The profile row is locked there and the rules are checked again, so of two racing submissions one
-    // gets 409. If the transaction or a later upload fails, uploadAndSave deletes (or queues) every
-    // file already uploaded, newest first.
+    // uploads nothing. The files are then uploaded in parallel under documents/<profile id>/ and, once
+    // every upload succeeded, the rows are written in one transaction, never with Cloudinary inside it
+    // (DEC-018). The profile row is locked there and the rules are checked again, so of two racing
+    // submissions one gets 409. If an upload or the transaction fails, uploadAllAndSave deletes (or
+    // queues as save_failed) every file that was uploaded.
     async submitDocuments({ userId, documents }) {
       const profile = await onboardingRepository.findProfileWithDocuments(userId);
       if (!profile) {
@@ -117,7 +115,7 @@ export function createOnboardingService({ sequelize, repository, onboardingRepos
           if (!locked) throw new AppError('UNAUTHORIZED'); // the Account was deleted meanwhile
           const existing = await onboardingRepository.findDocuments(profile.id, { transaction });
           checkSubmission({ developerType: locked.businessType, existing, documents });
-          const createdAt = wholeSeconds(clock.now());
+          const createdAt = toWholeSeconds(clock.now());
           const created = await onboardingRepository.createDocuments(
             documents.map((document, i) => ({
               professionalProfileId: profile.id,
@@ -140,16 +138,12 @@ export function createOnboardingService({ sequelize, repository, onboardingRepos
           });
         });
 
-      // Uploads one file after the other, each wrapped in uploadAndSave, and saves inside the last one.
-      const uploadFrom = (uploaded) => {
-        if (uploaded.length === documents.length) return saveAll(uploaded);
-        const document = documents[uploaded.length];
-        return fileUploads.uploadAndSave(
-          { buffer: document.buffer, folder, resourceType: resourceTypeOf(document.mimeType) },
-          (file) => uploadFrom([...uploaded, file]),
-        );
-      };
-      return { verification: await uploadFrom([]) };
+      const files = documents.map((document) => ({
+        buffer: document.buffer,
+        folder,
+        resourceType: resourceTypeOf(document.mimeType),
+      }));
+      return { verification: await fileUploads.uploadAllAndSave(files, saveAll) };
     },
   };
 }
