@@ -31,6 +31,7 @@ frontend/src/
 - Use tokens from `styles/tokens.css` (from Figma variables); no hardcoded hex or pixel values where a token exists.
 - Reuse `components/ui/` before creating new components. A Figma component used on more than one page belongs in `components/ui/`.
 - Every page must be checked against the Figma screenshot at the frame's width (plus mobile if the design has a mobile frame).
+- Every page is responsive, even when Figma has only a desktop frame. It must work from 375 px wide up to the frame width and on short laptop screens (1366x768, 1280x720), with no overlap, no horizontal scroll and no vertical scroll when the content fits. Do not use fixed pixel positions from Figma for page layout. Details: `/figma-to-module` step 3.
 
 ## Forms
 - `react-hook-form` + `zodResolver(schema)`, with the schema imported from `@real-estate/shared`. On a failed mutation call `applyServerErrors(error, setError)` and show the returned form-level message.

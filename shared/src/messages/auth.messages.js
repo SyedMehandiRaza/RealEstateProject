@@ -84,6 +84,15 @@ export const authMessages = {
     empty: 'The file is empty',
     max: 'The file must be 10 MB or smaller',
   },
+  // POST /me/documents (Q-036, wording assumed): a required kind with no document yet, reported at
+  // `documents.<kind>.file`. Keyed by DOCUMENT_KINDS.
+  documents: {
+    required: {
+      government_id: 'Upload your Government ID',
+      company_registration_certificate: 'Upload your Company Registration Certificate',
+      profile_photo: 'Upload your Profile Photo',
+    },
+  },
   api: {
     invalidCredentials: 'Invalid email or password',
     emailTaken: 'This email is already registered. Log in instead',
@@ -94,5 +103,7 @@ export const authMessages = {
     emailNotVerified: 'Please verify your email. We have sent you a new code',
     passwordChanged: 'Password changed. Please log in',
     documentsUnderReview: 'Your account is under review',
+    // 409 CONFLICT for a document kind whose latest upload is pending or approved (Q-036, wording assumed).
+    documentAlreadySubmitted: 'This document is already under review or approved',
   },
 };

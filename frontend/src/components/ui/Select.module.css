@@ -1,0 +1,130 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.label {
+  color: var(--color-text-heading);
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+.anchor {
+  position: relative;
+  width: 100%;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-10);
+  width: 100%;
+  height: var(--size-control-height);
+  padding: var(--space-10) var(--space-16);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Keyboard focus uses TextInput's primary border; the open state keeps the grey border (Figma 13038:4972). */
+.trigger:focus-visible {
+  border-color: var(--color-primary-500);
+  outline: none;
+}
+
+.invalid,
+.invalid:focus-visible {
+  border-color: var(--color-error-500);
+}
+
+.trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.placeholder,
+.value {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.placeholder {
+  color: var(--color-text-placeholder);
+}
+
+/* Not in Figma (only the placeholder is drawn): the chosen value uses the typed-text colour. */
+.value {
+  color: var(--color-text-heading);
+}
+
+/* The 8x16 arrow is rotated a quarter turn to point down, in a 16x8 box (Figma 13038:4969). */
+.arrow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-icon-sm);
+  height: var(--space-8);
+}
+
+.arrow img {
+  display: block;
+  flex: none;
+  transform: rotate(90deg);
+}
+
+/* "Buy Rent option modal" (13038:4976): 4px below the trigger, laid over the content beneath. */
+.listbox {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + var(--space-4));
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: var(--shadow-dropdown);
+  list-style: none;
+}
+
+.listbox[hidden] {
+  display: none;
+}
+
+.option {
+  padding: var(--space-10) var(--space-20);
+  color: var(--color-text-placeholder);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  cursor: pointer;
+}
+
+/* Figma draws the highlighted row (first option) on a grey fill with darker text. */
+.active {
+  background: var(--color-surface-option-active);
+  color: var(--color-text-body);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-error-500);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}

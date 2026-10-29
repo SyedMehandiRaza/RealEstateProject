@@ -1,7 +1,7 @@
 # SPEC-001: Auth API for buyers and developers
 
 - Labels: `ready-for-agent`
-- Tracker: local (Q-006, DEC-022). Tickets: TASK-009, TASK-010, TASK-011 in `docs/execution/BACKLOG.md`
+- Tracker: local (Q-006, DEC-022). Tickets: TASK-017 to TASK-045 in `docs/execution/BACKLOG.md` (replacing TASK-006, 009, 010, 011, 013, 014)
 - Sources: GLOSSARY.md; DEC-008, DEC-012 to DEC-022; `docs/modules/auth/` (README, db.md, figma.md); the shared auth schemas
 - Written: 2026-10-29
 

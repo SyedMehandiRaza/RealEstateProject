@@ -1,0 +1,80 @@
+/* Figma 13038:3868: the credentials block and the Log In button are 32 apart. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  width: 100%;
+}
+
+/* 13038:3869: the fields and "Forgot Password?" are 11 apart; 13038:3870: the fields are 27 apart. */
+.credentials {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-11);
+  width: 100%;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-27);
+  width: 100%;
+}
+
+/* "Forgot Password?" (13038:3888): right-aligned link. */
+.forgot {
+  align-self: flex-end;
+  color: var(--color-primary-500);
+  font-size: var(--font-size-15);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-decoration: none;
+}
+
+/* 13038:3889: messages sit above the button, 16 apart (no message state in Figma). */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  width: 100%;
+}
+
+/* No error state in Figma: same colour and size as the field messages (TextInput). */
+.formError,
+.notice {
+  margin: 0;
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+.formError {
+  color: var(--color-error-500);
+}
+
+/* "Password changed" has no Figma state either: body text colour. */
+.notice {
+  color: var(--color-text-heading);
+}
+
+/* "Don’t have an account? Sign Up" (13038:3910). */
+.switch {
+  width: 100%;
+  margin: 0;
+  color: var(--color-text-heading);
+  font-size: var(--font-size-15);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-align: center;
+}
+
+.link {
+  color: var(--color-primary-500);
+  text-decoration: none;
+}
+
+.forgot:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}

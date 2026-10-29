@@ -1,0 +1,78 @@
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-10);
+  width: 100%;
+  height: var(--size-file-card-height);
+  padding: 0 var(--space-16);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
+.thumbnail {
+  flex: none;
+  width: var(--size-file-thumb-width);
+  height: var(--size-file-thumb-height);
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+/* Not designed (every Figma file has a picture): a neutral tile for files without a preview. */
+.blank {
+  display: block;
+  background: var(--color-surface-option-active);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-6);
+  min-width: 0;
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+.name,
+.size {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  color: var(--color-text-heading);
+}
+
+.size {
+  color: var(--color-text-placeholder);
+}
+
+.remove {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-icon-lg);
+  height: var(--size-icon-lg);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.remove:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}

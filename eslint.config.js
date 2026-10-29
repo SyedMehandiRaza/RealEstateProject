@@ -12,6 +12,9 @@ export default [
       '**/coverage/**',
       '**/playwright-report/**',
       '**/test-results/**',
+      // Agent worktrees are separate checkouts; lint them from inside, never from here.
+      '.claude/worktrees/**',
+      '.playwright-mcp/**',
     ],
   },
   js.configs.recommended,

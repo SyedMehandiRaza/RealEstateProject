@@ -34,8 +34,8 @@ Errors from any layer → `errorHandler` → `{ success: false, error: { code, m
 
 ## Auth (DEC-008)
 
-Access token in the JSON response, then in Redux memory and the `Authorization: Bearer` header. Refresh token in the httpOnly cookie `refresh_token` (path `/api/auth`), stored hashed and rotated. RTK Query `baseQueryWithReauth` calls `POST /api/auth/refresh` once on a 401 and retries the request.
-**Assumed contract** (to confirm in the auth module): `POST /api/auth/refresh` returns `{ success: true, data: { accessToken, user } }`.
+Access token in the JSON response, then in Redux memory and the `Authorization: Bearer` header. Refresh token in the httpOnly cookie `refresh_token` (path `/api/auth`), stored hashed and rotated. RTK Query `baseQueryWithReauth` calls `POST /api/auth/refresh` once on a 401 and retries the request. Parallel 401s in one tab share one refresh; across tabs the refresh runs inside the Web Lock `auth-refresh` (`navigator.locks`, when available), so a second tab refreshes only after the first has stored the rotated cookie and never presents a rotated token (TASK-046, DEC-028).
+**Contract** (built in TASK-022, DEC-028): `POST /api/auth/refresh` returns `{ success: true, data: { accessToken, user } }` and a rotated cookie, or 401 with the cookie cleared; a revoked (reused) token revokes every session of the Account. `POST /api/auth/logout` answers 204 and clears the cookie.
 
 ## Module boundaries and ownership
 
@@ -49,14 +49,46 @@ Access token in the JSON response, then in Redux memory and the `Authorization: 
 
 ## Environment variables (names only)
 
-Backend (`backend/env.example`): `NODE_ENV`, `PORT`, `LOG_LEVEL`, `CORS_ORIGINS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_NAME_TEST`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`, `CERTIFICATE_STORAGE` (only `cloudinary`), `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`. Planned for the mailer (not validated yet): `SMTP_SERVICE_HOST`, `SMTP_SERVICE_PORT`, `SMTP_USER_NAME`, `SMTP_USER_PASSWORD`, `MAIL_FROM`.
+Backend (`backend/env.example`): `NODE_ENV`, `PORT`, `LOG_LEVEL`, `CORS_ORIGINS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_NAME_TEST`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`, `CERTIFICATE_STORAGE` (only `cloudinary`), `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `SMTP_SERVICE_HOST`, `SMTP_SERVICE_PORT` (only 465), `SMTP_USER_NAME`, `SMTP_USER_PASSWORD`, `MAIL_FROM`, `VERIFICATION_CODE_SECRET` (32+ characters, not equal to a JWT secret). All are validated at startup by `parseEnv` in `backend/src/config/env.js`; the error names the variable, never the value.
 Frontend (`frontend/env.example`): `VITE_API_URL`.
-E2E: `E2E_WEB_URL`, `E2E_API_URL`, `E2E_WITH_API`.
+E2E: `E2E_WEB_URL` (default `http://localhost:5174`), `E2E_API_URL` (default `http://localhost:5100`), `E2E_WITH_API`. Frontend dev server (Node side, `vite.config.js`): `API_PROXY_TARGET` (default `http://localhost:5000`), set by the e2e config. The e2e start mode (`npm run start:e2e -w backend`, DEC-036) applies the backend test env itself (`NODE_ENV=test`, `DB_NAME_TEST`, dummy secrets) before `backend/.env` is read, so only settings it leaves unset (such as the DB connection) come from that file.
 
 ## Environments
 
-- Local development: local MySQL; separate `<db>_test` database for tests (Jest setup refuses other names)
+- Local development: local MySQL; separate `<db>_test` database for tests (Jest setup refuses other names; see "Backend tests")
 - Integration/test, Staging, Production: unknown
+
+## Backend tests (TASK-017)
+
+Two Jest projects in `backend/jest.config.js`. `npm test -w backend` (and the root `npm test`) runs both: unit first in parallel, then integration serially (`--runInBand`).
+
+| Project     | Files           | Database                                                                                 |
+| ----------- | --------------- | ---------------------------------------------------------------------------------------- |
+| unit        | `*.test.js`     | none: in-memory fakes from `backend/src/test/` only                                      |
+| integration | `*.int.test.js` | `real_estate_test` (`DB_NAME_TEST`), migrated once per run and emptied before every test |
+
+How to write an integration test:
+
+1. Name the file `<thing>.int.test.js` inside a `__tests__/` folder. Nothing else is needed for the database: `src/test/globalSetup.js` refuses any database whose name does not end in `_test` and runs `sequelize-cli db:migrate`, and `src/test/integrationSetup.js` deletes every row of every table (except `sequelize_meta`/`sequelize_data`) before each test and closes the connection after the file.
+2. Build the app with `createTestApp()` from `src/test/testApp.js`. It returns `{ app, mailer, storage, clock }`: the app built by `createApp({ mailer, storage, clock })` with a fake mailer (`mailer.lastCodeFor(email, purpose?)` reads the code from the "email", `failNextSends(n)` simulates SMTP failures), the in-memory Cloudinary fake (`storage.calls`, `storage.assets`) and a test clock (`clock.advance(ms)`, `clock.set(date)`). Pass any of them to replace one fake.
+3. Drive it with supertest (`request(app).post(...)`), then assert on the response, `mailer.messages`, rows via `models`, and queued file deletions (`models.PendingFileDeletion`).
+
+Rules:
+
+- `createApp()` without arguments uses the real dependencies (`cloudinaryStorage`, `systemClock` from `src/utils/clock.js`, `smtpMailer` from `src/modules/mail/smtp.mailer.js`, DEC-024). Under `NODE_ENV=test` the real mailer refuses to send. An unknown dependency name or one missing a method throws, so a typo cannot fall back to the real service.
+- Services read the time from the injected `clock.now()`, never `new Date()`, so boundaries (9:59 vs 10:00) are testable.
+- Rate limiters are created with `createLimiter` in `middlewares/rateLimiter.js`; every suite resets them in a `beforeEach` (`src/test/setupAfterEnv.js`).
+- Integration files must run serially (they share one database); a parallel run fails with a clear error.
+- A repository with an in-memory fake gets a contract suite run against both (example: `src/test/queueRepositoryContract.js`).
+- The migration round trip (all down, then up) drops every test table, so it is opt-in: `$env:TEST_MIGRATION_ROUNDTRIP='true'; npm run test:integration -w backend`.
+- Validation parity (DEC-025): the invalid inputs of each shared schema live once in `shared/src/testing/` and are imported as `@real-estate/shared/testing` (`signUpCases`, `verifyCodeCases`, ...; each `{ valid, invalid: [{ name, input, field, message }] }`). The shared schema test and the backend parity test (`modules/<module>/__tests__/<module>Validation.test.js`, a unit test: validation answers before any query) replay the same rows. Add a schema's cases there when its first route is built.
+- Auth journeys for integration tests: `src/test/authFlows.js` (`signUp(app, overrides)`, `signUpAndVerify(app, mailer, overrides)`).
+
+## E2E harness (TASK-042, DEC-036)
+
+- `npm run start:e2e -w backend` (`src/test/e2eServer.js`) runs the API for Playwright: `NODE_ENV=test` only, `real_estate_test` (migrated at startup, `_test` guard), `createE2eApp` (`src/test/e2eApp.js`) = `createApp` with the capture mailer, fake storage and real clock behind test-only routes at `/api/__e2e` (`status`, `reset`, `mail/latest`, `storage`, `seed/accounts`, `seed/document-reviews`). No file jobs. The production entry points never import `src/test/`, so no other mode has these routes.
+- Seeds (`src/test/e2eSeeds.js`): `seedAccount(models, sequelize, options)` and `setDocumentReview(models, options)`; also usable from integration tests.
+- The Playwright side is `e2e/fixtures/harness.js`; see `e2e/README.md`. E2E and the integration tests share `real_estate_test`: never run them at the same time.
 
 ## Architecture constraints
 

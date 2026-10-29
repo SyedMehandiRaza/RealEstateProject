@@ -1,0 +1,31 @@
+/* Figma 13038:4592: the document slots and Next are 32 apart. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  width: 100%;
+}
+
+/* 13038:4593: the slots are 30 apart. */
+.slots {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-30);
+  width: 100%;
+}
+
+/* Messages sit above the button, 16 apart, as on the other auth forms (no message state in Figma). */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  width: 100%;
+}
+
+.error {
+  margin: 0;
+  color: var(--color-error-500);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}

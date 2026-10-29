@@ -1,3 +1,118 @@
-/* Design tokens. Generated from Figma variables by /figma-to-module; do not hand-pick values. */
+/* Design tokens. Generated from Figma variables by /figma-to-module; do not hand-pick values.
+ *
+ * Source: file iREXbZTABmZigGHBpTpOnz, page "Auth Module" (13038:1697), read 2026-10-29 (TASK-031).
+ * The file defines no Figma variables (get_variable_defs returns {} on every auth frame), so these
+ * tokens are the raw values used by the auth frames, named by role. Replace them with the variable
+ * names if the design team adds variables.
+ */
 :root {
+  /* Color */
+  --color-primary-500: #885eff;
+  --color-primary-500-a20: rgba(136, 94, 255, 0.2);
+  --color-primary-500-a10: rgba(136, 94, 255, 0.1);
+  --color-primary-500-a05: rgba(136, 94, 255, 0.05);
+  --color-white: #ffffff;
+  --color-white-a0: rgba(255, 255, 255, 0);
+  --color-text-heading: #363838;
+  --color-text-body: #666666;
+  --color-text-placeholder: #888888;
+  --color-border-input: #9e9e9e;
+  --color-border-social: #9c96ad;
+  --color-divider: #cfcfcf;
+  --color-overlay-hero: rgba(0, 0, 0, 0.46);
+  /* Onboarding kit (TASK-032): dropdowns, dropzone, file cards, status badges, country rows. */
+  --color-text-option: #444444;
+  --color-surface-option-active: #eeeeee;
+  --color-surface-dropzone: rgba(255, 235, 19, 0.05);
+  --color-shadow-dropdown: rgba(136, 136, 136, 0.2);
+  /* Figma names these accents/yellow, accents/green and accents/red. */
+  --color-accents-yellow: #ffcc00;
+  --color-accents-green: #34c759;
+  --color-accents-red: #ff383c;
+  /* Status icon tiles (status screens 13038:4703, 4765, 4825): 10% tints, as drawn in Figma. */
+  --color-status-pending-bg: rgba(255, 235, 19, 0.1);
+  --color-status-approved-bg: rgba(39, 200, 64, 0.1);
+  --color-status-rejected-bg: rgba(255, 0, 4, 0.1);
+  /* Not in Figma (no error states are designed): assumed until design answers. */
+  --color-error-500: #d92d20;
+
+  /* Typography (Poppins) */
+  --font-family-base: 'Poppins', sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-size-9: 9px;
+  --font-size-10: 10px;
+  --font-size-12: 12px;
+  --font-size-14: 14px;
+  --font-size-15: 15px;
+  --font-size-16: 16px;
+  --font-size-20: 20px;
+  --font-size-24: 24px;
+  --font-size-30: 30px;
+  --line-height-normal: normal;
+
+  /* Spacing */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-7: 7px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-11: 11px;
+  --space-12: 12px;
+  --space-15: 15px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-27: 27px;
+  --space-30: 30px;
+  --space-32: 32px;
+  --space-47: 47px;
+  --space-48: 48px;
+  --space-73: 73px;
+  --space-199: 199px;
+
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-option: 6px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-card: 50px;
+
+  /* Sizes */
+  --size-icon-sm: 16px;
+  --size-icon-md: 20px;
+  --size-icon-lg: 24px;
+  --size-status-dot: 12px;
+  --size-flag-width: 40px;
+  --size-flag-height: 30px;
+  --size-file-thumb-width: 69px;
+  --size-file-thumb-height: 47px;
+  --size-file-card-height: 84px;
+  --size-status-tile: 80px;
+  --size-status-glyph: 40px;
+  --size-dropzone-height: 98px;
+  --size-control-height: 52px;
+  --size-tab-height: 40px;
+  --size-otp-caret-height: 36px;
+  --size-auth-card-width: 648px;
+  --size-auth-content-width: 539px;
+  --size-auth-heading-width: 411px;
+  --size-auth-hero-header-width: 698px;
+  --size-auth-tagline-width: 645px;
+
+  /* Shadows */
+  --shadow-dropdown: 0 0 20px 0 var(--color-shadow-dropdown);
+
+  /* Gradients */
+  --gradient-auth-hero:
+    linear-gradient(205.2deg, rgba(0, 0, 0, 0) 22.445%, var(--color-primary-500-a10) 76.169%),
+    linear-gradient(90deg, var(--color-overlay-hero) 0%, var(--color-overlay-hero) 100%);
+  /* Sampled from the Figma render of the selected tab (13038:4154): an even top-to-bottom fade. */
+  --gradient-tab-selected: linear-gradient(
+    to bottom,
+    var(--color-white-a0) 0%,
+    var(--color-primary-500-a20) 100%
+  );
 }
