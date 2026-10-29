@@ -52,7 +52,9 @@ Goal (2026-10-29, /chief-of-staff): auth module fully built and tested (API, UI 
 - Done: TASK-018 mailer (2026-10-29, DEC-024): `smtpMailer` (nodemailer, 465, secure) is the `createApp` default; SMTP, `MAIL_FROM` and `VERIFICATION_CODE_SECRET` validated at startup by `parseEnv`.
 - Done: TASK-019 sign up + verify email (2026-10-29, DEC-025): POST `/api/auth/sign-up` and `/api/auth/verify-email`; the auth module layout (routes/controller/service/repository wired in `modules/auth/index.js`), the Verification codes module, sessions and the `user` shape; parity cases in `@real-estate/shared/testing`.
 - Next: TASK-020 resend verification code (adds the cooldown and hourly cap to `verificationCodes.issue`).
-- Note: `npm run check` stops at Prettier on untracked `.playwright-mcp/*.yml` snapshots left by a browser session; they are not project files. Delete them or ignore the folder (owner decision).
+- Done: TASK-031 auth UI foundation (tokens, AuthSplitLayout, TextInput, Button, Tabs, OtpInput, auth routes in `frontend/src/modules/auth/routes.jsx`) and TASK-032 onboarding UI kit (Select, FileDropzone, UploadedFileCard, StatusBadge, CountryOption), built in worktrees and cherry-picked (2026-10-29). Figma has no variables: tokens are raw values named by role.
+- Done: `.gitattributes` forces LF (worktree checkouts had CRLF and failed Prettier); `.playwright-mcp/` is git- and prettier-ignored.
+- In progress: TASK-034 (FE Sign up + Verify) in a worktree, coded against the SPEC-001 contract with MSW.
 - Unverified: the migration round trip test (opt-in, `$env:TEST_MIGRATION_ROUNDTRIP='true'; npm run test:integration -w backend`) was not run by the agent; the user should run it once.
 - Blockers: Q-034 (post-login routing, blocks TASK-041), Q-035 (Become-a-developer link, Agent tab; blocks TASK-037). Not blocking: Q-033, Q-037 (assumptions in force). User to run once: `$env:TEST_MIGRATION_ROUNDTRIP='true'; npm run test:integration -w backend` (undo:all was blocked for agents).
 - Per ticket: `npm run check` passes, commit with the TASK id, BACKLOG status Done, update this file.
