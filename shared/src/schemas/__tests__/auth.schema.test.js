@@ -13,6 +13,7 @@ import { authMessages as m } from '../../messages/auth.messages.js';
 import { commonMessages } from '../../messages/common.messages.js';
 import { toFieldErrors } from '../../errors/toFieldErrors.js';
 import { LIMITS } from '../../limits.js';
+import { signUpCases, verifyCodeCases } from '../../testing/index.js';
 
 const L = LIMITS.auth;
 const errorsOf = (schema, input) => {
@@ -23,14 +24,7 @@ const errorsOf = (schema, input) => {
 const longText = (length) => 'a'.repeat(length);
 const emailOfLength = (length) => `${'a'.repeat(length - '@example.com'.length)}@example.com`;
 
-const validSignUp = {
-  role: 'buyer',
-  fullName: 'Sara Khan',
-  email: 'sara@example.com',
-  phone: '+971 50 123 4567',
-  password: 'secret123',
-  confirmPassword: 'secret123',
-};
+const validSignUp = signUpCases.valid;
 
 describe('signUpSchema', () => {
   it('accepts a buyer and a developer, normalizing email and phone', () => {
@@ -42,38 +36,8 @@ describe('signUpSchema', () => {
     expect(signUpSchema.parse({ ...validSignUp, role: 'developer' }).role).toBe('developer');
   });
 
-  it.each(['admin', 'agent', undefined])('rejects role %s', (role) => {
-    expect(errorsOf(signUpSchema, { ...validSignUp, role }).role).toEqual([m.role.invalid]);
-  });
-
-  it.each([
-    ['fullName', undefined, m.fullName.required],
-    ['fullName', '', m.fullName.required],
-    ['fullName', '   ', m.fullName.required],
-    ['fullName', 'A', m.fullName.min],
-    ['fullName', longText(L.fullName.max + 1), m.fullName.max],
-    ['email', undefined, m.email.required],
-    ['email', '  ', m.email.required],
-    ['email', 'not-an-email', m.email.invalid],
-    ['email', emailOfLength(L.email.max + 1), m.email.max],
-    ['phone', undefined, m.phone.required],
-    ['phone', ' ', m.phone.required],
-    ['phone', '0501234567', m.phone.invalid],
-    ['phone', '+12345', m.phone.invalid],
-    ['phone', `+${'1'.repeat(16)}`, m.phone.max],
-    ['password', undefined, m.password.required],
-    ['password', '', m.password.required],
-    ['password', 'abc1234', m.password.min],
-    ['password', `${'a'.repeat(L.password.max)}1`, m.password.max],
-    ['password', `${'é'.repeat(36)}1`, m.password.max],
-    ['password', '12345678', m.password.letter],
-    ['password', 'abcdefgh', m.password.digit],
-    ['confirmPassword', undefined, m.confirmPassword.required],
-    ['confirmPassword', '', m.confirmPassword.required],
-  ])('rejects %s=%j with its message', (field, value, message) => {
-    const input = { ...validSignUp, [field]: value };
-    if (field === 'password' && value !== undefined) input.confirmPassword = value;
-    expect(errorsOf(signUpSchema, input)[field]).toContain(message);
+  it.each(signUpCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(signUpSchema, { ...validSignUp, ...input })[field]).toContain(message);
   });
 
   it('shows only the "required" message for an empty field', () => {
@@ -96,42 +60,17 @@ describe('signUpSchema', () => {
       signUpSchema.safeParse({ ...validSignUp, password: 'abcdef12', confirmPassword: 'abcdef12' }).success,
     ).toBe(true);
   });
-
-  it('puts a password mismatch on confirmPassword', () => {
-    expect(errorsOf(signUpSchema, { ...validSignUp, confirmPassword: 'secret124' }).confirmPassword).toEqual([
-      m.confirmPassword.mismatch,
-    ]);
-  });
-
-  it('rejects unknown fields', () => {
-    expect(errorsOf(signUpSchema, { ...validSignUp, isAdmin: true })._form).toEqual([
-      commonMessages.unknownField,
-    ]);
-  });
 });
 
 describe('verifyCodeSchema', () => {
-  const valid = { email: 'sara@example.com', code: '012345' };
+  const valid = verifyCodeCases.valid;
 
   it('accepts a 6-digit code, keeping leading zeros', () => {
     expect(verifyCodeSchema.parse({ ...valid, code: ' 012345 ' })).toEqual(valid);
   });
 
-  it.each([
-    [undefined, m.code.required],
-    ['', m.code.required],
-    ['12345', m.code.invalid],
-    ['1234567', m.code.invalid],
-    ['12a456', m.code.invalid],
-  ])('rejects code %j', (code, message) => {
-    expect(errorsOf(verifyCodeSchema, { ...valid, code }).code).toEqual([message]);
-  });
-
-  it('requires a valid email and no extra fields', () => {
-    expect(errorsOf(verifyCodeSchema, { code: '123456' }).email).toEqual([m.email.required]);
-    expect(errorsOf(verifyCodeSchema, { ...valid, purpose: 'password_reset' })._form).toEqual([
-      commonMessages.unknownField,
-    ]);
+  it.each(verifyCodeCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(verifyCodeSchema, { ...valid, ...input })[field]).toEqual([message]);
   });
 });
 

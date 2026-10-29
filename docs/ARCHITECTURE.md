@@ -81,6 +81,8 @@ Rules:
 - Integration files must run serially (they share one database); a parallel run fails with a clear error.
 - A repository with an in-memory fake gets a contract suite run against both (example: `src/test/queueRepositoryContract.js`).
 - The migration round trip (all down, then up) drops every test table, so it is opt-in: `$env:TEST_MIGRATION_ROUNDTRIP='true'; npm run test:integration -w backend`.
+- Validation parity (DEC-025): the invalid inputs of each shared schema live once in `shared/src/testing/` and are imported as `@real-estate/shared/testing` (`signUpCases`, `verifyCodeCases`, ...; each `{ valid, invalid: [{ name, input, field, message }] }`). The shared schema test and the backend parity test (`modules/<module>/__tests__/<module>Validation.test.js`, a unit test: validation answers before any query) replay the same rows. Add a schema's cases there when its first route is built.
+- Auth journeys for integration tests: `src/test/authFlows.js` (`signUp(app, overrides)`, `signUpAndVerify(app, mailer, overrides)`).
 
 ## Architecture constraints
 
