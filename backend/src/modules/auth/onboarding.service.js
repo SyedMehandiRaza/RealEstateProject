@@ -1,10 +1,53 @@
+import { authMessages, commonMessages } from '@real-estate/shared';
 import { AppError } from '../../utils/AppError.js';
 import { toProfileResponse } from './auth.presenter.js';
-import { VERIFICATION_STATUS, verificationStatus } from './verificationStatus.js';
+import { documentFieldPath } from './documentUpload.js';
+import {
+  latestDocumentByKind,
+  requiredDocumentKinds,
+  VERIFICATION_STATUS,
+  verificationStatus,
+} from './verificationStatus.js';
+
+const IN_REVIEW_OR_APPROVED = ['pending', 'approved'];
+const alreadySubmitted = () =>
+  new AppError('CONFLICT', { message: authMessages.api.documentAlreadySubmitted });
+
+// PDFs are Cloudinary 'raw' assets, JPG/PNG 'image' (DEC-016, chk_verification_documents_resource_type).
+const resourceTypeOf = (mimeType) => (mimeType === 'application/pdf' ? 'raw' : 'image');
+
+// DATETIME keeps whole seconds; the stored time and the one used for "latest" must be the same.
+const wholeSeconds = (date) => new Date(Math.floor(date.getTime() / 1000) * 1000);
+
+// Which sent kinds the Developer may submit now, given their document rows (SPEC-001, DEC-022, Q-036).
+// A kind whose latest document is pending or approved: 409 CONFLICT, before anything else. A kind the
+// Type of Developer does not require: 422. Every required kind with no document yet must be sent
+// (422 "Upload your <document name>" at documents.<kind>.file). A kind whose latest document was
+// rejected may be sent again. An empty request asks for every kind that can be sent, or is a 409 when
+// none can.
+function checkSubmission({ developerType, existing, documents }) {
+  const required = requiredDocumentKinds(developerType);
+  const latest = latestDocumentByKind(existing);
+  const sent = documents.map((document) => document.documentKind);
+  if (sent.some((kind) => IN_REVIEW_OR_APPROVED.includes(latest[kind]?.status))) throw alreadySubmitted();
+
+  const fields = {};
+  for (const kind of sent) {
+    if (!required.includes(kind)) fields[documentFieldPath(kind, 'file')] = [commonMessages.unknownField];
+  }
+  const sendable = required.filter((kind) => !IN_REVIEW_OR_APPROVED.includes(latest[kind]?.status));
+  if (sent.length === 0 && sendable.length === 0) throw alreadySubmitted();
+  const askFor =
+    sent.length === 0 ? sendable : required.filter((kind) => !latest[kind] && !sent.includes(kind));
+  for (const kind of askFor)
+    fields[documentFieldPath(kind, 'file')] = [authMessages.documents.required[kind]];
+
+  if (Object.keys(fields).length > 0) throw new AppError('VALIDATION_ERROR', { fields });
+}
 
 // Developer onboarding use cases (SPEC-001): Professional info, and later the Verification documents.
 // Input is already validated by the shared schemas; the routes have checked the Developer role.
-export function createOnboardingService({ sequelize, repository, onboardingRepository }) {
+export function createOnboardingService({ sequelize, repository, onboardingRepository, fileUploads, clock }) {
   const statusOf = (profile) =>
     verificationStatus({ developerType: profile.businessType, documents: profile.documents ?? [] });
 
@@ -36,6 +79,64 @@ export function createOnboardingService({ sequelize, repository, onboardingRepos
         return existing.update(values, { transaction });
       });
       return { profile: toProfileResponse(profile) };
+    },
+
+    // Stores the sent Verification documents and returns the new Verification status (SPEC-001:
+    // 201 { verification }, the GET /me/verification shape). documents: the parsed documentUploadSchema
+    // values plus each file's buffer. The rules are checked before any upload, so a refused request
+    // uploads nothing. Each file then goes through uploadAndSave under documents/<profile id>/; the rows
+    // are written in one transaction after the last upload, never with Cloudinary inside it (DEC-018).
+    // The profile row is locked there and the rules are checked again, so of two racing submissions one
+    // gets 409. If the transaction or a later upload fails, uploadAndSave deletes (or queues) every
+    // file already uploaded, newest first.
+    async submitDocuments({ userId, documents }) {
+      const profile = await onboardingRepository.findProfileWithDocuments(userId);
+      if (!profile) {
+        if (!(await repository.findUserById(userId))) throw new AppError('UNAUTHORIZED');
+        throw new AppError('FORBIDDEN'); // no Professional info yet
+      }
+      checkSubmission({ developerType: profile.businessType, existing: profile.documents, documents });
+
+      const folder = `documents/${profile.id}`;
+      const saveAll = (uploaded) =>
+        sequelize.transaction(async (transaction) => {
+          const locked = await onboardingRepository.lockProfile(profile.id, { transaction });
+          if (!locked) throw new AppError('UNAUTHORIZED'); // the Account was deleted meanwhile
+          const existing = await onboardingRepository.findDocuments(profile.id, { transaction });
+          checkSubmission({ developerType: locked.businessType, existing, documents });
+          const createdAt = wholeSeconds(clock.now());
+          const created = await onboardingRepository.createDocuments(
+            documents.map((document, i) => ({
+              professionalProfileId: profile.id,
+              documentKind: document.documentKind,
+              idDocumentType: document.idDocumentType ?? null,
+              cloudinaryPublicId: uploaded[i].publicId,
+              cloudinaryResourceType: uploaded[i].resourceType,
+              originalFilename: document.fileName,
+              mimeType: document.mimeType,
+              sizeBytes: document.sizeBytes,
+              status: 'pending',
+              createdAt,
+              updatedAt: createdAt,
+            })),
+            { transaction },
+          );
+          return verificationStatus({
+            developerType: locked.businessType,
+            documents: [...existing, ...created],
+          });
+        });
+
+      // Uploads one file after the other, each wrapped in uploadAndSave, and saves inside the last one.
+      const uploadFrom = (uploaded) => {
+        if (uploaded.length === documents.length) return saveAll(uploaded);
+        const document = documents[uploaded.length];
+        return fileUploads.uploadAndSave(
+          { buffer: document.buffer, folder, resourceType: resourceTypeOf(document.mimeType) },
+          (file) => uploadFrom([...uploaded, file]),
+        );
+      };
+      return { verification: await uploadFrom([]) };
     },
   };
 }

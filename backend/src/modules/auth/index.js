@@ -1,6 +1,9 @@
 import { env } from '../../config/env.js';
 import models, { sequelize } from '../../models/index.js';
 import { logger } from '../../utils/logger.js';
+import { createFileDeletionService } from '../files/fileDeletion.service.js';
+import { createFileUploadService } from '../files/fileUpload.service.js';
+import { createPendingFileDeletionRepository } from '../files/pendingFileDeletion.repository.js';
 import { createAuthController } from './auth.controller.js';
 import { createAuthRepository } from './auth.repository.js';
 import { createAuthRoutes } from './auth.routes.js';
@@ -12,8 +15,8 @@ import { createResetTokens } from './resetToken.js';
 import { createSessionService } from './session.service.js';
 import { createVerificationCodeService } from './verificationCode.service.js';
 
-// Wires the auth module to the database and to createApp's external dependencies (mailer, clock).
-export function createAuthRouter({ mailer, clock }) {
+// Wires the auth module to the database and to createApp's external dependencies (mailer, storage, clock).
+export function createAuthRouter({ mailer, storage, clock }) {
   const verificationCodes = createVerificationCodeService({
     models,
     clock,
@@ -36,6 +39,17 @@ export function createAuthRouter({ mailer, clock }) {
     sequelize,
     repository,
     onboardingRepository: createOnboardingRepository(models),
+    // Built on the injected storage (a fake in tests), not the files module's Cloudinary singletons.
+    fileUploads: createFileUploadService({
+      storage,
+      fileDeletion: createFileDeletionService({
+        repository: createPendingFileDeletionRepository(models),
+        storage,
+        logger,
+      }),
+      logger,
+    }),
+    clock,
   });
   return createAuthRoutes(createAuthController(authService, onboardingService));
 }

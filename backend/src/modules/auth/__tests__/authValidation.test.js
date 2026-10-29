@@ -1,6 +1,7 @@
 import request from 'supertest';
-import { commonMessages } from '@real-estate/shared';
+import { commonMessages, DOCUMENT_KINDS } from '@real-estate/shared';
 import {
+  documentUploadCases,
   forgotPasswordCases,
   loginCases,
   professionalInfoCases,
@@ -11,6 +12,8 @@ import {
   verifyCodeCases,
 } from '@real-estate/shared/testing';
 import { createTestApp } from '../../../test/testApp.js';
+import { fileBytes } from '../../../test/documentFiles.js';
+import { submitDocuments } from '../../../test/authFlows.js';
 import { signAccessToken } from '../../../utils/jwt.js';
 
 // Validation parity: every invalid payload of the shared schema tests, posted to the API, comes back as
@@ -78,6 +81,63 @@ describe('PUT /api/auth/me/professional-profile rejects invalid input with the s
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
     expect(res.body.error.message).toBe(commonMessages.invalidInput);
     expect(res.body.error.fields[field]).toEqual([message]);
+  });
+});
+
+// POST /me/documents builds documentUploadSchema's input from each multipart file part (its name is the
+// kind, then its file name, type and size) plus the idDocumentType text field, and reports a file's
+// errors under "documents.<kind>.<field>". Each shared case that a real file part can express is sent
+// as one; the others (a kind that is not a part name, no file name, a size that is not a byte count,
+// no type) cannot occur over multipart. "idDocumentType on a certificate" is answered at
+// fields.idDocumentType instead (covered in submitDocuments.int.test.js).
+const SCHEMA_FIELDS = ['documentKind', 'idDocumentType', 'fileName', 'mimeType', 'sizeBytes'];
+const multipartCase = ({ input, field, message, name }) => {
+  const document = { ...documentUploadCases.valid, ...input };
+  const sendable =
+    DOCUMENT_KINDS.includes(document.documentKind) &&
+    typeof document.fileName === 'string' &&
+    document.fileName.trim() !== '' &&
+    typeof document.mimeType === 'string' &&
+    Number.isInteger(document.sizeBytes) &&
+    name !== 'idDocumentType on a certificate';
+  if (!sendable) return null;
+  const extra = Object.fromEntries(Object.entries(input).filter(([key]) => !SCHEMA_FIELDS.includes(key)));
+  return {
+    name,
+    payload: {
+      files: {
+        [document.documentKind]: {
+          buffer: fileBytes(document.mimeType, document.sizeBytes),
+          fileName: document.fileName,
+          mimeType: document.mimeType,
+        },
+      },
+      idDocumentType: document.idDocumentType,
+      fields: extra,
+    },
+    key: field === '_form' ? '_form' : `documents.${document.documentKind}.${field}`,
+    message,
+  };
+};
+const multipartCases = documentUploadCases.invalid.map(multipartCase).filter(Boolean);
+
+describe('POST /api/auth/me/documents rejects invalid files with the shared messages', () => {
+  const { app, storage } = createTestApp();
+  const token = signAccessToken({ userId: 1, roles: ['developer'] });
+
+  // 9 of the 18 shared cases; a new shared case must be sorted into one group or the other here.
+  it('sends every case a file part can express', () => {
+    expect(multipartCases).toHaveLength(9);
+  });
+
+  it.each(multipartCases)('$name', async ({ payload, key, message }) => {
+    const res = await submitDocuments(app, token, payload);
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.message).toBe(commonMessages.invalidInput);
+    expect(res.body.error.fields[key]).toEqual([message]);
+    expect(storage.calls).toEqual([]);
   });
 });
 

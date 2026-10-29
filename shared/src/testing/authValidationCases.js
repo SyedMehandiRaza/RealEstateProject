@@ -230,3 +230,50 @@ export const professionalInfoCases = {
     },
   ],
 };
+
+// One uploaded document, as both apps build it for documentUploadSchema: the slot's kind, the
+// Government ID type, and the file's name, reported type and size. The backend parity test sends each
+// case it can express as a real multipart file part (a named part with a type and that many bytes).
+export const documentUploadCases = {
+  valid: {
+    documentKind: 'government_id',
+    idDocumentType: 'passport',
+    fileName: 'passport.pdf',
+    mimeType: 'application/pdf',
+    sizeBytes: 4_760_000,
+  },
+  invalid: [
+    fieldCase('documentKind', undefined, m.documentKind.invalid),
+    fieldCase('documentKind', 'selfie', m.documentKind.invalid),
+    fieldCase('idDocumentType', undefined, m.idDocumentType.required),
+    fieldCase('idDocumentType', '', m.idDocumentType.required),
+    fieldCase('idDocumentType', 'national_id', m.idDocumentType.required),
+    {
+      ...fieldCase('idDocumentType', 'passport', m.idDocumentType.notAllowed, {
+        documentKind: 'company_registration_certificate',
+      }),
+      name: 'idDocumentType on a certificate',
+    },
+    fieldCase('fileName', undefined, m.fileName.required),
+    fieldCase('fileName', '  ', m.fileName.required),
+    fieldCase('fileName', `${longText(L.fileName.max - 3)}.pdf`, m.fileName.max),
+    fieldCase('mimeType', undefined, m.mimeType.invalid),
+    fieldCase('mimeType', 'image/gif', m.mimeType.invalid),
+    {
+      name: 'profile photo as a PDF',
+      input: { documentKind: 'profile_photo', idDocumentType: undefined },
+      field: 'mimeType',
+      message: m.mimeType.photo,
+    },
+    fieldCase('sizeBytes', 0, m.sizeBytes.empty),
+    fieldCase('sizeBytes', L.maxFileBytes + 1, m.sizeBytes.max),
+    fieldCase('sizeBytes', '1024', m.sizeBytes.invalid),
+    fieldCase('sizeBytes', 1.5, m.sizeBytes.invalid),
+    {
+      name: 'unknown field',
+      input: { url: 'http://x' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};

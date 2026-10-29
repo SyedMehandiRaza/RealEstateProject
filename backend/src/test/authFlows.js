@@ -110,3 +110,17 @@ export const PROFESSIONAL_PROFILE = '/api/auth/me/professional-profile';
 export function saveProfessionalProfile(app, accessToken, body) {
   return request(app).put(PROFESSIONAL_PROFILE).set('Authorization', `Bearer ${accessToken}`).send(body);
 }
+
+export const DOCUMENTS = '/api/auth/me/documents';
+
+// POST /me/documents as multipart: one part per kind in `files` ({ kind: { buffer, fileName, mimeType } }),
+// named after the kind, plus `idDocumentType` and any extra text `fields`. Returns the response.
+export function submitDocuments(app, accessToken, { files = {}, idDocumentType, fields = {} } = {}) {
+  let req = request(app).post(DOCUMENTS).set('Authorization', `Bearer ${accessToken}`);
+  for (const [kind, file] of Object.entries(files)) {
+    req = req.attach(kind, file.buffer, { filename: file.fileName, contentType: file.mimeType });
+  }
+  const text = idDocumentType === undefined ? fields : { idDocumentType, ...fields };
+  for (const [name, value] of Object.entries(text)) req = req.field(name, value);
+  return req;
+}

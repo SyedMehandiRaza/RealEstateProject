@@ -14,6 +14,7 @@ import { commonMessages } from '../../messages/common.messages.js';
 import { toFieldErrors } from '../../errors/toFieldErrors.js';
 import { LIMITS } from '../../limits.js';
 import {
+  documentUploadCases,
   forgotPasswordCases,
   loginCases,
   professionalInfoCases,
@@ -282,6 +283,16 @@ describe('documentUploadSchema', () => {
     ['sizeBytes', 1.5, m.sizeBytes.invalid],
   ])('rejects %s=%j', (field, value, message) => {
     expect(errorsOf(documentUploadSchema, { ...governmentId, [field]: value })[field]).toContain(message);
+  });
+
+  it('accepts the shared valid case', () => {
+    expect(documentUploadSchema.parse(documentUploadCases.valid)).toEqual(documentUploadCases.valid);
+  });
+
+  it.each(documentUploadCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(documentUploadSchema, { ...documentUploadCases.valid, ...input })[field]).toEqual([
+      message,
+    ]);
   });
 
   it('accepts exactly 10 MB and a 255-character file name', () => {

@@ -1,7 +1,10 @@
 // In-memory stand-ins for Cloudinary and the pending_file_deletions table, for unit tests.
 
-export function createFakeStorage({ prefix = 'realestate/test/' } = {}) {
+// uniqueIds: every newPublicId is different (needed when one request stores several files, since
+// verification_documents.cloudinary_public_id is unique); off by default for the fixed-id unit tests.
+export function createFakeStorage({ prefix = 'realestate/test/', uniqueIds = false } = {}) {
   const calls = [];
+  let issued = 0;
   let destroyFailures = 0;
   return {
     prefix,
@@ -10,7 +13,10 @@ export function createFakeStorage({ prefix = 'realestate/test/' } = {}) {
     failNextDestroys(count) {
       destroyFailures = count;
     },
-    newPublicId: (folder) => `${prefix}${folder}/generated-id`,
+    newPublicId(folder) {
+      issued += 1;
+      return `${prefix}${folder}/generated-id${uniqueIds ? `-${issued}` : ''}`;
+    },
     async upload(_buffer, { publicId, resourceType }) {
       calls.push(['upload', publicId]);
       return { publicId, resourceType, deliveryType: 'authenticated' };

@@ -8,7 +8,7 @@ import { createTestClock } from './testClock.js';
 // Pass any of { mailer, storage, clock } to replace a default fake.
 export function createTestApp({
   mailer = createFakeMailer(),
-  storage = createFakeStorage(),
+  storage = createFakeStorage({ uniqueIds: true }),
   clock = createTestClock(),
 } = {}) {
   return { app: createApp({ mailer, storage, clock }), mailer, storage, clock };

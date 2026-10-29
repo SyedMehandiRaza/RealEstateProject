@@ -12,6 +12,7 @@ import {
 import { authenticate, authorize } from '../../middlewares/authenticate.js';
 import { authRateLimiter } from '../../middlewares/rateLimiter.js';
 import { validate } from '../../middlewares/validate.js';
+import { documentUpload } from './documentUpload.js';
 
 // /api/auth routes (SPEC-001). Every public route goes through the per-IP limiter first.
 export function createAuthRoutes(controller) {
@@ -78,6 +79,15 @@ export function createAuthRoutes(controller) {
     authorize('developer'),
     validate({ body: professionalInfoSchema }),
     controller.saveProfessionalProfile,
+  );
+  // Multipart, parsed only after the role check: one file part per kind plus idDocumentType, each file
+  // checked with documentUploadSchema and sniffed (documentUpload.js).
+  router.post(
+    '/me/documents',
+    authenticate,
+    authorize('developer'),
+    documentUpload,
+    controller.submitDocuments,
   );
 
   return router;

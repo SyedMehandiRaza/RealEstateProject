@@ -77,5 +77,12 @@ export function createAuthController(authService, onboardingService) {
         await onboardingService.saveProfessionalProfile({ userId: req.user.id, ...req.validated.body }),
       );
     },
+
+    async submitDocuments(req, res) {
+      const { documents } = req.validated;
+      sendSuccess(res, await onboardingService.submitDocuments({ userId: req.user.id, documents }), {
+        status: 201,
+      });
+    },
   };
 }
