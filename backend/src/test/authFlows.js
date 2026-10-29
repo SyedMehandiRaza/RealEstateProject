@@ -103,3 +103,10 @@ export const BECOME_DEVELOPER = '/api/auth/me/roles/developer';
 export function becomeDeveloper(app, accessToken) {
   return request(app).post(BECOME_DEVELOPER).set('Authorization', `Bearer ${accessToken}`);
 }
+
+export const PROFESSIONAL_PROFILE = '/api/auth/me/professional-profile';
+
+// PUT /me/professional-profile with an access token. Returns the response (200 { profile } on success).
+export function saveProfessionalProfile(app, accessToken, body) {
+  return request(app).put(PROFESSIONAL_PROFILE).set('Authorization', `Bearer ${accessToken}`).send(body);
+}

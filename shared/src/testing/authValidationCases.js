@@ -191,3 +191,42 @@ export const selectCountryCases = {
     },
   ],
 };
+
+// Professional info (Developer). Company Name is optional, but required for a Company; an empty or
+// blank one counts as not given (the page leaves it out of the body).
+export const professionalInfoCases = {
+  valid: {
+    companyName: 'Skyline Homes',
+    developerType: 'company',
+    licenseNumber: 'RERA-12345',
+    experienceLevel: '6_10',
+    location: 'Dubai Marina',
+  },
+  invalid: [
+    fieldCase('companyName', undefined, m.companyName.required),
+    fieldCase('companyName', '', m.companyName.required),
+    fieldCase('companyName', '   ', m.companyName.required),
+    fieldCase('companyName', 42, m.companyName.invalid),
+    fieldCase('companyName', longText(L.companyName.max + 1), m.companyName.max),
+    fieldCase('developerType', undefined, m.developerType.invalid),
+    fieldCase('developerType', 'agency', m.developerType.invalid),
+    fieldCase('developerType', 'Company', m.developerType.invalid),
+    fieldCase('licenseNumber', undefined, m.licenseNumber.required),
+    fieldCase('licenseNumber', '', m.licenseNumber.required),
+    fieldCase('licenseNumber', '  ', m.licenseNumber.required),
+    fieldCase('licenseNumber', 12345, m.licenseNumber.required),
+    fieldCase('licenseNumber', longText(L.licenseNumber.max + 1), m.licenseNumber.max),
+    fieldCase('experienceLevel', undefined, m.experienceLevel.invalid),
+    fieldCase('experienceLevel', '10+', m.experienceLevel.invalid),
+    fieldCase('location', undefined, m.location.required),
+    fieldCase('location', '', m.location.required),
+    fieldCase('location', 'D', m.location.min),
+    fieldCase('location', longText(L.location.max + 1), m.location.max),
+    {
+      name: 'unknown field',
+      input: { agencyName: 'Skyline' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};

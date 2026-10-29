@@ -3,6 +3,7 @@ import { commonMessages } from '@real-estate/shared';
 import {
   forgotPasswordCases,
   loginCases,
+  professionalInfoCases,
   resendCodeCases,
   resetPasswordCases,
   selectCountryCases,
@@ -55,6 +56,23 @@ describe('PUT /api/auth/me/country rejects invalid input with the shared message
       .put('/api/auth/me/country')
       .set('Authorization', `Bearer ${token}`)
       .send({ ...selectCountryCases.valid, ...input });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.message).toBe(commonMessages.invalidInput);
+    expect(res.body.error.fields[field]).toEqual([message]);
+  });
+});
+
+describe('PUT /api/auth/me/professional-profile rejects invalid input with the shared messages', () => {
+  const { app } = createTestApp();
+  const token = signAccessToken({ userId: 1, roles: ['developer'] });
+
+  it.each(professionalInfoCases.invalid)('$name', async ({ input, field, message }) => {
+    const res = await request(app)
+      .put('/api/auth/me/professional-profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...professionalInfoCases.valid, ...input });
 
     expect(res.status).toBe(422);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');

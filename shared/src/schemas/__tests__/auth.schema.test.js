@@ -16,6 +16,7 @@ import { LIMITS } from '../../limits.js';
 import {
   forgotPasswordCases,
   loginCases,
+  professionalInfoCases,
   resendCodeCases,
   resetPasswordCases,
   selectCountryCases,
@@ -176,13 +177,7 @@ describe('selectCountrySchema', () => {
 });
 
 describe('professionalInfoSchema', () => {
-  const valid = {
-    companyName: 'Skyline Homes',
-    developerType: 'company',
-    licenseNumber: 'RERA-12345',
-    experienceLevel: '6_10',
-    location: 'Dubai Marina',
-  };
+  const valid = professionalInfoCases.valid;
 
   it('accepts a company and an individual without a company name', () => {
     expect(professionalInfoSchema.parse(valid)).toEqual(valid);
@@ -202,22 +197,8 @@ describe('professionalInfoSchema', () => {
     ]);
   });
 
-  it.each([
-    ['companyName', 42, m.companyName.invalid],
-    ['companyName', longText(L.companyName.max + 1), m.companyName.max],
-    ['developerType', 'agency', m.developerType.invalid],
-    ['developerType', undefined, m.developerType.invalid],
-    ['licenseNumber', undefined, m.licenseNumber.required],
-    ['licenseNumber', '  ', m.licenseNumber.required],
-    ['licenseNumber', longText(L.licenseNumber.max + 1), m.licenseNumber.max],
-    ['experienceLevel', '10+', m.experienceLevel.invalid],
-    ['experienceLevel', undefined, m.experienceLevel.invalid],
-    ['location', undefined, m.location.required],
-    ['location', '', m.location.required],
-    ['location', 'D', m.location.min],
-    ['location', longText(L.location.max + 1), m.location.max],
-  ])('rejects %s=%j', (field, value, message) => {
-    expect(errorsOf(professionalInfoSchema, { ...valid, [field]: value })[field]).toContain(message);
+  it.each(professionalInfoCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(professionalInfoSchema, { ...valid, ...input })[field]).toEqual([message]);
   });
 
   it('accepts the maximum lengths', () => {

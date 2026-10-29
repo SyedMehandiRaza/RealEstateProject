@@ -6,6 +6,8 @@ import { createAuthRepository } from './auth.repository.js';
 import { createAuthRoutes } from './auth.routes.js';
 import { createAuthService } from './auth.service.js';
 import { createLoginAttemptLimiter } from './loginAttemptLimiter.js';
+import { createOnboardingRepository } from './onboarding.repository.js';
+import { createOnboardingService } from './onboarding.service.js';
 import { createResetTokens } from './resetToken.js';
 import { createSessionService } from './session.service.js';
 import { createVerificationCodeService } from './verificationCode.service.js';
@@ -17,9 +19,10 @@ export function createAuthRouter({ mailer, clock }) {
     clock,
     secret: env.VERIFICATION_CODE_SECRET,
   });
+  const repository = createAuthRepository(models);
   const authService = createAuthService({
     sequelize,
-    repository: createAuthRepository(models),
+    repository,
     verificationCodes,
     sessions: createSessionService({ models, clock }),
     loginAttempts: createLoginAttemptLimiter({ clock }),
@@ -29,5 +32,10 @@ export function createAuthRouter({ mailer, clock }) {
     clock,
     logger,
   });
-  return createAuthRoutes(createAuthController(authService));
+  const onboardingService = createOnboardingService({
+    sequelize,
+    repository,
+    onboardingRepository: createOnboardingRepository(models),
+  });
+  return createAuthRoutes(createAuthController(authService, onboardingService));
 }

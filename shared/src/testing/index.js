@@ -2,6 +2,7 @@
 export {
   forgotPasswordCases,
   loginCases,
+  professionalInfoCases,
   resendCodeCases,
   resetPasswordCases,
   selectCountryCases,

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   forgotPasswordSchema,
   loginSchema,
+  professionalInfoSchema,
   resendCodeSchema,
   resetPasswordSchema,
   selectCountrySchema,
@@ -69,6 +70,15 @@ export function createAuthRoutes(controller) {
   // Any verified Account without the Developer role; no body. The service checks both against the
   // database, since the token's roles may predate the change.
   router.post('/me/roles/developer', authenticate, controller.becomeDeveloper);
+  // Developer onboarding. The Developer role comes from the access token (a Buyer who just became a
+  // Developer refreshes first); authorize runs before validate, so a non-Developer gets 403.
+  router.put(
+    '/me/professional-profile',
+    authenticate,
+    authorize('developer'),
+    validate({ body: professionalInfoSchema }),
+    controller.saveProfessionalProfile,
+  );
 
   return router;
 }

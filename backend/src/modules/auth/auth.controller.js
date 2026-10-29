@@ -3,7 +3,7 @@ import { sendSuccess } from '../../utils/response.js';
 
 // HTTP only: read the validated input, call the service, send the response. The refresh token is only
 // ever sent as the httpOnly cookie, never in the body.
-export function createAuthController(authService) {
+export function createAuthController(authService, onboardingService) {
   const startSession = (res, { accessToken, refreshToken, user }) => {
     res.cookie(REFRESH_COOKIE_NAME, refreshToken.token, refreshCookieOptions(refreshToken.expiresAt));
     return sendSuccess(res, { accessToken, user });
@@ -69,6 +69,13 @@ export function createAuthController(authService) {
 
     async selectCountry(req, res) {
       sendSuccess(res, await authService.selectCountry({ userId: req.user.id, ...req.validated.body }));
+    },
+
+    async saveProfessionalProfile(req, res) {
+      sendSuccess(
+        res,
+        await onboardingService.saveProfessionalProfile({ userId: req.user.id, ...req.validated.body }),
+      );
     },
   };
 }

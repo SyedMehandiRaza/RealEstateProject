@@ -16,3 +16,16 @@ export function toUserResponse(user) {
     developerVerificationStatus: null,
   };
 }
+
+// The `profile` of PUT /me/professional-profile, in the request's field names (professionalInfoSchema).
+// A Company Name that was not given is null.
+export function toProfileResponse(profile) {
+  return {
+    id: profile.id,
+    companyName: profile.organizationName,
+    developerType: profile.businessType,
+    licenseNumber: profile.licenseNumber,
+    experienceLevel: profile.experienceLevel,
+    location: profile.location,
+  };
+}
