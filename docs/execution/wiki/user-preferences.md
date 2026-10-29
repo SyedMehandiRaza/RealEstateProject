@@ -6,3 +6,4 @@
 - Earlier sessions: user dislikes Python-based helpers ("we are using node"); use Node scripts.
 
 See also [environment.md](environment.md).
+- 2026-10-30: the user added DEC-037 (commit 334eb80): branch flow feature/<module> -> testing -> main; Claude may push feature branches after npm run check. The goal brief (2026-10-29) said "Never push", so this goal still does not push; offer to push feature/auth at the end. The user's port-move edits are now committed (3306), so no more unstaged user hunks.
