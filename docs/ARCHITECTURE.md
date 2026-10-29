@@ -35,7 +35,7 @@ Errors from any layer → `errorHandler` → `{ success: false, error: { code, m
 ## Auth (DEC-008)
 
 Access token in the JSON response, then in Redux memory and the `Authorization: Bearer` header. Refresh token in the httpOnly cookie `refresh_token` (path `/api/auth`), stored hashed and rotated. RTK Query `baseQueryWithReauth` calls `POST /api/auth/refresh` once on a 401 and retries the request.
-**Assumed contract** (to confirm in the auth module): `POST /api/auth/refresh` returns `{ success: true, data: { accessToken, user } }`.
+**Contract** (built in TASK-022, DEC-028): `POST /api/auth/refresh` returns `{ success: true, data: { accessToken, user } }` and a rotated cookie, or 401 with the cookie cleared; a revoked (reused) token revokes every session of the Account. `POST /api/auth/logout` answers 204 and clears the cookie.
 
 ## Module boundaries and ownership
 

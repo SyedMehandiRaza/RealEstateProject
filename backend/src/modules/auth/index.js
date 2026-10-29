@@ -20,7 +20,7 @@ export function createAuthRouter({ mailer, clock }) {
     sequelize,
     repository: createAuthRepository(models),
     verificationCodes,
-    sessions: createSessionService({ models }),
+    sessions: createSessionService({ models, clock }),
     loginAttempts: createLoginAttemptLimiter({ clock }),
     mailer,
     clock,

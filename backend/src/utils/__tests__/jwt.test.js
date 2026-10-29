@@ -20,6 +20,15 @@ describe('jwt utils', () => {
     expect(verifyRefreshToken(a.token)).toMatchObject({ sub: '3', jti: a.jti });
   });
 
+  it("checks a refresh token's expiry against the given time", () => {
+    const { token, expiresAt } = signRefreshToken({ userId: 3 });
+    const justBefore = new Date(expiresAt.getTime() - 1000);
+    expect(verifyRefreshToken(token, { now: justBefore })).toMatchObject({ sub: '3' });
+    expect(() => verifyRefreshToken(token, { now: expiresAt })).toThrow(
+      expect.objectContaining({ code: 'TOKEN_EXPIRED' }),
+    );
+  });
+
   it('does not accept an access token as a refresh token', () => {
     expect(() => verifyRefreshToken(signAccessToken({ userId: 1, roles: ['buyer'] }))).toThrow(
       expect.objectContaining({ code: 'UNAUTHORIZED' }),

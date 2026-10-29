@@ -27,16 +27,19 @@ export function signRefreshToken({ userId }) {
   return { token, jti, expiresAt: new Date(jwt.decode(token).exp * 1000) };
 }
 
-function verify(token, secret) {
+// `now` (a Date, default the current time) is the time the expiry is checked against, so services can
+// pass their injected clock.
+function verify(token, secret, { now } = {}) {
+  const clockTimestamp = now ? Math.floor(now.getTime() / 1000) : undefined;
   try {
-    return jwt.verify(token, secret, { algorithms: [ALGORITHM] });
+    return jwt.verify(token, secret, { algorithms: [ALGORITHM], clockTimestamp });
   } catch (error) {
     throw new AppError(error instanceof jwt.TokenExpiredError ? 'TOKEN_EXPIRED' : 'UNAUTHORIZED');
   }
 }
 
 export const verifyAccessToken = (token) => verify(token, env.JWT_ACCESS_SECRET);
-export const verifyRefreshToken = (token) => verify(token, env.JWT_REFRESH_SECRET);
+export const verifyRefreshToken = (token, options) => verify(token, env.JWT_REFRESH_SECRET, options);
 
 // Store only this hash of a refresh token in the database, never the token itself.
 export const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');

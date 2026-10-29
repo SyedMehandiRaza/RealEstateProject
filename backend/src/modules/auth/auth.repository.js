@@ -14,8 +14,8 @@ export function createAuthRepository(models) {
       return User.scope('withPassword').findOne({ where: { email }, include: [withRoles] });
     },
 
-    findUserById(id) {
-      return User.findByPk(id, { include: [withRoles] });
+    findUserById(id, { transaction } = {}) {
+      return User.findByPk(id, { include: [withRoles], transaction });
     },
 
     // The Account row only, locked FOR UPDATE until the transaction ends, so concurrent requests for

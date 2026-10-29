@@ -3,6 +3,7 @@ import { UniqueConstraintError } from 'sequelize';
 import { AppError } from '../../utils/AppError.js';
 import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from '../../utils/password.js';
 import { toUserResponse } from './auth.presenter.js';
+import { SESSION_CHECK } from './session.service.js';
 import { CODE_CHECK, CODE_PURPOSES, ResendRefusedError } from './verificationCode.service.js';
 
 // Every failed login answers the same, whether the password was wrong, the email unknown or the limit hit.
@@ -145,6 +146,30 @@ export function createAuthService({
       const userResponse = toUserResponse(user);
       const session = await sessions.start({ userId: user.id, roles: userResponse.roles });
       return { user: userResponse, ...session };
+    },
+
+    // Rotates the refresh token: the presented one is revoked and a new session starts with the
+    // Account's current roles. Missing, unknown, expired or revoked → 401 UNAUTHORIZED; a revoked one is
+    // a reuse, which revokes every session of the Account before the 401 (committed first).
+    async refresh({ refreshToken }) {
+      const outcome = await sequelize.transaction(async (transaction) => {
+        const check = await sessions.consume(refreshToken, { transaction });
+        if (check.result !== SESSION_CHECK.valid) return null;
+
+        const user = await repository.findUserById(check.userId, { transaction });
+        if (!user) return null;
+        const userResponse = toUserResponse(user);
+        const session = await sessions.start({ userId: user.id, roles: userResponse.roles }, { transaction });
+        return { user: userResponse, ...session };
+      });
+
+      if (!outcome) throw new AppError('UNAUTHORIZED');
+      return outcome;
+    },
+
+    // Ends the session of the presented refresh token, if any. Always succeeds.
+    async logout({ refreshToken }) {
+      await sessions.end(refreshToken);
     },
 
     // The signed-in Account. One deleted since its access token was issued is no longer signed in.

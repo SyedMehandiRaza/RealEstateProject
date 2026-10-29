@@ -33,3 +33,25 @@ export const ME = '/api/auth/me';
 export function logIn(app, { email = signUpCases.valid.email, password = signUpCases.valid.password } = {}) {
   return request(app).post(LOGIN).send({ email, password });
 }
+
+export const REFRESH = '/api/auth/refresh';
+export const LOGOUT = '/api/auth/logout';
+
+// The refresh token in a response's `refresh_token` Set-Cookie header, or undefined if none was set.
+export function refreshTokenOf(res) {
+  const cookie = (res.headers['set-cookie'] ?? []).find((c) => c.startsWith('refresh_token='));
+  return cookie && decodeURIComponent(cookie.split(';')[0].slice('refresh_token='.length));
+}
+
+const withRefreshCookie = (req, token) =>
+  token === undefined ? req : req.set('Cookie', `refresh_token=${encodeURIComponent(token)}`);
+
+// POST /refresh, sending `token` as the refresh cookie (no cookie when undefined). Returns the response.
+export function refresh(app, token) {
+  return withRefreshCookie(request(app).post(REFRESH), token);
+}
+
+// POST /logout, sending `token` as the refresh cookie (no cookie when undefined). Returns the response.
+export function logOut(app, token) {
+  return withRefreshCookie(request(app).post(LOGOUT), token);
+}
