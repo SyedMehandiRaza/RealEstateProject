@@ -7,6 +7,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage.jsx';
 import SelectCountryPage from './pages/SelectCountryPage/SelectCountryPage.jsx';
 import SignUpPage from './pages/SignUpPage/SignUpPage.jsx';
 import UploadDocumentsPage from './pages/UploadDocumentsPage/UploadDocumentsPage.jsx';
+import VerificationStatusPage from './pages/VerificationStatusPage/VerificationStatusPage.jsx';
 import VerifyEmailPage from './pages/VerifyEmailPage/VerifyEmailPage.jsx';
 import VerifyResetCodePage from './pages/VerifyResetCodePage/VerifyResetCodePage.jsx';
 
@@ -22,6 +23,7 @@ export const AUTH_PATHS = {
   professionalInfo: '/developer/professional-info',
   uploadDocuments: '/developer/documents',
   verificationStatus: '/developer/status',
+  plans: '/developer/plans', // "View plan" on Approved: a placeholder until a plans module exists (DEC-022)
 };
 
 const placeholder = (title) => <AuthPlaceholderPage title={title} />;
@@ -42,7 +44,8 @@ export const authRoutes = [
     children: [
       { path: AUTH_PATHS.professionalInfo, element: <ProfessionalInfoPage /> },
       { path: AUTH_PATHS.uploadDocuments, element: <UploadDocumentsPage /> },
-      { path: AUTH_PATHS.verificationStatus, element: placeholder('Verification status') },
+      { path: AUTH_PATHS.verificationStatus, element: <VerificationStatusPage /> },
+      { path: AUTH_PATHS.plans, element: placeholder('Plans coming soon') },
     ],
   },
 ];

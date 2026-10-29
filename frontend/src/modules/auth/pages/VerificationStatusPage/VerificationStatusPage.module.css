@@ -1,0 +1,116 @@
+/* Figma Pending 13038:4703, Approved 13038:4765, Reject 13038:4825. Content column gaps are 20
+ * (AuthSplitLayout contentGap); the icon tile sits first, above the heading. */
+
+/* Icon tile tints: Figma uses these once, on these screens only (no token exists yet). */
+.pendingBadge {
+  background: rgba(255, 235, 19, 0.1);
+}
+
+.approvedBadge {
+  background: rgba(39, 200, 64, 0.1);
+}
+
+.rejectedBadge {
+  background: rgba(255, 0, 4, 0.1);
+}
+
+/* 13038:4707: 80 px circle, 40 px glyph centred. `order: -1` puts it before the layout's heading. */
+.badge {
+  order: -1;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-card);
+}
+
+.glyph {
+  position: relative;
+  display: block;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+}
+
+.glyph img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+}
+
+/* mingcute:time-line: the group sits at inset 8.33% 8.33% 0.78% 8.33% of the 40 px box. */
+.glyph .clock {
+  top: 8.33%;
+  left: 8.33%;
+}
+
+/* Heading accents (accents/yellow, green, red). */
+.pending {
+  color: var(--color-accents-yellow);
+}
+
+.approved {
+  color: var(--color-accents-green);
+}
+
+.rejected {
+  color: var(--color-accents-red);
+}
+
+/* 13038:4722: the document list and the button are 32 apart. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  width: 100%;
+}
+
+/* 13038:4724: "Uploaded Document", then the cards, 8 apart. */
+.documents,
+.list,
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listLabel {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+/* 13038:4863: "Reject reason:" in accents/red, the reason in #9e9e9e (the input border grey). */
+.reason {
+  margin: 0;
+  color: var(--color-border-input);
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  overflow-wrap: anywhere;
+}
+
+/* 13038:4754: back arrow and label 8 apart. */
+.withIcon {
+  gap: var(--space-8);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-error-500);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}

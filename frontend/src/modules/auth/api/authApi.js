@@ -6,7 +6,7 @@ const unwrap = (response) => response.data;
 // Auth endpoints (SPEC-001, all under /api/auth). Each page ticket adds its own endpoints here:
 // login (TASK-033), signUp / verifyEmail / resendVerification (TASK-034), the password reset
 // endpoints (TASK-036), selectCountry (TASK-035), saveProfessionalProfile (TASK-038),
-// getVerification / submitDocuments (TASK-039), ...
+// getVerification / submitDocuments (TASK-039), logout (TASK-040), ...
 export const authApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     // loginSchema body -> 200 { accessToken, user } plus the refresh cookie;
@@ -63,6 +63,10 @@ export const authApi = baseApi.injectEndpoints({
       query: (body) => ({ url: '/auth/me/professional-profile', method: 'PUT', body }),
       transformResponse: unwrap,
     }),
+    // Refresh cookie -> 204, the token revoked and the cookie cleared; always succeeds (SPEC-001).
+    logout: build.mutation({
+      query: () => ({ url: '/auth/logout', method: 'POST' }),
+    }),
     // GET -> 200 { status, documents } (Developer only, 403 otherwise). `documents` holds one entry per
     // required kind (2 for an Individual, 3 for a Company, DEC-022) with the latest document's status.
     // Assumed entry shape until TASK-030 lands: { documentKind, status: null | DOCUMENT_STATUSES, rejectionReason }.
@@ -104,4 +108,5 @@ export const {
   useSaveProfessionalProfileMutation,
   useGetVerificationQuery,
   useSubmitDocumentsMutation,
+  useLogoutMutation,
 } = authApi;
