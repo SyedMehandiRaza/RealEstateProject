@@ -91,6 +91,16 @@ describe('OtpInput', () => {
     expect(value()).toBe('193');
   });
 
+  // TASK-043 regression: the browser fires no change event when the typed digit equals the selected
+  // one, so focus used to stay on that box and the next digit overwrote it ('987654' became '98764').
+  it('typing the same digit over a filled box still moves focus forward', async () => {
+    render(<Controlled initial="12345" />);
+    await userEvent.click(box(1));
+    await userEvent.keyboard('987654');
+    expect(value()).toBe('987654');
+    expect(box(6)).toHaveFocus();
+  });
+
   it('focus on a box past the first empty one goes to that empty box', async () => {
     render(<Controlled initial="12" />);
     await userEvent.click(box(6));

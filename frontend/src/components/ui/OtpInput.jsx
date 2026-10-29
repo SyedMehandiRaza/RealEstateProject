@@ -62,6 +62,14 @@ export default function OtpInput({
   }
 
   function handleKeyDown(event, index) {
+    // A typed digit is handled here, not in onChange: typing the digit a box already holds changes
+    // nothing, so the browser fires no change event and focus would stay on that box (TASK-043).
+    // onChange still handles autofill and keyboards that report no key.
+    if (DIGIT.test(event.key) && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault();
+      insert(index, event.key);
+      return;
+    }
     if (event.key === 'Backspace') {
       event.preventDefault();
       const target = digits[index] ? index : index - 1;

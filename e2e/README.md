@@ -4,8 +4,10 @@
 e2e/
   playwright.config.js     # starts the frontend (5174) and, unless E2E_WITH_API=false, the e2e API (5100)
   fixtures/harness.js      # `test`/`expect` for API specs: data reset per test, captured codes, seed helpers
+  fixtures/visual.js       # expectPageScreenshot(page, name, { mask }): waits for fonts and images, full page
   pages/<module>/          # page objects (getByRole / getByLabel locators)
   tests/<module>/          # specs: journeys, validation-message parity, visual (toHaveScreenshot)
+  tests/<module>/<spec>.js-snapshots/  # committed baselines, named <name>-chromium-win32.png
 ```
 
 - First time: `npm run install:browsers -w e2e`
@@ -21,3 +23,9 @@ e2e/
 - With the API, tests run one at a time; every test that imports `test` from `fixtures/harness.js` starts from empty tables (and fresh rate limits, mail and storage). Such tests are skipped in UI-only mode; UI-only specs import from `@playwright/test`.
 - The `harness` fixture: `latestCode(email, purpose)`, `seedBuyer(options)`, `seedDeveloper(options)` (`{ professionalInfo: false }`, `{}`, `{ documents: 'pending' | 'approved' | 'rejected' }` or a `{ kind: status }` map, `developerType`), `setDocumentReview({ email, documentKind?, status, rejectionReason? })`, `storageCalls()`, `status()`, `reset()`. Options are documented in `backend/src/test/e2eSeeds.js`. Seeded Accounts use the password `secret123` unless given one.
 - Ports: `E2E_WEB_URL` (default `http://localhost:5174`) and `E2E_API_URL` (default `http://localhost:5100`).
+
+## Auth specs (TASK-043..045)
+
+- `tests/auth/buyer-journey.spec.js`: Sign up, Verify, Select a country, Log in; two pages refreshing at once (TASK-046).
+- Parity: client rules replay the shared cases (`@real-estate/shared/testing`) a form can express and assert that no request was sent; server rules (a duplicate email, a wrong code, an early resend, a refused value sent past the client with `page.route`) assert the message from `error.fields`. Messages are always imported from `@real-estate/shared`.
+- Visual: one baseline per auth page at 1440 wide (`maxDiffPixelRatio` 0.005). Baselines are per platform (`-win32`); another OS needs its own (`npx playwright test --update-snapshots` after checking the page against Figma). Fonts load from Google Fonts, so the visual tests need the network.
