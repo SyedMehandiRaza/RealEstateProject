@@ -27,5 +27,7 @@ e2e/
 ## Auth specs (TASK-043..045)
 
 - `tests/auth/buyer-journey.spec.js`: Sign up, Verify, Select a country, Log in; two pages refreshing at once (TASK-046).
+- `tests/auth/password-reset.spec.js`: Forgot Password, reset Verify, Reset password, then Log in with the new password.
+- `fixtures/parity.js`: `formCases` (the shared cases a form can type), `forbidRequests` (assert no request was sent), `sendPastClient` (rewrite a request body with `page.route` so the API judges it).
 - Parity: client rules replay the shared cases (`@real-estate/shared/testing`) a form can express and assert that no request was sent; server rules (a duplicate email, a wrong code, an early resend, a refused value sent past the client with `page.route`) assert the message from `error.fields`. Messages are always imported from `@real-estate/shared`.
 - Visual: one baseline per auth page at 1440 wide (`maxDiffPixelRatio` 0.005). Baselines are per platform (`-win32`); another OS needs its own (`npx playwright test --update-snapshots` after checking the page against Figma). Fonts load from Google Fonts, so the visual tests need the network.

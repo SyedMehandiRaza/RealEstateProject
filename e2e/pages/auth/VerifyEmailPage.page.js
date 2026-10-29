@@ -1,4 +1,5 @@
 // Verify (frontend /verify-email, Figma buyer 13038:3920 / developer 13038:4022): six one-digit boxes.
+// The password reset Verify (/forgot-password/verify, 13038:4052) is the same screen, so it uses this too.
 export class VerifyEmailPage {
   constructor(page) {
     this.page = page;

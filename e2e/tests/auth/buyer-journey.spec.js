@@ -1,6 +1,7 @@
 import { authMessages, LIMITS } from '@real-estate/shared';
 import { loginCases, selectCountryCases, signUpCases, verifyCodeCases } from '@real-estate/shared/testing';
 import { expect, test, uniqueEmail } from '../../fixtures/harness.js';
+import { forbidRequests, formCases, sendPastClient } from '../../fixtures/parity.js';
 import { expectPageScreenshot } from '../../fixtures/visual.js';
 import { LoginPage } from '../../pages/auth/LoginPage.page.js';
 import { SelectCountryPage } from '../../pages/auth/SelectCountryPage.page.js';
@@ -12,31 +13,6 @@ import { VerifyEmailPage } from '../../pages/auth/VerifyEmailPage.page.js';
 // visual baselines of those pages. Also the real-browser check of TASK-046: two pages refreshing at once.
 
 const m = authMessages;
-
-// The shared invalid cases a form can express: only its own fields, typed as text (a missing value is a
-// field left empty). Cases about other keys (role, unknown fields) or non-string values are API-only.
-function formCases(cases, fields) {
-  return cases.invalid
-    .filter(
-      ({ input, field }) => fields.includes(field) && Object.keys(input).every((key) => fields.includes(key)),
-    )
-    .filter(({ input }) =>
-      Object.values(input).every((value) => value === undefined || typeof value === 'string'),
-    )
-    .map((testCase) => ({
-      ...testCase,
-      input: Object.fromEntries(Object.entries(testCase.input).map(([key, value]) => [key, value ?? ''])),
-    }));
-}
-
-// Fails the test if the page calls `path` (client-side rules must answer before any request).
-function forbidRequests(page, path) {
-  const sent = [];
-  page.on('request', (request) => {
-    if (new URL(request.url()).pathname === path) sent.push(request.method());
-  });
-  return () => expect(sent, `requests to ${path}`).toEqual([]);
-}
 
 async function noTokenInBrowserStorage(page) {
   const stored = await page.evaluate(() => [Object.keys(localStorage), Object.keys(sessionStorage)]);
@@ -275,12 +251,7 @@ test.describe('Validation parity', () => {
     // Bypass the client: the chosen country goes out as a code outside COUNTRY_CODES, so the message on
     // screen is the one the API returned in error.fields.countryCode.
     const refused = selectCountryCases.invalid.find((c) => c.input.countryCode === 'IN');
-    const answers = [];
-    await page.route('**/api/auth/me/country', async (route) => {
-      const response = await route.fetch({ postData: JSON.stringify(refused.input) });
-      answers.push(await response.json());
-      return route.fulfill({ response });
-    });
+    const answers = await sendPastClient(page, '/api/auth/me/country', refused.input);
     await country.choose('United States');
     await country.submit();
     await expect(country.countries).toHaveAccessibleDescription(refused.message);
