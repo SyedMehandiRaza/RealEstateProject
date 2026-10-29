@@ -6,6 +6,7 @@ import styles from './UploadedFileCard.module.css';
 // A chosen or submitted file (Figma: Uploaded 13038:4910; status screens 13038:4730, 13038:4851).
 // Right side: a remove (x) button when `onRemove` is given, else a StatusBadge when `status` is.
 // `thumbnail` is an image URL (an object URL for a picked image); without one, a blank tile shows.
+// `size` is in bytes; without a number (e.g. a status entry with no sizeBytes) the size line is hidden.
 export default function UploadedFileCard({ name, size, thumbnail, onRemove, status, className }) {
   return (
     <div className={[styles.card, className].filter(Boolean).join(' ')}>
@@ -17,7 +18,7 @@ export default function UploadedFileCard({ name, size, thumbnail, onRemove, stat
         )}
         <div className={styles.text}>
           <p className={styles.name}>{name}</p>
-          <p className={styles.size}>Size: {formatFileSize(size)}</p>
+          {Number.isFinite(size) && <p className={styles.size}>Size: {formatFileSize(size)}</p>}
         </div>
       </div>
       {onRemove ? (

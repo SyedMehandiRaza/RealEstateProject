@@ -1,36 +1,35 @@
 /* Figma Pending 13038:4703, Approved 13038:4765, Reject 13038:4825. Content column gaps are 20
- * (AuthSplitLayout contentGap); the icon tile sits first, above the heading. */
+ * (AuthSplitLayout contentGap); the icon tile is the layout's `icon`, above the heading. */
 
-/* Icon tile tints: Figma uses these once, on these screens only (no token exists yet). */
+/* Icon tile tints (10%). */
 .pendingBadge {
-  background: rgba(255, 235, 19, 0.1);
+  background: var(--color-status-pending-bg);
 }
 
 .approvedBadge {
-  background: rgba(39, 200, 64, 0.1);
+  background: var(--color-status-approved-bg);
 }
 
 .rejectedBadge {
-  background: rgba(255, 0, 4, 0.1);
+  background: var(--color-status-rejected-bg);
 }
 
-/* 13038:4707: 80 px circle, 40 px glyph centred. `order: -1` puts it before the layout's heading. */
+/* 13038:4707: 80 px circle, 40 px glyph centred. */
 .badge {
-  order: -1;
   display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 80px;
-  height: 80px;
+  width: var(--size-status-tile);
+  height: var(--size-status-tile);
   border-radius: var(--radius-card);
 }
 
 .glyph {
   position: relative;
   display: block;
-  width: 40px;
-  height: 40px;
+  width: var(--size-status-glyph);
+  height: var(--size-status-glyph);
   overflow: hidden;
 }
 

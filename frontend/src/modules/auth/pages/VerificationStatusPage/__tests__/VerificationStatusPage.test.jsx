@@ -197,6 +197,29 @@ describe('VerificationStatusPage', () => {
     expect(within(items()[0]).getByText('Government ID')).toBeInTheDocument();
   });
 
+  it('hides the size line of an entry without sizeBytes (no "NaN mb")', async () => {
+    renderPage([
+      { documentKind: 'government_id', status: 'pending', rejectionReason: null },
+      doc('profile_photo', 'pending'),
+    ]);
+
+    expect(await heading('Your Account is Under Review')).toBeInTheDocument();
+    expect(items()[0]).not.toHaveTextContent('Size:');
+    expect(screen.queryByText(/NaN/)).not.toBeInTheDocument();
+    expect(within(items()[1]).getByText('Size: 0.50 mb')).toBeInTheDocument();
+  });
+
+  it('puts the status icon tile above the heading, through the layout icon slot', async () => {
+    renderPage([doc('government_id', 'pending'), doc('profile_photo', 'pending')]);
+
+    const title = await heading('Your Account is Under Review');
+    const column = title.parentElement.parentElement;
+    expect(column.firstElementChild).toHaveAttribute('aria-hidden', 'true');
+    expect(column.firstElementChild.querySelector('img')).toHaveAttribute('alt', '');
+    expect(column.children[1]).toBe(title.parentElement);
+    expect(column.children[2]).toContainElement(documentList());
+  });
+
   it('shows a 403 from GET /me/verification as returned', async () => {
     server.use(
       http.get(apiUrl('/auth/me/verification'), () =>

@@ -29,6 +29,10 @@
   --color-accents-yellow: #ffcc00;
   --color-accents-green: #34c759;
   --color-accents-red: #ff383c;
+  /* Status icon tiles (status screens 13038:4703, 4765, 4825): 10% tints, as drawn in Figma. */
+  --color-status-pending-bg: rgba(255, 235, 19, 0.1);
+  --color-status-approved-bg: rgba(39, 200, 64, 0.1);
+  --color-status-rejected-bg: rgba(255, 0, 4, 0.1);
   /* Not in Figma (no error states are designed): assumed until design answers. */
   --color-error-500: #d92d20;
 
@@ -86,6 +90,8 @@
   --size-file-thumb-width: 69px;
   --size-file-thumb-height: 47px;
   --size-file-card-height: 84px;
+  --size-status-tile: 80px;
+  --size-status-glyph: 40px;
   --size-dropzone-height: 98px;
   --size-control-height: 52px;
   --size-tab-height: 40px;

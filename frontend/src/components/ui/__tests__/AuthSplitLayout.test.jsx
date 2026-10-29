@@ -49,6 +49,35 @@ describe('AuthSplitLayout', () => {
     expect(heading.parentElement.parentElement.style.gap).toBe(gap);
   });
 
+  it('renders the icon first in the content column, above the heading and with the same gap', async () => {
+    renderWithProviders([
+      {
+        path: '/',
+        element: (
+          <AuthSplitLayout
+            title="Verification Unsuccessful"
+            contentGap={20}
+            icon={<span data-testid="tile" />}
+          >
+            <p>documents</p>
+          </AuthSplitLayout>
+        ),
+      },
+    ]);
+    const heading = await screen.findByRole('heading', { level: 1, name: 'Verification Unsuccessful' });
+    const column = heading.parentElement.parentElement;
+    expect(column.style.gap).toBe('var(--space-20)');
+    expect(column.firstElementChild).toBe(screen.getByTestId('tile'));
+    expect(column.children[1]).toBe(heading.parentElement);
+    expect(column.children[2]).toHaveTextContent('documents');
+  });
+
+  it('renders nothing before the heading without an icon', async () => {
+    renderWithProviders([{ path: '/', element: <AuthSplitLayout title="Welcome Back!" /> }]);
+    const heading = await screen.findByRole('heading', { level: 1, name: 'Welcome Back!' });
+    expect(heading.parentElement.parentElement.firstElementChild).toBe(heading.parentElement);
+  });
+
   it('"Back to home" links to / by default', async () => {
     renderWithProviders(
       [

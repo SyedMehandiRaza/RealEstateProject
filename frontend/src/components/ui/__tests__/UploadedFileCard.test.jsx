@@ -22,6 +22,17 @@ describe('UploadedFileCard', () => {
     expect(container.querySelector('img')).toHaveAttribute('alt', '');
   });
 
+  it.each([undefined, null, Number.NaN])('hides the size line when size is %s', (size) => {
+    render(<UploadedFileCard name="Profile Photo" size={size} status="pending" />);
+    expect(screen.getByText('Profile Photo')).toBeInTheDocument();
+    expect(screen.queryByText(/^Size:/)).not.toBeInTheDocument();
+  });
+
+  it('shows a size of 0 bytes', () => {
+    render(<UploadedFileCard name="empty.pdf" size={0} />);
+    expect(screen.getByText('Size: 0.00 mb')).toBeInTheDocument();
+  });
+
   it('renders a blank tile when there is no thumbnail', () => {
     const { container } = render(<UploadedFileCard name="a.pdf" size={1} />);
     expect(container.querySelector('img')).toBeNull();

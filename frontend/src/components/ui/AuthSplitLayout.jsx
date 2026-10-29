@@ -14,6 +14,7 @@ const GAPS = {
 // Layout shared by every Auth Module frame: hero image with the "Real Estate" mark, a back link and a
 // tagline on the left; a white rounded card on the right holding the page heading and content.
 // backTo: a path renders a link (Figma "Back to home"); omit it for a "Go back" button (history back).
+// icon: an element shown above the heading (the status screens' icon tile), with the same contentGap.
 export default function AuthSplitLayout({
   title,
   subtitle,
@@ -21,6 +22,7 @@ export default function AuthSplitLayout({
   backLabel = 'Back to home',
   backTo = '/',
   contentGap = 32,
+  icon,
   children,
 }) {
   const navigate = useNavigate();
@@ -51,6 +53,7 @@ export default function AuthSplitLayout({
 
       <main className={styles.card}>
         <div className={styles.content} style={{ gap: GAPS[contentGap] ?? GAPS[32] }}>
+          {icon}
           <div className={styles.heading}>
             <h1 className={styles.title}>{title}</h1>
             {subtitle && <p className={styles.subtitle}>{subtitle}</p>}

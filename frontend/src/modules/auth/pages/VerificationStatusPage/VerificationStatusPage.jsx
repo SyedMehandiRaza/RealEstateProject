@@ -127,20 +127,20 @@ export default function VerificationStatusPage() {
       backLabel="Go back"
       backTo={null}
       contentGap={20}
-    >
-      {/* Placed above the heading with CSS order, keeping the layout's 20 px gap on both sides. */}
-      <span className={[styles.badge, styles[`${screen.tone}Badge`]].join(' ')} aria-hidden="true">
-        <span className={styles.glyph}>
-          <img
-            src={screen.icon}
-            alt=""
-            width={screen.iconSize.width}
-            height={screen.iconSize.height}
-            className={outcome === 'under_review' ? styles.clock : undefined}
-          />
+      icon={
+        <span className={[styles.badge, styles[`${screen.tone}Badge`]].join(' ')} aria-hidden="true">
+          <span className={styles.glyph}>
+            <img
+              src={screen.icon}
+              alt=""
+              width={screen.iconSize.width}
+              height={screen.iconSize.height}
+              className={outcome === 'under_review' ? styles.clock : undefined}
+            />
+          </span>
         </span>
-      </span>
-
+      }
+    >
       <div className={styles.body}>
         <div className={styles.documents}>
           <p id={listLabelId} className={styles.listLabel}>
