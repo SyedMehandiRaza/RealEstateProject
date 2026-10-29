@@ -1,14 +1,14 @@
 import { Link, useNavigate } from 'react-router';
-import backIcon from '../../assets/auth/icon-back.svg';
 import styles from './AuthSplitLayout.module.css';
 
 // Gap between the heading block and the content below it, per Figma frame:
 // 20 on Sign Up, 30 on Reset password, 32 on Log in, 48 on Verify, Forgot Password and Select a country.
+// 30 / 32 / 48 compress on short screens (tokens.css, TASK-051); 20 stays.
 const GAPS = {
   20: 'var(--space-20)',
-  30: 'var(--space-30)',
-  32: 'var(--space-32)',
-  48: 'var(--space-48)',
+  30: 'var(--space-auth-gap-30)',
+  32: 'var(--space-auth-gap-32)',
+  48: 'var(--space-auth-gap-48)',
 };
 
 // Layout shared by every Auth Module frame: hero image with the "Real Estate" mark, a back link and a
@@ -28,7 +28,7 @@ export default function AuthSplitLayout({
   const navigate = useNavigate();
   const back = (
     <>
-      <img src={backIcon} alt="" width={10} height={20} />
+      <span className={styles.backIcon} aria-hidden="true" />
       <span>{backLabel}</span>
     </>
   );

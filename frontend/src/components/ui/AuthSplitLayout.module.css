@@ -1,30 +1,37 @@
+/* Responsive rule (DEC-039, docs/modules/auth/figma.md): at 1440x832 this is the Figma frame; from
+ * 1024 px up the hero and the card sit side by side and the hero shrinks first; below 1024 px the hero
+ * (picture and tagline) is hidden and the card fills the width (max 560), under the logo and back link.
+ * Short screens compress the vertical spacing (--space-auth-*), and the page scrolls only when the
+ * content is taller than the window. */
 .page {
-  position: relative;
   display: flex;
-  justify-content: flex-end;
   min-height: 100vh;
-  padding: var(--space-24);
+  min-height: 100dvh;
+  padding: var(--space-auth-page-y) var(--space-24);
   background:
     var(--gradient-auth-hero),
     url('../../assets/auth/hero-background.jpg') center / cover no-repeat;
 }
 
-/* Left half: positions are taken from the frame (header at 47/73, tagline top 199 px above the bottom). */
+/* Left side: takes what the card leaves. At 1440 it is 768 wide, so with 23 px of side padding the
+ * header is the frame's 698 px row at 47 / 73, and the tagline box starts 199 px above the bottom. */
 .hero {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-24);
+  min-width: 0;
+  padding: var(--space-auth-hero-top) var(--space-auth-hero-x) 0;
 }
 
 .heroHeader {
-  position: absolute;
-  top: var(--space-73);
-  left: var(--space-47);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  width: var(--size-auth-hero-header-width);
-  pointer-events: auto;
+  gap: var(--space-8);
+  width: 100%;
 }
 
 .brand {
@@ -51,32 +58,39 @@
   cursor: pointer;
 }
 
+/* The back arrow (10x20) painted in the link colour, so it is white on the hero and dark below 1024. */
+.backIcon {
+  flex: none;
+  width: var(--size-auth-back-icon-width);
+  height: var(--size-auth-back-icon-height);
+  background-color: currentColor;
+  mask: url('../../assets/auth/icon-back.svg') center / contain no-repeat;
+}
+
 .back:focus-visible {
-  outline: 2px solid var(--color-white);
+  outline: 2px solid currentColor;
   outline-offset: 4px;
 }
 
+/* 30 px at 1200 px and wider (so the frame size is exact), down to 20 px when the hero is narrow. */
 .tagline {
-  position: absolute;
-  top: calc(100% - var(--space-199));
-  left: var(--space-47);
-  width: var(--size-auth-tagline-width);
+  max-width: var(--size-auth-tagline-width);
+  min-height: var(--size-auth-tagline-box);
   margin: 0;
   color: var(--color-white);
-  font-size: var(--font-size-30);
+  font-size: clamp(var(--font-size-20), 2.5vw, var(--font-size-30));
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-normal);
 }
 
+/* Keeps the frame's 648 px; the content is centred in it, top to bottom. */
 .card {
-  position: relative;
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: center;
   width: var(--size-auth-card-width);
-  min-height: calc(100vh - 2 * var(--space-24));
-  padding: var(--space-48) 0;
-  overflow: hidden;
+  padding: var(--space-auth-card-y) var(--space-24);
   border-radius: var(--radius-card);
   background: var(--color-white);
 }
@@ -85,14 +99,16 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: var(--size-auth-content-width);
+  width: 100%;
+  max-width: var(--size-auth-content-width);
 }
 
 .heading {
   display: flex;
   flex-direction: column;
   gap: var(--space-7);
-  width: var(--size-auth-heading-width);
+  width: 100%;
+  max-width: var(--size-auth-heading-width);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-normal);
 }
@@ -103,10 +119,47 @@
   font-size: var(--font-size-24);
   font-weight: inherit;
   line-height: inherit;
+  overflow-wrap: break-word;
 }
 
 .subtitle {
   margin: 0;
   color: var(--color-text-body);
   font-size: var(--font-size-14);
+  overflow-wrap: break-word;
+}
+
+/* Below 1024: no picture and no tagline; the logo row and the card share one centred column. */
+@media (max-width: 1023.98px) {
+  .page {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-24);
+    padding: var(--space-16);
+    background: var(--color-white);
+  }
+
+  .hero {
+    flex: none;
+    width: 100%;
+    max-width: var(--size-auth-card-narrow-max-width);
+    padding: 0;
+  }
+
+  .tagline {
+    display: none;
+  }
+
+  .brand,
+  .back {
+    color: var(--color-text-heading);
+  }
+
+  .card {
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: var(--size-auth-card-narrow-max-width);
+    padding: 0;
+    border-radius: 0;
+  }
 }

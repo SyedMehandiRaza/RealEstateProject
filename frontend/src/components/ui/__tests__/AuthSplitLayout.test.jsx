@@ -28,11 +28,11 @@ describe('AuthSplitLayout', () => {
 
   it.each([
     [20, 'var(--space-20)'],
-    [30, 'var(--space-30)'],
-    [32, 'var(--space-32)'],
-    [48, 'var(--space-48)'],
-    [undefined, 'var(--space-32)'],
-    [31, 'var(--space-32)'],
+    [30, 'var(--space-auth-gap-30)'],
+    [32, 'var(--space-auth-gap-32)'],
+    [48, 'var(--space-auth-gap-48)'],
+    [undefined, 'var(--space-auth-gap-32)'],
+    [31, 'var(--space-auth-gap-32)'],
   ])('contentGap %s puts %s between the heading and the content', async (contentGap, gap) => {
     renderWithProviders([
       {

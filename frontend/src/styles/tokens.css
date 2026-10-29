@@ -72,6 +72,38 @@
   --space-48: 48px;
   --space-73: 73px;
   --space-199: 199px;
+  /* Hero padding: header at 73 / 47 in the frame, inside the 24 px page padding (49 / 23). */
+  --space-auth-hero-top: calc(var(--space-73) - var(--space-24));
+  --space-auth-hero-x: calc(var(--space-47) - var(--space-24));
+  /* Vertical spacing that compresses on short screens: the Figma value at 832 px high and taller,
+   * shrinking linearly to the minimum at 720 px high (1280x720), so the frame size stays exact.
+   * The card padding reaches 48 at 836 px instead: it only shows when the content fills the card, and
+   * at 832 it lets the three-slot Upload Document (785 px card in Figma) fit with no 1 px scroll. */
+  --space-auth-page-y: clamp(
+    var(--space-16),
+    calc(var(--space-16) + 8 * (100vh - 720px) / 112),
+    var(--space-24)
+  );
+  --space-auth-card-y: clamp(
+    var(--space-16),
+    calc(var(--space-16) + 32 * (100vh - 720px) / 116),
+    var(--space-48)
+  );
+  --space-auth-gap-48: clamp(
+    var(--space-32),
+    calc(var(--space-32) + 16 * (100vh - 720px) / 112),
+    var(--space-48)
+  );
+  --space-auth-gap-32: clamp(
+    var(--space-20),
+    calc(var(--space-20) + 12 * (100vh - 720px) / 112),
+    var(--space-32)
+  );
+  --space-auth-gap-30: clamp(
+    var(--space-16),
+    calc(var(--space-16) + 14 * (100vh - 720px) / 112),
+    var(--space-30)
+  );
 
   /* Radius */
   --radius-xs: 4px;
@@ -99,8 +131,12 @@
   --size-auth-card-width: 648px;
   --size-auth-content-width: 539px;
   --size-auth-heading-width: 411px;
-  --size-auth-hero-header-width: 698px;
   --size-auth-tagline-width: 645px;
+  /* Responsive auth layout (TASK-051, DEC-039). Derived from the 1440x832 frames, not separate Figma values. */
+  --size-auth-tagline-box: 175px; /* tagline top 199 px above the frame bottom, minus the 24 px page padding */
+  --size-auth-card-narrow-max-width: 560px; /* below 1024 px: the card fills the width up to this */
+  --size-auth-back-icon-width: 10px;
+  --size-auth-back-icon-height: 20px;
 
   /* Shadows */
   --shadow-dropdown: 0 0 20px 0 var(--color-shadow-dropdown);
