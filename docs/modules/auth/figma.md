@@ -34,6 +34,16 @@ Flow (from canvas layout): each row on the canvas is one journey; the row a fram
 
 Other nodes on the page (section headings, not screens): `13038:5036` "Log in Screen", `13038:5038` "Forget Password", `13038:5040` "Buyer Sign up Screen", `13038:5042` "Agent Sign up Screen", `13038:5044` "Developer Sign up Screen", `13038:5046` and `13038:5048` "Onboarding Screen", `13038:5050` "Verified Screen". No frames exist beyond the list above.
 
+## Responsive rule (user, 2026-10-30, DEC-039)
+
+Figma has only 1440-wide desktop frames. Every auth page follows this rule:
+
+- At 1440 the page matches the Figma frame.
+- At 1024 px wide and above: hero and form card side by side; the hero shrinks first, the card keeps its width.
+- Below 1024 px: the hero is hidden; the card fills the width (max about 560 px, centred), with the logo and "Back to home" at the top.
+- Short screens (1280x720, 1366x768): spacing compresses; no vertical scroll unless the form cannot fit (for example Sign up, or the three-document upload).
+- Checked at 1280x720, 1366x768, 1024x768, 768x1024 and 375x812: no overlap, no clipping, no horizontal scroll.
+
 ## Shared components seen on these pages
 
 - Auth split layout: left hero with "Real Estate" logo, "Back to home" / "Go back" link, and a tagline; right white card

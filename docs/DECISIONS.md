@@ -337,3 +337,16 @@ Use one entry per meaningful decision.
 - Decision (uploads): `fileUploads.uploadAllAndSave(files, save)` (files module) starts every upload at once (`Promise.allSettled`). If any fails, every upload that succeeded is deleted now or queued as `save_failed`, save is not called, and the first failure in file order is thrown; otherwise save runs once with the files in request order, and if it fails every file is compensated the same way. `submitDocuments` uses it with its existing transaction as save, so Cloudinary is still never called inside a transaction (DEC-018). This replaces DEC-034's "one by one, newest first" and its rejected alternative "uploading in parallel": the compensation is no harder with `allSettled`, and a 3-file request no longer waits for the uploads in turn.
 - Decision (helpers): `toWholeSeconds` (`utils/time.js`) and `constantTimeEqual` (`utils/constantTimeEqual.js`, length check then `crypto.timingSafeEqual`) replace the copies in `onboarding.service.js`, `verificationCode.service.js`, `resetToken.js` and `test/e2eSeeds.js`.
 - Alternatives rejected: `ROW_NUMBER() OVER (PARTITION BY ...)` in a derived table (Sequelize cannot put it in an include, and an unfiltered window ranks every profile's rows); one `findOne` per kind (three queries); keeping the include but limiting it to Developers (a role is only known after the Account is read).
+
+## DEC-039: Auth answers after the code review
+
+- Status: Accepted (user, 2026-10-30, answered in chat)
+- Date: 2026-10-30
+- Landing (Q-034): resume onboarding at the first unfinished step. Buyer: Select a country if none is saved, else home. Developer: Professional info, then Documents, then the Status screen until Active, then home. An Account with both roles follows the developer flow until Active. Built in TASK-041.
+- Become a developer (Q-035): the Agent tab stays hidden; the link is deferred to design (it belongs on the buyer home). TASK-037 stays blocked on design. The API (DEC-032) is ready.
+- Refresh reuse (Q-038): a refresh token revoked less than 30 s ago answers 401 without revoking every session (covers a lost Set-Cookie or a browser without `navigator.locks`); older reuse still revokes all sessions. No migration. TASK-050.
+- After a reset (Q-040): a successful reset clears the per-account login lockout. Resetting to the same password stays allowed. Access tokens still expire normally (`JWT_ACCESS_EXPIRES_IN`). TASK-050.
+- Rate limits (Q-041): one per-IP limiter per route group (sign-up/verify, login, password reset), 20 requests per 15 minutes each, replacing the single shared limiter. The per-account login limit (10 / 15 min) stays. TASK-050.
+- Unverified login message (Q-042): unchanged.
+- Confirmed assumptions: Q-033 (edit until Active, 409 after), Q-036 (document messages), Q-037 (mail failure answers as success), Q-039 (unverified Accounts can reset).
+- Responsive auth pages (rule from commit bc6f7c5): at least 1024 px wide the hero and card sit side by side (the hero shrinks first); below 1024 px the hero is hidden and the card fills the width (max about 560 px, centred) with the logo and "Back to home" at the top. On short screens the spacing compresses and the page scrolls only when the form cannot fit. Recorded in `docs/modules/auth/figma.md`. TASK-051.
