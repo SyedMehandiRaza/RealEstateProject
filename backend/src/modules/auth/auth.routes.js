@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { signUpSchema, verifyCodeSchema } from '@real-estate/shared';
+import { resendCodeSchema, signUpSchema, verifyCodeSchema } from '@real-estate/shared';
 import { authRateLimiter } from '../../middlewares/rateLimiter.js';
 import { validate } from '../../middlewares/validate.js';
 
@@ -9,6 +9,12 @@ export function createAuthRoutes(controller) {
 
   router.post('/sign-up', authRateLimiter, validate({ body: signUpSchema }), controller.signUp);
   router.post('/verify-email', authRateLimiter, validate({ body: verifyCodeSchema }), controller.verifyEmail);
+  router.post(
+    '/verify-email/resend',
+    authRateLimiter,
+    validate({ body: resendCodeSchema }),
+    controller.resendVerification,
+  );
 
   return router;
 }

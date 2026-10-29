@@ -140,9 +140,10 @@ describe('POST /api/auth/verify-email', () => {
     });
   });
 
-  // Issues another code for the Account straight through the Verification codes module (the resend
-  // route arrives with TASK-020), always different from the mailed one.
+  // Issues another code for the Account straight through the Verification codes module, always
+  // different from the mailed one. The clock first moves past the 60-second resend cooldown.
   async function issueAnotherCode(purpose) {
+    clock.advance(MINUTE);
     const mailed = mailer.lastCodeFor(EMAIL);
     const user = await models.User.findOne({ where: { email: EMAIL } });
     const codes = createVerificationCodeService({

@@ -89,3 +89,19 @@ export const verifyCodeCases = {
     },
   ],
 };
+
+export const resendCodeCases = {
+  valid: { email: 'sara@example.com' },
+  invalid: [
+    fieldCase('email', undefined, m.email.required),
+    fieldCase('email', '  ', m.email.required),
+    fieldCase('email', 'sara', m.email.invalid),
+    fieldCase('email', emailOfLength(L.email.max + 1), m.email.max),
+    {
+      name: 'unknown field',
+      input: { phone: '+971501234567' },
+      field: '_form',
+      message: commonMessages.unknownField,
+    },
+  ],
+};

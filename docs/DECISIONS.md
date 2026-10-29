@@ -215,3 +215,13 @@ Use one entry per meaningful decision.
 - Decision (parity): the invalid inputs of each schema move from inline tables in `shared/` tests to `shared/src/testing/`, exported as `@real-estate/shared/testing` (a second package `exports` entry, not part of the main entry). The shared schema test and the backend parity test replay the same rows; the frontend can import them too.
 - Assumptions: an unknown email on verify-email answers `codeInvalid` (no Account enumeration); a code is checked only for the purpose of its route; a failed send is logged with the Account id and purpose only (Q-037). `developerVerificationStatus` is `null` until TASK-030.
 - Alternatives rejected: retyping the invalid payloads in backend tests (they drift from the shared rules); `check` throwing the HTTP error itself (the attempt count would roll back with the transaction).
+
+## DEC-026: Resend rules inside Verification codes `issue` (TASK-020)
+
+- Status: Accepted (implementing agent, 2026-10-29; reversible). Applies DEC-021's resend rules as DEC-025 planned.
+- Decision: `verificationCodes.issue` refuses a new code for an Account and purpose when 5 codes were created in the last rolling hour (`created_at > now - 1 h`, so a code stops counting exactly 60:00 after it was issued) or the newest is less than 60 s old. It throws `ResendRefusedError` (an `AppError` with `TOO_MANY_REQUESTS`, 429) carrying `resendLimit` or `resendTooSoon(n)`, `n` = whole seconds left, rounded up (1 at 59 s, 60 right after the previous code). The hourly cap is checked first. The first code (sign-up) counts toward both rules. A new code cancels older ones through the existing newest-only rule in `check`; no rows are updated.
+- Concurrency: the caller locks the Account row (`repository.lockUserByEmail`, `SELECT ... FOR UPDATE`) in the same transaction before `issue`, so two resends for one Account cannot both pass the cooldown.
+- POST `/api/auth/verify-email/resend` answers 200 `{ sent: true }` for unknown and already-verified emails without a code or email (Q-037 applies to a failed send). A refused resend is a 429 with no `fields`.
+- For TASK-021 (unverified login) and TASK-023 (password resend/forgot): call `issue` and catch `ResendRefusedError` where the rules should only skip the email instead of failing the request.
+- Known trade-off: a 429 tells the caller the email has an unverified Account (accepted by SPEC-001's contract).
+- Alternatives rejected: `issue` returning a status value (every caller, including sign-up, would need to branch; nothing is written on refusal, so throwing is safe, unlike `check`); invalidating older codes with an UPDATE (newest-only already does it).

@@ -1,8 +1,10 @@
 import crypto from 'node:crypto';
-import { LIMITS } from '@real-estate/shared';
+import { authMessages, LIMITS } from '@real-estate/shared';
+import { Op } from 'sequelize';
+import { AppError } from '../../utils/AppError.js';
 
-// Verification codes (SPEC-001, DEC-015, DEC-021): issues and checks the 6-digit codes emailed for a
-// purpose. Codes come from a cryptographic random source, keep their leading zeros and are stored only
+// Verification codes (SPEC-001, DEC-015, DEC-021, DEC-026): issues and checks the 6-digit codes emailed
+// for a purpose. Codes come from a cryptographic random source, keep their leading zeros and are stored only
 // as HMAC-SHA256 with VERIFICATION_CODE_SECRET. Only the newest code of an Account and purpose can be
 // accepted, so issuing a new code cancels the older ones.
 
@@ -13,6 +15,22 @@ export const CODE_PURPOSES = Object.freeze({
 
 export const CODE_TTL_MS = 10 * 60 * 1000;
 export const MAX_ATTEMPTS = 5;
+
+// Resend rules (DEC-021), per Account and purpose: a new code at most every 60 s and at most 5 codes in
+// any rolling hour. The first code (sign-up, forgot password) counts too.
+export const RESEND_COOLDOWN_MS = 60 * 1000;
+export const MAX_CODES_PER_HOUR = 5;
+const HOUR_MS = 60 * 60 * 1000;
+
+// Thrown by issue() when the resend rules refuse a new code: 429 TOO_MANY_REQUESTS with resendTooSoon(n)
+// or resendLimit. Nothing was written, so the caller's transaction is unharmed; a caller that sends a
+// code only if the rules allow (log in of an unverified Account, TASK-021) catches this class.
+export class ResendRefusedError extends AppError {
+  constructor(message) {
+    super('TOO_MANY_REQUESTS', { message });
+    this.name = 'ResendRefusedError';
+  }
+}
 
 // What check() found. The caller turns anything but `valid` into its error response.
 export const CODE_CHECK = Object.freeze({
@@ -44,11 +62,31 @@ export function createVerificationCodeService({ models, clock, secret, random = 
   const { VerificationCode } = models;
 
   return {
-    // Stores a new code for the Account and purpose and returns it in clear for the mailer only.
-    // Pass the caller's transaction so the code is created or rolled back with the rest of the change.
+    // Stores a new code for the Account and purpose and returns it in clear for the mailer only. Applies
+    // the resend rules first and throws ResendRefusedError when they refuse; the hourly cap is checked
+    // first, so a capped Account is not told to wait a few seconds for nothing. A new code cancels the
+    // older ones because check() only looks at the newest. Pass the caller's transaction so the code is
+    // created or rolled back with the rest of the change; to serialize concurrent requests for one
+    // Account, the caller locks the Account row in that transaction first.
     async issue({ userId, purpose }, { transaction } = {}) {
-      const code = generateCode(random);
       const now = toWholeSeconds(clock.now());
+      const recent = await VerificationCode.findAll({
+        attributes: ['createdAt'],
+        where: { userId, purpose, createdAt: { [Op.gt]: new Date(now.getTime() - HOUR_MS) } },
+        order: [
+          ['createdAt', 'DESC'],
+          ['id', 'DESC'],
+        ],
+        transaction,
+      });
+      if (recent.length >= MAX_CODES_PER_HOUR) throw new ResendRefusedError(authMessages.api.resendLimit);
+      if (recent.length > 0) {
+        const waitMs = recent[0].createdAt.getTime() + RESEND_COOLDOWN_MS - now.getTime();
+        if (waitMs > 0)
+          throw new ResendRefusedError(authMessages.api.resendTooSoon(Math.ceil(waitMs / 1000)));
+      }
+
+      const code = generateCode(random);
       await VerificationCode.create(
         {
           userId,

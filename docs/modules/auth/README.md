@@ -39,9 +39,10 @@ Sign up, verify email, log in, recover a password, and onboard professionals. Us
 ## Interfaces
 
 - API contract: `docs/execution/specs/SPEC-001-auth-api.md` (ready-for-agent). Validation: shared auth schemas (see `db.md`). Assumed so far: `POST /api/auth/refresh` returns `{ data: { accessToken, user } }` (ARCHITECTURE.md).
-- Built (TASK-019, 2026-10-29), both behind the per-IP `authRateLimiter`:
+- Built (TASK-019, TASK-020, 2026-10-29), all behind the per-IP `authRateLimiter`:
   - POST `/api/auth/sign-up` (`signUpSchema`): 201 `{ email }` (lowercase). Account, first role and first `email_verification` code in one transaction; the code is mailed after commit. Taken email → 409 `CONFLICT` with `fields.email = [emailTaken]`. A failed send still answers 201 and logs only the Account id and purpose (Q-037).
   - POST `/api/auth/verify-email` (`verifyCodeSchema`): 200 `{ accessToken, user }` plus the `refresh_token` cookie. Wrong, expired, used, older or unknown-email code → 422 `fields.code = [codeInvalid]`; from the 5th wrong guess → `[codeTooManyAttempts]`.
+  - POST `/api/auth/verify-email/resend` (`resendCodeSchema`, TASK-020, DEC-026): 200 `{ sent: true }`, a new `email_verification` code mailed and older codes cancelled. One code per 60 s and 5 per hour per purpose (the sign-up code counts): 429 `TOO_MANY_REQUESTS` with `resendTooSoon(n)` or `resendLimit`. Unknown or already-verified email → the same 200 body, no email.
   - `user` shape (`auth.presenter.js`): `{ id, fullName, email, phone, roles, emailVerified, preferredCountryCode, developerVerificationStatus }`; `developerVerificationStatus` is `null` until TASK-030.
 - Code layout (DEC-025): `backend/src/modules/auth/` has `auth.routes.js`, `auth.controller.js`, `auth.service.js`, `auth.repository.js`, `auth.presenter.js`, `session.service.js` and `verificationCode.service.js` (Verification codes: `issue`, `check`), wired in `index.js`.
 - Env vars (names only, validated in `backend/src/config/env.js`): `SMTP_SERVICE_HOST`, `SMTP_SERVICE_PORT`, `SMTP_USER_NAME`, `SMTP_USER_PASSWORD`, `MAIL_FROM`, `VERIFICATION_CODE_SECRET` (Q-009, DEC-021); Cloudinary `CERTIFICATE_STORAGE`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (Q-030).

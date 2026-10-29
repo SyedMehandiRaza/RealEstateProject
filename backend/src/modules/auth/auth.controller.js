@@ -17,5 +17,9 @@ export function createAuthController(authService) {
     async verifyEmail(req, res) {
       startSession(res, await authService.verifyEmail(req.validated.body));
     },
+
+    async resendVerification(req, res) {
+      sendSuccess(res, await authService.resendVerification(req.validated.body));
+    },
   };
 }

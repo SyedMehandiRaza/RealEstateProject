@@ -86,5 +86,20 @@ export function createAuthService({
       }
       return { user: outcome.user, ...outcome.session };
     },
+
+    // Sends a new email_verification code within the resend rules (ResendRefusedError → 429). Unknown
+    // and already-verified emails get the same answer and no email, so this does not reveal Accounts.
+    async resendVerification({ email }) {
+      const purpose = CODE_PURPOSES.emailVerification;
+      const issued = await sequelize.transaction(async (transaction) => {
+        const user = await repository.lockUserByEmail(email, { transaction });
+        if (!user || user.emailVerifiedAt) return null;
+        const code = await verificationCodes.issue({ userId: user.id, purpose }, { transaction });
+        return { userId: user.id, code };
+      });
+
+      if (issued) await mailCode({ ...issued, email, purpose });
+      return { sent: true };
+    },
   };
 }

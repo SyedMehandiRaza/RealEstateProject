@@ -13,7 +13,7 @@ import { authMessages as m } from '../../messages/auth.messages.js';
 import { commonMessages } from '../../messages/common.messages.js';
 import { toFieldErrors } from '../../errors/toFieldErrors.js';
 import { LIMITS } from '../../limits.js';
-import { signUpCases, verifyCodeCases } from '../../testing/index.js';
+import { resendCodeCases, signUpCases, verifyCodeCases } from '../../testing/index.js';
 
 const L = LIMITS.auth;
 const errorsOf = (schema, input) => {
@@ -79,11 +79,8 @@ describe('resendCodeSchema', () => {
     expect(resendCodeSchema.parse({ email: 'Sara@Example.com' })).toEqual({ email: 'sara@example.com' });
   });
 
-  it('rejects an invalid email and extra fields', () => {
-    expect(errorsOf(resendCodeSchema, { email: 'sara' }).email).toEqual([m.email.invalid]);
-    expect(errorsOf(resendCodeSchema, { email: 'sara@example.com', phone: '+971501234567' })._form).toEqual([
-      commonMessages.unknownField,
-    ]);
+  it.each(resendCodeCases.invalid)('rejects $name with its message', ({ input, field, message }) => {
+    expect(errorsOf(resendCodeSchema, { ...resendCodeCases.valid, ...input })[field]).toEqual([message]);
   });
 });
 

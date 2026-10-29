@@ -9,6 +9,12 @@ export function createAuthRepository(models) {
       return User.findOne({ where: { email }, include: [withRoles], transaction });
     },
 
+    // The Account row only, locked FOR UPDATE until the transaction ends, so concurrent requests for
+    // one Account (such as two resends) run one after the other.
+    lockUserByEmail(email, { transaction }) {
+      return User.findOne({ where: { email }, transaction, lock: transaction.LOCK.UPDATE });
+    },
+
     // Creates the Account and its first role. Throws Sequelize's UniqueConstraintError for a taken email.
     async createUser({ fullName, email, phone, passwordHash, role }, { transaction }) {
       const user = await User.create({ fullName, email, phone, passwordHash }, { transaction });
