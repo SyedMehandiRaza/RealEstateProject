@@ -8,6 +8,8 @@ Memory for the long-running goal "auth module fully built and tested" (started 2
 
 ## Working agreements
 
+- [ticket-procedure.md](ticket-procedure.md): the steps every implementing agent follows for one ticket
+
 - [user-preferences.md](user-preferences.md): how the user wants this goal run (autonomy, commits, stop conditions)
 
 ## Recurring problems
