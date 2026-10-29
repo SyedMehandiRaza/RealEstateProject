@@ -81,6 +81,19 @@ export function createOnboardingService({ sequelize, repository, onboardingRepos
       return { profile: toProfileResponse(profile) };
     },
 
+    // The Developer's Verification status (SPEC-001: GET /me/verification, 200 { status, documents }):
+    // one entry per kind the Type of Developer requires, from its latest row. Without Professional info
+    // there is no Type of Developer, so no required kinds: 403 FORBIDDEN, as for POST /me/documents
+    // (401 if the Account is gone).
+    async getVerification({ userId }) {
+      const profile = await onboardingRepository.findProfileWithDocuments(userId);
+      if (!profile) {
+        if (!(await repository.findUserById(userId))) throw new AppError('UNAUTHORIZED');
+        throw new AppError('FORBIDDEN');
+      }
+      return statusOf(profile);
+    },
+
     // Stores the sent Verification documents and returns the new Verification status (SPEC-001:
     // 201 { verification }, the GET /me/verification shape). documents: the parsed documentUploadSchema
     // values plus each file's buffer. The rules are checked before any upload, so a refused request

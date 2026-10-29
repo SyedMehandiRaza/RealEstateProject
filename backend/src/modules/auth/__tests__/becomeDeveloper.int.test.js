@@ -44,7 +44,7 @@ describe('POST /api/auth/me/roles/developer', () => {
     expect(res.status).toBe(201);
     expect(res.body).toEqual({
       success: true,
-      data: { user: { ...user, roles: ['buyer', 'developer'], developerVerificationStatus: null } },
+      data: { user: { ...user, roles: ['buyer', 'developer'], developerVerificationStatus: 'under_review' } },
     });
     expect(res.headers['set-cookie']).toBeUndefined();
     expect(await rolesOf(user.id)).toEqual(['buyer', 'developer']);

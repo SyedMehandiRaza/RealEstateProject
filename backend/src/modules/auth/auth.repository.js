@@ -1,17 +1,30 @@
-// Sequelize queries for Accounts. Roles always come in the same query as the Account (no N+1).
+// Sequelize queries for Accounts. Roles always come in the same query as the Account (no N+1), and so
+// do the Developer's profile and document statuses that user.developerVerificationStatus is derived from.
 export function createAuthRepository(models) {
-  const { User, UserRole } = models;
+  const { User, UserRole, ProfessionalProfile, VerificationDocument } = models;
   const withRoles = { model: UserRole, as: 'roles', attributes: ['role'] };
+  const withVerification = {
+    model: ProfessionalProfile,
+    as: 'professionalProfile',
+    attributes: ['id', 'businessType'],
+    include: [
+      {
+        model: VerificationDocument,
+        as: 'documents',
+        attributes: ['id', 'documentKind', 'status', 'createdAt'],
+      },
+    ],
+  };
 
   return {
     // `email` must already be normalized (trimmed, lowercase) by the shared schema.
     findUserByEmail(email, { transaction } = {}) {
-      return User.findOne({ where: { email }, include: [withRoles], transaction });
+      return User.findOne({ where: { email }, include: [withRoles, withVerification], transaction });
     },
 
     // Log in only: the Account with its password hash and its roles, in one query.
     findUserForLogin(email) {
-      return User.scope('withPassword').findOne({ where: { email }, include: [withRoles] });
+      return User.scope('withPassword').findOne({ where: { email }, include: [withRoles, withVerification] });
     },
 
     // Password reset only: the Account with its password hash, which the reset token is bound to.
@@ -26,7 +39,7 @@ export function createAuthRepository(models) {
     },
 
     findUserById(id, { transaction } = {}) {
-      return User.findByPk(id, { include: [withRoles], transaction });
+      return User.findByPk(id, { include: [withRoles, withVerification], transaction });
     },
 
     // The Account row only (no roles), locked FOR UPDATE until the transaction ends.

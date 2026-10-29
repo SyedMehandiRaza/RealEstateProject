@@ -89,6 +89,7 @@ export function createAuthRoutes(controller) {
     documentUpload,
     controller.submitDocuments,
   );
+  router.get('/me/verification', authenticate, authorize('developer'), controller.getVerification);
 
   return router;
 }

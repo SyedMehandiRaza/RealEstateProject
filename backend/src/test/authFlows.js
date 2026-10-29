@@ -124,3 +124,10 @@ export function submitDocuments(app, accessToken, { files = {}, idDocumentType, 
   for (const [name, value] of Object.entries(text)) req = req.field(name, value);
   return req;
 }
+
+export const VERIFICATION = '/api/auth/me/verification';
+
+// GET /me/verification with an access token. Returns the response (200 { status, documents } on success).
+export function getVerification(app, accessToken) {
+  return request(app).get(VERIFICATION).set('Authorization', `Bearer ${accessToken}`);
+}

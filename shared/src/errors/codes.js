@@ -10,6 +10,8 @@ export const ERROR_CODES = {
   FORBIDDEN: { status: 403, message: 'You do not have permission to do this' },
   // Log in with the right password before the email is verified; a new code is sent within the resend rules.
   EMAIL_NOT_VERIFIED: { status: 403, message: authMessages.api.emailNotVerified },
+  // A Developer route behind the "Active developer required" guard, while Verification status is not Active.
+  DEVELOPER_NOT_ACTIVE: { status: 403, message: authMessages.api.documentsUnderReview },
   NOT_FOUND: { status: 404, message: 'The requested resource was not found' },
   CONFLICT: { status: 409, message: 'This record already exists' },
   TOO_MANY_REQUESTS: { status: 429, message: 'Too many requests, please try again later' },

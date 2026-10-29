@@ -15,4 +15,11 @@ describe('ERROR_CODES', () => {
       message: authMessages.api.emailNotVerified,
     });
   });
+
+  it('answers a Developer who is not Active with 403 and the shared documentsUnderReview message', () => {
+    expect(ERROR_CODES.DEVELOPER_NOT_ACTIVE).toEqual({
+      status: 403,
+      message: authMessages.api.documentsUnderReview,
+    });
+  });
 });

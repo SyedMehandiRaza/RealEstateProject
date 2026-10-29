@@ -84,5 +84,9 @@ export function createAuthController(authService, onboardingService) {
         status: 201,
       });
     },
+
+    async getVerification(req, res) {
+      sendSuccess(res, await onboardingService.getVerification({ userId: req.user.id }));
+    },
   };
 }

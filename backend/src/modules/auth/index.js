@@ -4,6 +4,7 @@ import { logger } from '../../utils/logger.js';
 import { createFileDeletionService } from '../files/fileDeletion.service.js';
 import { createFileUploadService } from '../files/fileUpload.service.js';
 import { createPendingFileDeletionRepository } from '../files/pendingFileDeletion.repository.js';
+import { createRequireActiveDeveloper } from './activeDeveloper.js';
 import { createAuthController } from './auth.controller.js';
 import { createAuthRepository } from './auth.repository.js';
 import { createAuthRoutes } from './auth.routes.js';
@@ -53,3 +54,9 @@ export function createAuthRouter({ mailer, storage, clock }) {
   });
   return createAuthRoutes(createAuthController(authService, onboardingService));
 }
+
+// "Active developer required" (SPEC-001) for later modules' routers: router.post(path, authenticate,
+// requireActiveDeveloper, ...). Answers 403 DEVELOPER_NOT_ACTIVE until every required document is approved.
+export const requireActiveDeveloper = createRequireActiveDeveloper({
+  onboardingRepository: createOnboardingRepository(models),
+});
