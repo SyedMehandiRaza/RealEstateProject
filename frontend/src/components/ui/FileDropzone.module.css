@@ -1,0 +1,71 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.zone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+  height: var(--size-dropzone-height);
+  padding: 0 var(--space-16);
+  border: 1px dashed var(--color-border-input);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-dropzone);
+  color: var(--color-text-placeholder);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-align: center;
+  cursor: pointer;
+}
+
+/* Not designed: keyboard focus and drag-over use the primary border, as TextInput focus does. */
+.zone:has(.input:focus-visible),
+.dragging {
+  border-color: var(--color-primary-500);
+}
+
+.invalid {
+  border-color: var(--color-error-500);
+}
+
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.title {
+  font-size: var(--font-size-12);
+}
+
+.formats {
+  font-size: var(--font-size-10);
+}
+
+.maxSize {
+  font-size: var(--font-size-9);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-error-500);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}

@@ -1,0 +1,28 @@
+.badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  white-space: nowrap;
+}
+
+.dot {
+  flex: none;
+  width: var(--size-status-dot);
+  height: var(--size-status-dot);
+}
+
+.pending {
+  color: var(--color-accents-yellow);
+}
+
+.approved {
+  color: var(--color-accents-green);
+}
+
+.rejected {
+  color: var(--color-accents-red);
+}
