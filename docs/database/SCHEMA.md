@@ -2,7 +2,7 @@
 
 MySQL + Sequelize. Requires **MySQL 8.0.16+ (target 8.4 LTS)**; the API refuses to start on older servers (DEC-020). Conventions: `.claude/rules/database.md`. Each module's details live in `docs/modules/<module>/db.md`. Update this file whenever a migration adds or changes a table.
 
-Status: the auth tables are a **DRAFT** (2026-10-28, revised 2026-10-29 for buyer + developer scope and Cloudinary), not approved and not migrated on any database. See `docs/modules/auth/db.md`.
+Status: the auth tables are a **DRAFT** (2026-10-28, revised 2026-10-29 for buyer + developer scope and Cloudinary), not approved and not migrated on any database. See `docs/modules/auth/db.md`. The property and staff tables are a **DRAFT** too (2026-10-31): see the [Property](#property-module) and [Staff](#staff-module) sections below.
 
 ## ERD
 
@@ -65,3 +65,69 @@ erDiagram
 | professional_profiles  | auth           | Developer business details from the Professional Info screens                                                                  | same                                                       |
 | verification_documents | auth           | Uploaded ID, company certificate and profile photo (files in Cloudinary, DEC-016), each with its review status                 | same                                                       |
 | pending_file_deletions | files (shared) | Outbox of Cloudinary files to delete after commit, with retry/backoff and a `failed` review state (DEC-018). No FKs on purpose | `20261029120000-create-pending-file-deletions.cjs` (draft) |
+
+## Cross-module ERD (auth -> property -> staff)
+
+Migration order: auth (`20261028183255`) -> files (`20261029120000`) -> property (`20261030212741`) -> staff (`20261030212742`). The property and staff modules are built on separate branches; `feature/staff` needs the property migration file because of the one staff -> property FK.
+
+```text
+users (auth)
+ |-- 1:N  properties.owner_id                       ON DELETE RESTRICT  ON UPDATE RESTRICT   [property -> auth]
+ |-- 1:N  staff_members.employer_id                 ON DELETE CASCADE   ON UPDATE RESTRICT   [staff -> auth]
+ |-- 1:N  staff_members.user_id (nullable)          ON DELETE SET NULL  ON UPDATE RESTRICT   [staff -> auth]
+
+properties (property)
+ |-- 1:N  staff_property_assignments.property_id    ON DELETE CASCADE   ON UPDATE RESTRICT   [staff -> property]
+```
+
+Every other FK stays inside its own module. No property table references a staff table.
+
+## Property module
+
+Details, column specs and assumptions: [docs/modules/property/db.md](../modules/property/db.md). Migration: `20261030212741-create-property-tables.cjs` (draft). Open questions PROP-Q-001 to PROP-Q-016.
+
+```mermaid
+erDiagram
+  users ||--o{ properties : "owns"
+  properties ||--o{ property_configurations : "has"
+  property_configurations ||--o{ property_configuration_floor_plans : "has"
+  properties ||--o{ property_media : "has"
+  properties ||--o{ property_documents : "has"
+  properties ||--o{ property_features : "has"
+  properties ||--o| property_construction_progress : "tracks"
+  properties ||--o{ property_updates : "posts"
+  properties ||--o{ property_amenities : "offers"
+  property_amenities ||--|{ property_amenity_plans : "priced by"
+```
+
+| Table                              | Purpose                                                                                                     |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| properties                         | A listing owned by a Developer account: type, purpose, category, status, location, area, units, price, text |
+| property_configurations            | Unit types of a property (2 BHK, 3 BHK): area, price, total and available units, status                     |
+| property_configuration_floor_plans | Floor plan files of a configuration (Cloudinary, PDF/JPG/PNG)                                               |
+| property_media                     | Gallery images, videos and 360° tours (Cloudinary), in display order                                        |
+| property_documents                 | RERA certificate, legal NOC, ownership proof and other documents (Cloudinary), with a status                |
+| property_features                  | "Amenities & Features" items of a listing (one row per item)                                                |
+| property_construction_progress     | Overall and per-phase progress and possession date of an under-construction property (1:1)                  |
+| property_updates                   | Construction updates: title, description, optional image                                                    |
+| property_amenities                 | Bookable amenities of a property (gym, pool, party hall): category, pricing type, status                    |
+| property_amenity_plans             | Price plans of an amenity: plan name, billing cycle (hour, day, month), price                               |
+
+## Staff module
+
+Details, column specs and assumptions: [docs/modules/staff/db.md](../modules/staff/db.md). Migration: `20261030212742-create-staff-tables.cjs` (draft). Open questions STAFF-Q-001 to STAFF-Q-008.
+
+```mermaid
+erDiagram
+  users ||--o{ staff_members : "employs"
+  users |o--o{ staff_members : "logs in as"
+  staff_members ||--o{ staff_member_permissions : "is granted"
+  staff_members ||--o{ staff_property_assignments : "is assigned"
+  properties ||--o{ staff_property_assignments : "is managed by"
+```
+
+| Table                      | Purpose                                                                                                   |
+| -------------------------- | --------------------------------------------------------------------------------------------------------- |
+| staff_members              | Team members a Developer adds: name, email, phone, role, status; optional link to their own login account |
+| staff_member_permissions   | Areas a staff member may access (properties, leads & CRM, payments, marketing, facility)                  |
+| staff_property_assignments | Properties assigned to a staff member (the only staff -> property FK)                                     |
