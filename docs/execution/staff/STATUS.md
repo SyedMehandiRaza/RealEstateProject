@@ -4,7 +4,8 @@ Last updated: 2026-10-31
 
 ## Now
 
-- Database draft (not migrated): `backend/src/migrations/20261030212742-create-staff-tables.cjs`, [db.md](../../modules/staff/db.md), [figma.md](../../modules/staff/figma.md). 3 tables.
+- Database draft, migrated on this folder's `real_estate_staff` (2026-10-31, with the property migration) and on `real_estate_staff_test` by the integration suite; not merged: `backend/src/migrations/20261030212742-create-staff-tables.cjs`, [db.md](../../modules/staff/db.md), [figma.md](../../modules/staff/figma.md). 3 tables.
+- Phase 0 (2026-10-31): `npm run check` green (shared 215, backend unit 454, backend integration 307 + 1 skipped, frontend 276). Fixed `e2eMode.test.js`, which expected the auth folder's test DB name.
 - Depends on the property migration `20261030212741-create-property-tables.cjs` (FK `staff_property_assignments.property_id` -> `properties.id`): `feature/staff` must contain that file before `db:migrate`.
 - STAFF-Q-001 to STAFF-Q-008 answered on 2026-10-31 with the recommended options, **provisionally** (the user will review each one); recorded in STAFF-DEC-001 to STAFF-DEC-006 on the [board](README.md). Exception: `staff_members.employer_id` is `ON DELETE RESTRICT`, not CASCADE, by the user's explicit answer ([PROP-DEC-001](../property/decisions/PROP-DEC-001-block-deleting-owner-accounts.md)).
 - Sequelize models (`backend/src/models/staff*.model.js`), shared enums (`shared/src/enums/staff.enums.js`) and `LIMITS.staff` added, with parity tests. Unit tests pass; no MySQL test was run (MySQL login is broken).
@@ -17,4 +18,4 @@ Last updated: 2026-10-31
 
 ## Blockers
 
-- Migrations and integration tests wait for a working MySQL login and for the property migration being on `feature/staff`.
+- None for the database: MySQL works and the property migration is on `feature/staff`.

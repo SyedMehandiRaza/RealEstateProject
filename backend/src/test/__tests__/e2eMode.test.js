@@ -71,7 +71,8 @@ describe('e2e start mode', () => {
     it('answers the readiness route with the test database name', async () => {
       const res = await request(app).get(`${E2E_BASE_PATH}/status`);
       expect(res.status).toBe(200);
-      expect(res.body.data).toEqual({ mode: 'e2e', database: 'real_estate_test' });
+      // DB_NAME_TEST differs per module folder (docs/execution/README.md); testEnv.js defaults it to real_estate_test.
+      expect(res.body.data).toEqual({ mode: 'e2e', database: process.env.DB_NAME_TEST });
     });
 
     it('still serves the API behind the harness routes', async () => {
