@@ -1,6 +1,6 @@
 # PROP-Q-004: What are all the values of "Property Status"?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the property migration (`20261030212741-create-property-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -15,4 +15,8 @@ Add Property step 1 has a "Property Status" select ([13009:10644](https://www.fi
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/property/db.md](../../../modules/property/db.md)): option 1 (`ENUM('ready_to_move', 'under_construction')`).
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1. Exactly two values: `ENUM('ready_to_move', 'under_construction')` (`PROPERTY_STATUSES` in shared).
+
+Decision: [PROP-DEC-004](../decisions/PROP-DEC-004-listing-status-location-area-currency.md).

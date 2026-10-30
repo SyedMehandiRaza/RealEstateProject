@@ -1,6 +1,6 @@
 # PROP-Q-001: Who owns a property, and what happens to it if the owner account is deleted?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the property migration (`20261030212741-create-property-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -16,4 +16,8 @@ Every frame shows "My Properties" for the signed-in account, but no frame says w
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/property/db.md](../../../modules/property/db.md)): option 1 (`owner_id`, RESTRICT).
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1. `properties.owner_id` -> `users.id` is the Developer account that created the property; only an Active developer (DEC-035 guard) creates, edits or deletes it. `ON DELETE RESTRICT`. The user also decided explicitly, for both property and staff: deleting a Developer account that owns properties or employs staff is **blocked**, and the auth user-deletion service answers 409 CONFLICT with a shared message instead of a raw FK error.
+
+Decision: [PROP-DEC-001](../decisions/PROP-DEC-001-block-deleting-owner-accounts.md).

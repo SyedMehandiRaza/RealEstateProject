@@ -19,7 +19,7 @@ A Developer lists the properties they own and manages each one: configurations (
 ## Data
 
 - Tables: see [db.md](db.md) (DRAFT). Migration `backend/src/migrations/20261030212741-create-property-tables.cjs`.
-- Data owner: the Developer account in `properties.owner_id` (ASSUMED, PROP-Q-001).
+- Data owner: the Developer account in `properties.owner_id` (provisional, PROP-Q-001).
 - Sensitive data: see db.md, "Personal data and retention".
 
 ## UI/design references
@@ -28,4 +28,4 @@ A Developer lists the properties they own and manages each one: configurations (
 
 ## Open questions and assumptions
 
-See the board: [docs/execution/property/README.md](../../execution/property/README.md) (PROP-Q-001 to PROP-Q-016).
+See the board: [docs/execution/property/README.md](../../execution/property/README.md). PROP-Q-001 to PROP-Q-016 are answered provisionally (recommended options, 2026-10-31, the user will review them) in PROP-DEC-001 to PROP-DEC-010; PROP-Q-017 is open.

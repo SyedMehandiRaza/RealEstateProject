@@ -1,6 +1,6 @@
 # PROP-Q-007: Which currency are prices in, and can it differ per property?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the property migration (`20261030212741-create-property-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -15,4 +15,8 @@ Every price shows "$" ([13009:7145](https://www.figma.com/design/iREXbZTABmZigGH
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/property/db.md](../../../modules/property/db.md)): option 1 (no currency column).
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1. One platform currency for now, no currency column; the display currency is a frontend setting.
+
+Decision: [PROP-DEC-004](../decisions/PROP-DEC-004-listing-status-location-area-currency.md).

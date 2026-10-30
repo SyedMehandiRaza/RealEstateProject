@@ -1,7 +1,9 @@
 'use strict';
 
-// Staff module tables. DRAFT, not yet approved: see docs/modules/staff/db.md (ASSUMED items) and the open
-// questions in docs/execution/staff/questions/ (STAFF-Q-001 to STAFF-Q-008).
+// Staff module tables. DRAFT, not yet migrated: built on the provisional answers of 2026-10-31 to
+// STAFF-Q-001 to STAFF-Q-008 (recommended options, the user will review them; STAFF-Q-007 deletion rule
+// decided by PROP-DEC-001) and the decisions STAFF-DEC-001 to STAFF-DEC-006 in
+// docs/execution/staff/decisions/. See docs/modules/staff/db.md.
 // Creates, in FK order: staff_members, staff_member_permissions, staff_property_assignments.
 //
 // Depends on the auth migration (users) and on the property migration (20261030212741-create-property-tables,
@@ -13,6 +15,8 @@
 // Requires MySQL 8.0.16+ for CHECK constraints (DEC-020); REGEXP_LIKE is MySQL 8 only.
 // Indexes are created before their FKs so MySQL reuses them instead of adding implicit FK indexes.
 // Every VARCHAR length equals the Zod `max` proposed in docs/modules/staff/db.md.
+// Every ENUM equals its list in shared/src/enums/staff.enums.js and every VARCHAR length its LIMITS.staff
+// entry: backend/src/models/__tests__/staffEnumParity.test.js checks both.
 
 const TABLE_OPTIONS = { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci', engine: 'InnoDB' };
 
@@ -55,7 +59,9 @@ module.exports = {
       'staff_members',
       {
         id: { type: Sequelize.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true, allowNull: false },
-        // The account that added this staff member and manages them (STAFF-Q-007).
+        // The Developer account that added this staff member and manages them (STAFF-Q-007). RESTRICT: an
+        // account that employs staff cannot be deleted; the auth deletion service answers 409 first
+        // (PROP-DEC-001).
         employer_id: { type: Sequelize.INTEGER.UNSIGNED, allowNull: false },
         // The staff member's own login account, once they have one (STAFF-Q-001). NULL until then.
         user_id: { type: Sequelize.INTEGER.UNSIGNED, allowNull: true },
@@ -89,7 +95,7 @@ module.exports = {
       'employer_id',
       'fk_staff_members_employer_users',
       'users',
-      'CASCADE',
+      'RESTRICT',
     );
     await addForeignKey(
       queryInterface,

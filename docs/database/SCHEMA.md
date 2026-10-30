@@ -2,7 +2,7 @@
 
 MySQL + Sequelize. Requires **MySQL 8.0.16+ (target 8.4 LTS)**; the API refuses to start on older servers (DEC-020). Conventions: `.claude/rules/database.md`. Each module's details live in `docs/modules/<module>/db.md`. Update this file whenever a migration adds or changes a table.
 
-Status: the auth tables are a **DRAFT** (2026-10-28, revised 2026-10-29 for buyer + developer scope and Cloudinary), not approved and not migrated on any database. See `docs/modules/auth/db.md`. The property and staff tables are a **DRAFT** too (2026-10-31): see the [Property](#property-module) and [Staff](#staff-module) sections below.
+Status: the auth tables are a **DRAFT** (2026-10-28, revised 2026-10-29 for buyer + developer scope and Cloudinary), not approved and not migrated on any database. See `docs/modules/auth/db.md`. The property and staff tables are a **DRAFT** too (2026-10-31, built on provisional answers the user will review; not migrated): see the [Property](#property-module) and [Staff](#staff-module) sections below.
 
 ## ERD
 
@@ -73,7 +73,7 @@ Migration order: auth (`20261028183255`) -> files (`20261029120000`) -> property
 ```text
 users (auth)
  |-- 1:N  properties.owner_id                       ON DELETE RESTRICT  ON UPDATE RESTRICT   [property -> auth]
- |-- 1:N  staff_members.employer_id                 ON DELETE CASCADE   ON UPDATE RESTRICT   [staff -> auth]
+ |-- 1:N  staff_members.employer_id                 ON DELETE RESTRICT  ON UPDATE RESTRICT   [staff -> auth]
  |-- 1:N  staff_members.user_id (nullable)          ON DELETE SET NULL  ON UPDATE RESTRICT   [staff -> auth]
 
 properties (property)
@@ -82,9 +82,11 @@ properties (property)
 
 Every other FK stays inside its own module. No property table references a staff table.
 
+Deleting an account that owns properties or employs staff is blocked ([PROP-DEC-001](../execution/property/decisions/PROP-DEC-001-block-deleting-owner-accounts.md)): both FKs are RESTRICT, and the auth user-deletion service checks first and answers 409 CONFLICT with `authMessages.api.accountHasPropertiesOrStaff`. An account linked only as a staff member (`user_id`) can be deleted; the link becomes NULL.
+
 ## Property module
 
-Details, column specs and assumptions: [docs/modules/property/db.md](../modules/property/db.md). Migration: `20261030212741-create-property-tables.cjs` (draft). Open questions PROP-Q-001 to PROP-Q-016.
+Details, column specs and assumptions: [docs/modules/property/db.md](../modules/property/db.md). Migration: `20261030212741-create-property-tables.cjs` (draft). PROP-Q-001 to PROP-Q-016 answered provisionally (PROP-DEC-001 to PROP-DEC-010); open: PROP-Q-017.
 
 ```mermaid
 erDiagram
@@ -115,7 +117,7 @@ erDiagram
 
 ## Staff module
 
-Details, column specs and assumptions: [docs/modules/staff/db.md](../modules/staff/db.md). Migration: `20261030212742-create-staff-tables.cjs` (draft). Open questions STAFF-Q-001 to STAFF-Q-008.
+Details, column specs and assumptions: [docs/modules/staff/db.md](../modules/staff/db.md). Migration: `20261030212742-create-staff-tables.cjs` (draft). STAFF-Q-001 to STAFF-Q-008 answered provisionally (STAFF-DEC-001 to STAFF-DEC-006).
 
 ```mermaid
 erDiagram

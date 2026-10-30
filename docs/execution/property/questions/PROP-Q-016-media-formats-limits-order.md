@@ -1,6 +1,6 @@
 # PROP-Q-016: Which formats, sizes, order and visibility apply to property media?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the property migration (`20261030212741-create-property-tables.cjs`); the media-upload ticket
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -16,4 +16,8 @@ Step 4 ([13009:11051](https://www.figma.com/design/iREXbZTABmZigGHBpTpOnz/Real-E
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/property/db.md](../../../modules/property/db.md)): option 1.
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1. Images JPG/PNG up to 10 MB; videos and 360 tours MP4 up to 40 MB; order by `sort_order`, the first image is the cover; files stay `authenticated` with short-lived signed URLs (DEC-016). Maximum counts per property are set in `shared/` with the upload ticket.
+
+Decision: [PROP-DEC-009](../decisions/PROP-DEC-009-media-formats-and-video-cleanup.md).

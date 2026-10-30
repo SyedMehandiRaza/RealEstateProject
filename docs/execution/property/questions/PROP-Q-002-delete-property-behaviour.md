@@ -1,6 +1,6 @@
 # PROP-Q-002: What does "Delete" on a property do: hard delete, soft delete or archive?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the property migration (`20261030212741-create-property-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -16,4 +16,8 @@ Property Detail has a red Delete button ([13009:7369](https://www.figma.com/desi
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/property/db.md](../../../modules/property/db.md)): option 1 (hard delete, CASCADE to property-owned rows, no `deleted_at`).
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1. Hard delete; property-owned rows go with it by `ON DELETE CASCADE`, their Cloudinary files are queued in `pending_file_deletions` in the same transaction (DEC-018), staff assignments are removed too. Later modules (leads, bookings, payments) reference `properties` with `ON DELETE RESTRICT`. No `deleted_at`.
+
+Decision: [PROP-DEC-002](../decisions/PROP-DEC-002-hard-delete-properties-cascade.md).

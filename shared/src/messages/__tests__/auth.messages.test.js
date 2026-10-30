@@ -17,6 +17,15 @@ describe('document submission messages', () => {
   });
 });
 
+// The 409 answer when an account with properties or staff is deleted (PROP-DEC-001).
+describe('account deletion conflict message', () => {
+  it('tells the user what blocks the delete and what to do', () => {
+    expect(m.api.accountHasPropertiesOrStaff).toBe(
+      'This account still owns properties or employs staff. Remove them before deleting the account',
+    );
+  });
+});
+
 // The 429 forgot/resend password answer while the reset guessing cap is in force (Q-044, DEC-041).
 describe('reset guessing cap message', () => {
   it('tells the user to wait, without naming the exact time left', () => {

@@ -107,5 +107,8 @@ export const authMessages = {
     documentsUnderReview: 'Your account is under review',
     // 409 CONFLICT for a document kind whose latest upload is pending or approved (Q-036, wording assumed).
     documentAlreadySubmitted: 'This document is already under review or approved',
+    // 409 CONFLICT when deleting an account that still owns properties or employs staff (PROP-DEC-001).
+    accountHasPropertiesOrStaff:
+      'This account still owns properties or employs staff. Remove them before deleting the account',
   },
 };

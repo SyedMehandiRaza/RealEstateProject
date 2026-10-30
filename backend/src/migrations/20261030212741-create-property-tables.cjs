@@ -1,7 +1,8 @@
 'use strict';
 
-// Property module tables. DRAFT, not yet approved: see docs/modules/property/db.md (ASSUMED items) and the
-// open questions in docs/execution/property/questions/ (PROP-Q-001 to PROP-Q-016).
+// Property module tables. DRAFT, not yet migrated: built on the provisional answers of 2026-10-31 to
+// PROP-Q-001 to PROP-Q-016 (recommended options, the user will review them) and the decisions
+// PROP-DEC-001 to PROP-DEC-010 in docs/execution/property/decisions/. See docs/modules/property/db.md.
 // Creates, in FK order: properties, property_configurations, property_configuration_floor_plans,
 // property_media, property_documents, property_features, property_construction_progress, property_updates,
 // property_amenities, property_amenity_plans.
@@ -17,7 +18,11 @@
 //
 // Files (images, videos, PDFs) follow the Cloudinary pattern of DEC-016/DEC-018: store the public id and
 // resource type, never a URL; deletions go through pending_file_deletions. Videos need resource_type
-// 'video', which pending_file_deletions does not accept yet (PROP-Q-011).
+// 'video', which pending_file_deletions does not accept yet: a follow-up for the integration owner
+// (PROP-Q-011, PROP-DEC-009), needed before any video or 360 tour is uploaded.
+//
+// Every ENUM equals its list in shared/src/enums/property.enums.js and every VARCHAR length its
+// LIMITS.property entry: backend/src/models/__tests__/propertyEnumParity.test.js checks both.
 
 const TABLE_OPTIONS = { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci', engine: 'InnoDB' };
 
@@ -93,7 +98,8 @@ module.exports = {
       'properties',
       {
         id: { type: Sequelize.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true, allowNull: false },
-        // The Developer account that listed the property (PROP-Q-001).
+        // The Developer account that listed the property (PROP-Q-001). RESTRICT: an account that owns
+        // properties cannot be deleted; the auth deletion service answers 409 first (PROP-DEC-001).
         owner_id: { type: Sequelize.INTEGER.UNSIGNED, allowNull: false },
         name: { type: Sequelize.STRING(150), allowNull: false },
         // Must equal PROPERTY_TYPES in shared (dropdown 13009:12418).

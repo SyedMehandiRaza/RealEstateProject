@@ -1,3 +1,4 @@
+import { authMessages } from '@real-estate/shared';
 import { createUserDeletionService } from '../userDeletion.service.js';
 
 // Fake sequelize.transaction(callback): runs the callback with a transaction object and records
@@ -19,7 +20,7 @@ function fakeSequelize(events) {
   };
 }
 
-function setup({ user = { id: 7 }, documents = [] } = {}) {
+function setup({ user = { id: 7 }, documents = [], ownedProperties = 0, employedStaff = 0 } = {}) {
   const events = [];
   const userRow = user && {
     ...user,
@@ -29,6 +30,8 @@ function setup({ user = { id: 7 }, documents = [] } = {}) {
     User: { findByPk: jest.fn(async () => userRow) },
     ProfessionalProfile: {},
     VerificationDocument: { findAll: jest.fn(async () => documents) },
+    Property: { count: jest.fn(async () => ownedProperties) },
+    StaffMember: { count: jest.fn(async () => employedStaff) },
   };
   const fileDeletion = {
     enqueue: jest.fn(async (files, { transaction }) =>
@@ -114,5 +117,50 @@ describe('deleteUser', () => {
 
     await expect(service.deleteUser(99)).rejects.toMatchObject({ code: 'NOT_FOUND' });
     expect(fileDeletion.enqueue).not.toHaveBeenCalled();
+  });
+});
+
+// An account that owns properties or employs staff is kept (PROP-DEC-001): those FKs are RESTRICT.
+describe('deleteUser with properties or staff', () => {
+  const conflict = { code: 'CONFLICT', status: 409, message: authMessages.api.accountHasPropertiesOrStaff };
+
+  it.each([
+    ['owns properties', { ownedProperties: 2 }],
+    ['employs staff members', { employedStaff: 1 }],
+    ['owns properties and employs staff', { ownedProperties: 1, employedStaff: 3 }],
+  ])('throws CONFLICT with the shared message when the user %s', async (_case, counts) => {
+    const { service, events, fileDeletion, userRow } = setup({ documents, ...counts });
+
+    await expect(service.deleteUser(7)).rejects.toMatchObject(conflict);
+
+    expect(fileDeletion.enqueue).not.toHaveBeenCalled();
+    expect(userRow.destroy).not.toHaveBeenCalled();
+    expect(events).toEqual(['begin', 'rollback']);
+  });
+
+  it("counts the user's properties and staff inside the transaction", async () => {
+    const { service, models } = setup();
+
+    await service.deleteUser(7);
+
+    expect(models.Property.count).toHaveBeenCalledWith({
+      where: { ownerId: 7 },
+      transaction: { id: 'tx-1' },
+    });
+    expect(models.StaffMember.count).toHaveBeenCalledWith({
+      where: { employerId: 7 },
+      transaction: { id: 'tx-1' },
+    });
+  });
+
+  it('locks the user row before counting, so no property or staff can be added meanwhile', async () => {
+    const { service, models } = setup();
+
+    await service.deleteUser(7);
+
+    expect(models.User.findByPk).toHaveBeenCalledWith(7, { transaction: { id: 'tx-1' }, lock: true });
+    expect(models.User.findByPk.mock.invocationCallOrder[0]).toBeLessThan(
+      models.Property.count.mock.invocationCallOrder[0],
+    );
   });
 });

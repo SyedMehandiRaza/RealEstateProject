@@ -21,7 +21,7 @@ A Developer adds team members (staff) "to help manage properties, leads, and dai
 
 - Tables: see [db.md](db.md) (DRAFT). Migration `backend/src/migrations/20261030212742-create-staff-tables.cjs`.
 - Depends on `users` (auth) and `properties` (property migration `20261030212741-create-property-tables.cjs`).
-- Data owner: the employer account in `staff_members.employer_id` (ASSUMED, STAFF-Q-007).
+- Data owner: the employer account in `staff_members.employer_id` (provisional, STAFF-Q-007).
 - Sensitive data: staff name, email and phone; see db.md, "Personal data and retention".
 
 ## UI/design references
@@ -30,4 +30,4 @@ A Developer adds team members (staff) "to help manage properties, leads, and dai
 
 ## Open questions and assumptions
 
-See the board: [docs/execution/staff/README.md](../../execution/staff/README.md) (STAFF-Q-001 to STAFF-Q-008).
+See the board: [docs/execution/staff/README.md](../../execution/staff/README.md). STAFF-Q-001 to STAFF-Q-008 are answered provisionally (recommended options, 2026-10-31, the user will review them) in STAFF-DEC-001 to STAFF-DEC-006; the employer deletion rule is RESTRICT (PROP-DEC-001).

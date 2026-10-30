@@ -1,6 +1,6 @@
 # PROP-Q-010: Which property document types and statuses exist, who verifies them, and what does Replace keep?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the property migration (`20261030212741-create-property-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -16,4 +16,8 @@ Add Property step 5 has slots RERA Certificate, Floor Plan, Legal NOC, Ownership
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/property/db.md](../../../modules/property/db.md)): option 1 (no reviewer columns yet).
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1. `document_type` = the five slots plus `financial_statement`; category is derived. Status `uploaded` -> `pending` -> `verified` is set by an Admin review (reviewer columns are added with that ticket). Replace overwrites the file on the same row, queues the old file for deletion and resets the status to `uploaded`. Every slot except Other is required.
+
+Decision: [PROP-DEC-008](../decisions/PROP-DEC-008-document-types-status-replace.md).

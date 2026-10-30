@@ -1,6 +1,6 @@
 # STAFF-Q-007: Who can add staff, and what happens to staff if that account is deleted?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review); the deletion rule is option 2 (RESTRICT), the user's explicit answer in PROP-DEC-001
 - **Blocks:** approval of the staff migration (`20261030212742-create-staff-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -15,4 +15,8 @@ Staff Management sits in the developer sidebar ([13009:17816](https://www.figma.
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/staff/db.md](../../../modules/staff/db.md)): option 1.
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Who adds staff: option 1, only an Active developer (DEC-035) adds and manages staff, as `staff_members.employer_id` -> `users.id`. **What happens on account deletion: not the recommended CASCADE.** The user decided explicitly to block the delete: `employer_id` is `ON DELETE RESTRICT` (option 2), and the auth user-deletion service answers 409 CONFLICT while the account employs staff. This cross-module rule is [PROP-DEC-001](../../property/decisions/PROP-DEC-001-block-deleting-owner-accounts.md).
+
+Decision: [STAFF-DEC-006](../decisions/STAFF-DEC-006-employer-is-active-developer.md).

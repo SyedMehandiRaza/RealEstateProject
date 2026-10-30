@@ -1,6 +1,6 @@
 # PROP-Q-015: Is a property saved as a draft between wizard steps, or reviewed by an Admin before it is listed?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the property migration (`20261030212741-create-property-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -16,4 +16,8 @@ Add Property is a 6-step wizard ending in Review & Submit ([13009:11344](https:/
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/property/db.md](../../../modules/property/db.md)): option 1.
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1. No drafts and no approval: the wizard keeps its data in the browser, Submit creates everything in one request, and the property is listed at once. No listing-status column.
+
+Decision: [PROP-DEC-005](../decisions/PROP-DEC-005-required-fields-no-drafts.md).

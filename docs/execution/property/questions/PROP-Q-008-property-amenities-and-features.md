@@ -1,6 +1,6 @@
 # PROP-Q-008: Is the "Amenities" field of Add Property free text, a fixed list, or the bookable amenities?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the property migration (`20261030212741-create-property-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -16,4 +16,8 @@ Add Property step 2 has a single "Amenities" text input ([13009:10825](https://w
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/property/db.md](../../../modules/property/db.md)): option 1.
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1. Separate from bookable amenities: `property_features`, one row per item (max 100 characters, unique per property). The form becomes a tag/chips input (design change).
+
+Decision: [PROP-DEC-006](../decisions/PROP-DEC-006-features-and-bookable-amenities.md).

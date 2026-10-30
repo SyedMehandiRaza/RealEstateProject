@@ -1,6 +1,6 @@
 # STAFF-Q-006: How are properties assigned to staff?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the staff migration (`20261030212742-create-staff-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -15,4 +15,8 @@ The staff detail has an "Assigned Property" card and an "Assign Property" button
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/staff/db.md](../../../modules/staff/db.md)): option 1.
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1. Many-to-many through `staff_property_assignments` (unique pair). Only the employer's own properties can be assigned (service check). Deleting a property removes its assignments (CASCADE). The second "Active" and "Leads Assigned" are not stored here.
+
+Decision: [STAFF-DEC-005](../decisions/STAFF-DEC-005-many-to-many-property-assignments.md).

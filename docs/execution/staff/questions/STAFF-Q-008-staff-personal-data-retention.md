@@ -1,6 +1,6 @@
 # STAFF-Q-008: How long is staff personal data kept?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the staff migration (`20261030212742-create-staff-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -15,4 +15,8 @@
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/staff/db.md](../../../modules/staff/db.md)): option 1.
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1, adjusted to PROP-DEC-001. Staff personal data is kept while the staff record exists and deleted with it on Remove; never logged. Because an account that employs staff cannot be deleted (PROP-DEC-001), the developer removes the staff records before the account is deleted; nothing is kept after removal.
+
+Decision: [STAFF-DEC-003](../decisions/STAFF-DEC-003-remove-staff-hard-delete.md).

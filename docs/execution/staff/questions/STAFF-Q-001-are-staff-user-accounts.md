@@ -1,6 +1,6 @@
 # STAFF-Q-001: Are staff members user accounts that log in, or only records kept by the developer?
 
-- **Status:** open
+- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
 - **Blocks:** approval of the staff migration (`20261030212742-create-staff-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 
@@ -15,4 +15,8 @@ Staff Management says "Add team members to help manage properties, leads, and da
 
 ## Answer
 
-Not answered yet. Assumption in force (reversible, marked ASSUMED in [docs/modules/staff/db.md](../../../modules/staff/db.md)): option 1 shape: `user_id` nullable, linked later; no change to `user_roles`.
+Answered 2026-10-31 by the user: "use the RECOMMENDED option in each file, provisionally". The user will go through each answer later; until then this answer is in force and reversible.
+
+Option 1. Staff log in. `staff_members` is the developer's record of the person; Add Staff sends an invitation, and accepting it creates (or links) a `users` row stored in `staff_members.user_id` (nullable until then). A disabled staff member cannot act. The new account role (for example `staff`) in `user_roles.role` and the shared enum is **not added in this change**: it is a follow-up for the integration owner (see STAFF-DEC-001).
+
+Decision: [STAFF-DEC-001](../decisions/STAFF-DEC-001-staff-log-in-linked-account.md).
