@@ -1,4 +1,11 @@
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
+
+// A parallel-module folder (git worktree) sets its own E2E ports and DB_NAME_TEST in the root .env.worktree
+// (docs/execution/README.md); the servers below inherit them. It never overrides a variable already set.
+const worktreeEnv = fileURLToPath(new URL('../.env.worktree', import.meta.url));
+if (existsSync(worktreeEnv)) process.loadEnvFile(worktreeEnv);
 
 // The suite runs its own frontend and API on ports of their own (5174 and 5100 by default), so a dev
 // server on 5173/5000 (real mailer, dev database) is never reused by mistake.

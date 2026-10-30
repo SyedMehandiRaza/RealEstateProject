@@ -25,7 +25,7 @@ Real Estate web application. This file is the entry point for project-wide instr
 
 ## First actions
 
-1. Check `git status`, then read `docs/PROJECT.md`, `docs/ARCHITECTURE.md`, `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/execution/QUESTIONS.md`, and the relevant `docs/modules/<module>/` folder.
+1. Check `git status`, then read `docs/PROJECT.md`, `docs/ARCHITECTURE.md`, `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, the relevant `docs/modules/<module>/` folder, and `docs/execution/<module>/` (board, STATUS, open questions; auth: `docs/execution/QUESTIONS.md`).
 2. If important requirements are missing or ambiguous, ask focused questions in small batches (or run `/grill-with-docs`). Record answers in the docs.
 3. For a new module or substantial change, propose a plan before broad implementation.
 
@@ -91,7 +91,7 @@ Run `/new-module <name>`. It drives each step in order and stops for approval be
 
 ### Issue tracker
 
-Local markdown: tickets are rows in `docs/execution/BACKLOG.md` (`TASK-NNN`), specs are `docs/execution/specs/SPEC-NNN-<slug>.md`. See `docs/agents/issue-tracker.md`.
+Local markdown, one folder per module: `docs/execution/<module>/` holds the board (README.md), STATUS.md, and one file per ticket (`tickets/PROP-NNN-<slug>.md`), question, decision and spec, with a prefix per module (PROP, FAC, STAFF). Auth keeps the older `BACKLOG.md` (`TASK-NNN`). See `docs/agents/issue-tracker.md` and `docs/execution/README.md`.
 
 ### Triage labels
 

@@ -1,6 +1,13 @@
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 // Test-only environment, shared by jest.setup.js (every test worker) and globalSetup.js (the parent process).
 // Dummy secrets; never real credentials.
 export function applyTestEnv() {
+  // A parallel-module folder (git worktree) has a root .env.worktree naming its own test database
+  // (docs/execution/README.md). Backend commands run from backend/. It never overrides a set variable.
+  const worktreeEnv = resolve(process.cwd(), '../.env.worktree');
+  if (existsSync(worktreeEnv)) process.loadEnvFile(worktreeEnv);
   process.env.NODE_ENV = 'test';
   process.env.LOG_LEVEL = 'silent';
   process.env.CORS_ORIGINS ??= 'http://localhost:5173';

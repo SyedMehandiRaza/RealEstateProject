@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 # New module workflow
 
-Module folder: `docs/modules/<module>/`. If it does not exist, copy `docs/modules/_template/` to it (README.md, figma.md, db.md). Record progress in `docs/execution/STATUS.md` after each stage. Stop after each stage, summarize, and wait for the user's go-ahead.
+Module folder: `docs/modules/<module>/`. If it does not exist, copy `docs/modules/_template/` to it (README.md, figma.md, db.md). Track work in `docs/execution/<module>/` (board, STATUS.md, tickets, questions, decisions; `docs/agents/issue-tracker.md`); if it does not exist, create it from `docs/execution/_templates/module-README.md` and add the module prefix to `docs/execution/README.md`. Record progress in `docs/execution/<module>/STATUS.md` after each stage. Stop after each stage, summarize, and wait for the user's go-ahead.
 
 | # | Stage | How | Output |
 |---|-------|-----|--------|
@@ -26,5 +26,5 @@ After stage 4 the contract is fixed. Backend tickets and frontend pages can then
 
 ## Rules
 - Never skip stage 1 or 3 for a module that stores data.
-- Do not invent business rules; open questions go to `docs/execution/QUESTIONS.md`.
+- Do not invent business rules; open questions go to `docs/execution/<module>/questions/` (one file each, from the template) and the board.
 - The module is done only when the Definition of Done in `CLAUDE.md` is met.
