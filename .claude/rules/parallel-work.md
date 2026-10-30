@@ -33,8 +33,13 @@ A session that gives a ticket to a sub-agent in its own worktree names the branc
 - Folder: `.claude/worktrees/<TICKET-ID>-<slug>`, for example `.claude/worktrees/PROP-004-list-properties`.
 - Create it yourself before starting the sub-agent: `git worktree add -b agent/property/PROP-004-list-properties .claude/worktrees/PROP-004-list-properties feature/property`. Then start the sub-agent **without** the automatic worktree option and tell it the folder's absolute path, that it works and commits only there, and on which branch.
 - If a worktree was created automatically (`worktree-agent-<random>`), rename its branch right away: `git branch -m worktree-agent-<random> agent/<module>/<TICKET-ID>-<slug>`.
-- After its commits are merged or cherry-picked onto the module branch: `git worktree remove .claude/worktrees/<TICKET-ID>-<slug>`. Keep the branch unless the user asks to delete it.
 - One sub-agent per ticket, and never two sub-agents editing the same file at once (shared/, migrations, routes/index.js, models/index.js are done by the module session itself, not by sub-agents in parallel).
+
+### Removing worktrees (user rule, 2026-10-31)
+- **Task worktrees are removed as soon as the task is done**, without asking: once the ticket's commits are on the module branch (merged or cherry-picked, checked with `git log`) and the worktree has no uncommitted changes, run `git worktree remove .claude/worktrees/<TICKET-ID>-<slug>` and `git worktree prune`. Never use `--force`; if it refuses, report why.
+- **Module folders** (`Real_Estate-<module>`) are removed **only when the user says so**. Before removing: everything is committed and pushed to `feature/<module>`; then `git worktree remove ..\Real_Estate-<module>`.
+- **Branches are never deleted** when a worktree is removed: not the `agent/...` task branches, not `feature/<module>`, not on GitHub. Delete a branch only when the user asks for that branch by name.
+- The module's code and docs stay on its branch (and in `testing`/`main` once merged); removing a folder removes only that copy on disk. Its databases are kept too unless the user asks to drop them.
 
 ## Completion report
 Each task owner reports: files changed, implementation summary, tests run and results, migration/API changes, assumptions, risks, and remaining work.
