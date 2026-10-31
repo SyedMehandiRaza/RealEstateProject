@@ -4,18 +4,14 @@ Last updated: 2026-10-31
 
 ## Now
 
-- Database draft, migrated on this folder's `real_estate_staff` (2026-10-31, with the property migration) and on `real_estate_staff_test` by the integration suite; not merged: `backend/src/migrations/20261030212742-create-staff-tables.cjs`, [db.md](../../modules/staff/db.md), [figma.md](../../modules/staff/figma.md). 3 tables.
+- Phase 1 (align) done: `/grill-with-docs` rounds 1-3 on 2026-10-31. STAFF-Q-001 to STAFF-Q-008 confirmed final (STAFF-Q-010); STAFF-Q-009 to STAFF-Q-022 answered; decisions STAFF-DEC-001 to STAFF-DEC-018; module spec in [docs/modules/staff/README.md](../../modules/staff/README.md). The grill changed no table, so no migration change and no `/db-design-review` was needed.
+- Database: `backend/src/migrations/20261030212742-create-staff-tables.cjs` migrated on this folder's `real_estate_staff` (with the property migration) and on `real_estate_staff_test` by the integration suite; not merged. [db.md](../../modules/staff/db.md), [figma.md](../../modules/staff/figma.md).
 - Phase 0 (2026-10-31): `npm run check` green (shared 215, backend unit 454, backend integration 307 + 1 skipped, frontend 276). Fixed `e2eMode.test.js`, which expected the auth folder's test DB name.
-- Depends on the property migration `20261030212741-create-property-tables.cjs` (FK `staff_property_assignments.property_id` -> `properties.id`): `feature/staff` must contain that file before `db:migrate`.
-- STAFF-Q-001 to STAFF-Q-008 answered on 2026-10-31 with the recommended options, **provisionally** (the user will review each one); recorded in STAFF-DEC-001 to STAFF-DEC-006 on the [board](README.md). Exception: `staff_members.employer_id` is `ON DELETE RESTRICT`, not CASCADE, by the user's explicit answer ([PROP-DEC-001](../property/decisions/PROP-DEC-001-block-deleting-owner-accounts.md)).
-- Sequelize models (`backend/src/models/staff*.model.js`), shared enums (`shared/src/enums/staff.enums.js`) and `LIMITS.staff` added, with parity tests. Unit tests pass; no MySQL test was run (MySQL login is broken).
 
 ## Next actions
 
-- User reviews the provisional answers and gives the full staff role list (STAFF-Q-002), then approves the schema; run the migrations once MySQL works again.
-- Integration owner: a staff login role in `user_roles.role` and `USER_ROLES`, plus the invitation flow (STAFF-DEC-001).
-- Then `/new-module staff` continues: spec (`/grill-with-docs`), `/shared-validation`, `/to-tickets`.
+- Phase 2: `/to-spec` (STAFF-SPEC-001) and `/shared-validation staff`, then stop for the user's approval of the endpoints and pages.
 
 ## Blockers
 
-- None for the database: MySQL works and the property migration is on `feature/staff`.
+- STAFF-Q-014 (integration owner): the staff account role and invitation flow. Blocks only the staff login ticket; the rest of the module is records only (STAFF-DEC-007).

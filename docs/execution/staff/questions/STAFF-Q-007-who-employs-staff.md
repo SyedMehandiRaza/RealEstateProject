@@ -1,6 +1,6 @@
 # STAFF-Q-007: Who can add staff, and what happens to staff if that account is deleted?
 
-- **Status:** answered (2026-10-31, recommended option, provisional: user will review); the deletion rule is option 2 (RESTRICT), the user's explicit answer in PROP-DEC-001
+- **Status:** answered (2026-10-31, recommended option; confirmed final by the user on 2026-10-31, grill round 1); the deletion rule is option 2 (RESTRICT), the user's explicit answer in PROP-DEC-001
 - **Blocks:** approval of the staff migration (`20261030212742-create-staff-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 

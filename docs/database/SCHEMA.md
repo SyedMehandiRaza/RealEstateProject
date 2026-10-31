@@ -117,7 +117,7 @@ erDiagram
 
 ## Staff module
 
-Details, column specs and assumptions: [docs/modules/staff/db.md](../modules/staff/db.md). Migration: `20261030212742-create-staff-tables.cjs` (draft). STAFF-Q-001 to STAFF-Q-008 answered provisionally (STAFF-DEC-001 to STAFF-DEC-006).
+Details, column specs and assumptions: [docs/modules/staff/db.md](../modules/staff/db.md). Migration: `20261030212742-create-staff-tables.cjs` (migrated on the staff folder's databases, not merged). STAFF-Q-001 to STAFF-Q-022 answered and final (STAFF-DEC-001 to STAFF-DEC-018).
 
 ```mermaid
 erDiagram

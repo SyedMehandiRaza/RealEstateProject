@@ -1,6 +1,6 @@
 # STAFF-DEC-002: Staff role is "agent" for now; permissions are a multi-select of five areas
 
-- **Status:** accepted (user, 2026-10-31, recommended options, provisional: user will review)
+- **Status:** accepted (user, 2026-10-31, recommended options, confirmed final by the user 2026-10-31 (STAFF-Q-010))
 - **Answers:** STAFF-Q-002, STAFF-Q-003
 - **Tickets:** none yet
 

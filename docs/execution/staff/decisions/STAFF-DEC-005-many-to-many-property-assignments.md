@@ -1,6 +1,6 @@
 # STAFF-DEC-005: Staff and properties are many-to-many, limited to the employer's properties
 
-- **Status:** accepted (user, 2026-10-31, recommended option, provisional: user will review)
+- **Status:** accepted (user, 2026-10-31, recommended option, confirmed final by the user 2026-10-31 (STAFF-Q-010))
 - **Answers:** STAFF-Q-006
 - **Tickets:** none yet
 

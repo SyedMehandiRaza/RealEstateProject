@@ -2,9 +2,9 @@
 
 Produced by `/db-design`, checked with `/db-design-review` on 2026-10-31 (second review after the answers, same day). Global view: `docs/database/SCHEMA.md`.
 
-Status: **DRAFT**, not migrated on any database. Migration: `backend/src/migrations/20261030212742-create-staff-tables.cjs` (one file with every staff table). Models: `backend/src/models/staff*.model.js`; enums `shared/src/enums/staff.enums.js`; limits `LIMITS.staff` in `shared/src/limits.js`.
+Status: **migrated** on this folder's `real_estate_staff` and `real_estate_staff_test` (2026-10-31); not merged into `testing`. The grill of 2026-10-31 (STAFF-Q-009 to STAFF-Q-022) changed no table. Migration: `backend/src/migrations/20261030212742-create-staff-tables.cjs` (one file with every staff table). Models: `backend/src/models/staff*.model.js`; enums `shared/src/enums/staff.enums.js`; limits `LIMITS.staff` in `shared/src/limits.js`.
 
-Questions STAFF-Q-001 to STAFF-Q-008 in [docs/execution/staff/questions/](../../execution/staff/questions/) were answered on 2026-10-31 with their recommended option, **provisionally**: the user will review each one. The exception is the deletion rule of STAFF-Q-007: the user decided to **block** deleting an account that employs staff (`ON DELETE RESTRICT`, [PROP-DEC-001](../../execution/property/decisions/PROP-DEC-001-block-deleting-owner-accounts.md)). Every item marked **provisional (Q-ID)** below follows an answer and is reversible. Decisions: STAFF-DEC-001 to STAFF-DEC-006 in [docs/execution/staff/decisions/](../../execution/staff/decisions/).
+Questions STAFF-Q-001 to STAFF-Q-008 in [docs/execution/staff/questions/](../../execution/staff/questions/) were answered on 2026-10-31 with their recommended option and confirmed final by the user the same day (STAFF-Q-010). The exception is the deletion rule of STAFF-Q-007: the user decided to **block** deleting an account that employs staff (`ON DELETE RESTRICT`, [PROP-DEC-001](../../execution/property/decisions/PROP-DEC-001-block-deleting-owner-accounts.md)). Decisions: STAFF-DEC-001 to STAFF-DEC-006 in [docs/execution/staff/decisions/](../../execution/staff/decisions/).
 
 Figma: file `iREXbZTABmZigGHBpTpOnz`, page "Staff management module" (node `13009:17815`). See [figma.md](figma.md).
 
@@ -51,10 +51,10 @@ Foreign keys (all `ON UPDATE RESTRICT`):
 | FK                                            | From                                         | To                             | ON DELETE                                                      |
 | --------------------------------------------- | -------------------------------------------- | ------------------------------ | -------------------------------------------------------------- |
 | `fk_staff_members_employer_users`             | `staff_members.employer_id`                  | `users.id` (auth)              | RESTRICT (PROP-DEC-001: an employer account cannot be deleted) |
-| `fk_staff_members_users`                      | `staff_members.user_id`                      | `users.id` (auth)              | SET NULL (provisional, STAFF-Q-001)                            |
-| `fk_staff_member_permissions_staff_members`   | `staff_member_permissions.staff_member_id`   | `staff_members.id`             | CASCADE (provisional, STAFF-Q-004)                             |
-| `fk_staff_property_assignments_staff_members` | `staff_property_assignments.staff_member_id` | `staff_members.id`             | CASCADE (provisional, STAFF-Q-004)                             |
-| `fk_staff_property_assignments_properties`    | `staff_property_assignments.property_id`     | `properties.id` (**property**) | CASCADE (provisional, STAFF-Q-006)                             |
+| `fk_staff_members_users`                      | `staff_members.user_id`                      | `users.id` (auth)              | SET NULL (STAFF-Q-001)                                         |
+| `fk_staff_member_permissions_staff_members`   | `staff_member_permissions.staff_member_id`   | `staff_members.id`             | CASCADE (STAFF-Q-004)                                          |
+| `fk_staff_property_assignments_staff_members` | `staff_property_assignments.staff_member_id` | `staff_members.id`             | CASCADE (STAFF-Q-004)                                          |
+| `fk_staff_property_assignments_properties`    | `staff_property_assignments.property_id`     | `properties.id` (**property**) | CASCADE (STAFF-Q-006)                                          |
 
 ## Tables
 
@@ -62,17 +62,17 @@ Foreign keys (all `ON UPDATE RESTRICT`):
 
 Frames: Staff Management list (`13009:17816`: Name, Role, Email, Phone, Status, View / Edit / Remove), Add Staff (`13009:18190`: Full Name, Email, Phone Number, Role, Assign Access Permissions), staff Detail (`13009:18226`: name, role, status dropdown, Edit, Remove Staff, phone, email, status), success "Your new staff has been added" (`13009:18180`).
 
-| Column                 | Type                   | Null | Default | Constraint                                               | Zod rule (shared, proposed)                                                       | Figma / notes                                                        |
-| ---------------------- | ---------------------- | ---- | ------- | -------------------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| id                     | INT UNSIGNED           | no   | auto    | PK                                                       | –                                                                                 |                                                                      |
-| employer_id            | INT UNSIGNED           | no   |         | FK `users.id` RESTRICT                                   | – (from the session)                                                              | The Active developer who added the member. Provisional (STAFF-Q-007) |
-| user_id                | INT UNSIGNED           | yes  | NULL    | FK `users.id` SET NULL                                   | – (server set)                                                                    | The member's own login, once invited. Provisional (STAFF-Q-001)      |
-| full_name              | VARCHAR(100)           | no   |         | `chk_staff_members_full_name`                            | same rule as auth `fullName` (trim, min 2, max 100; `LIMITS.staff.fullName`)      | "Full Name" / "Name"                                                 |
-| email                  | VARCHAR(254)           | no   |         | `chk_staff_members_email_lowercase`; unique per employer | same rule as auth `email` (trim, lowercase, max 254, email; `LIMITS.staff.email`) | "Email". Unique per employer, provisional (STAFF-Q-005)              |
-| phone                  | VARCHAR(16)            | no   |         | `chk_staff_members_phone_e164` `^[+][1-9][0-9]{6,14}$`   | same rule as auth `phone` (E.164, max 16; `LIMITS.staff.phone`)                   | "Phone Number" ("+91 7485961245")                                    |
-| role                   | ENUM(agent)            | no   |         |                                                          | `z.enum(STAFF_ROLES)`                                                             | "Role" ("Agent"). List provisional (STAFF-Q-002)                     |
-| status                 | ENUM(active, disabled) | no   | active  |                                                          | `z.enum(STAFF_STATUSES)`                                                          | "Active" / "Disable"; changed from the Detail dropdown               |
-| created_at, updated_at | DATETIME               | no   | now     |                                                          | –                                                                                 |                                                                      |
+| Column                 | Type                   | Null | Default | Constraint                                               | Zod rule (shared, proposed)                                                       | Figma / notes                                          |
+| ---------------------- | ---------------------- | ---- | ------- | -------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| id                     | INT UNSIGNED           | no   | auto    | PK                                                       | –                                                                                 |                                                        |
+| employer_id            | INT UNSIGNED           | no   |         | FK `users.id` RESTRICT                                   | – (from the session)                                                              | The Active developer who added the member. STAFF-Q-007 |
+| user_id                | INT UNSIGNED           | yes  | NULL    | FK `users.id` SET NULL                                   | – (server set)                                                                    | The member's own login, once invited. STAFF-Q-001      |
+| full_name              | VARCHAR(100)           | no   |         | `chk_staff_members_full_name`                            | same rule as auth `fullName` (trim, min 2, max 100; `LIMITS.staff.fullName`)      | "Full Name" / "Name"                                   |
+| email                  | VARCHAR(254)           | no   |         | `chk_staff_members_email_lowercase`; unique per employer | same rule as auth `email` (trim, lowercase, max 254, email; `LIMITS.staff.email`) | "Email". Unique per employer, STAFF-Q-005              |
+| phone                  | VARCHAR(16)            | no   |         | `chk_staff_members_phone_e164` `^[+][1-9][0-9]{6,14}$`   | same rule as auth `phone` (E.164, max 16; `LIMITS.staff.phone`)                   | "Phone Number" ("+91 7485961245")                      |
+| role                   | ENUM(agent)            | no   |         |                                                          | `z.enum(STAFF_ROLES)`                                                             | "Role" ("Agent"). List STAFF-Q-002                     |
+| status                 | ENUM(active, disabled) | no   | active  |                                                          | `z.enum(STAFF_STATUSES)`                                                          | "Active" / "Disable"; changed from the Detail dropdown |
+| created_at, updated_at | DATETIME               | no   | now     |                                                          | –                                                                                 |                                                        |
 
 Indexes:
 
@@ -86,12 +86,12 @@ Indexes:
 
 Frames: "Assign Access Permissions" (`13009:18190`), "Assigned Permissions / Access" with tick / cross per area (`13009:18226`).
 
-| Column                 | Type                                                                                     | Null | Default | Constraint                    | Zod rule (proposed)                                 | Notes                                                  |
-| ---------------------- | ---------------------------------------------------------------------------------------- | ---- | ------- | ----------------------------- | --------------------------------------------------- | ------------------------------------------------------ |
-| id                     | INT UNSIGNED                                                                             | no   | auto    | PK                            | –                                                   |                                                        |
-| staff_member_id        | INT UNSIGNED                                                                             | no   |         | FK `staff_members.id` CASCADE | –                                                   |                                                        |
-| permission             | ENUM(properties_management, leads_crm, payment_tracking, marketing, facility_management) | no   |         | unique per staff member       | array of `z.enum(STAFF_PERMISSIONS)`, no duplicates | The five areas. Multi-select provisional (STAFF-Q-003) |
-| created_at, updated_at | DATETIME                                                                                 | no   | now     |                               | –                                                   |                                                        |
+| Column                 | Type                                                                                     | Null | Default | Constraint                    | Zod rule (proposed)                                 | Notes                                    |
+| ---------------------- | ---------------------------------------------------------------------------------------- | ---- | ------- | ----------------------------- | --------------------------------------------------- | ---------------------------------------- |
+| id                     | INT UNSIGNED                                                                             | no   | auto    | PK                            | –                                                   |                                          |
+| staff_member_id        | INT UNSIGNED                                                                             | no   |         | FK `staff_members.id` CASCADE | –                                                   |                                          |
+| permission             | ENUM(properties_management, leads_crm, payment_tracking, marketing, facility_management) | no   |         | unique per staff member       | array of `z.enum(STAFF_PERMISSIONS)`, no duplicates | The five areas. Multi-select STAFF-Q-003 |
+| created_at, updated_at | DATETIME                                                                                 | no   | now     |                               | –                                                   |                                          |
 
 Indexes: `uq_staff_member_permissions_staff_member_id_permission` (serves the FK). An area without a row is shown with the red cross.
 
@@ -99,12 +99,12 @@ Indexes: `uq_staff_member_permissions_staff_member_id_permission` (serves the FK
 
 Frames: "Assigned Property" card and "Assign Property" button (`13009:18226`).
 
-| Column                 | Type         | Null | Default | Constraint                                | Zod rule (proposed)     | Notes                                                                                 |
-| ---------------------- | ------------ | ---- | ------- | ----------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------- |
-| id                     | INT UNSIGNED | no   | auto    | PK                                        | –                       |                                                                                       |
-| staff_member_id        | INT UNSIGNED | no   |         | FK `staff_members.id` CASCADE             | – (route param)         |                                                                                       |
-| property_id            | INT UNSIGNED | no   |         | FK `properties.id` CASCADE (cross-module) | int >= 1 (`propertyId`) | Must be one of the employer's own properties: service rule, provisional (STAFF-Q-006) |
-| created_at, updated_at | DATETIME     | no   | now     |                                           | –                       |                                                                                       |
+| Column                 | Type         | Null | Default | Constraint                                | Zod rule (proposed)     | Notes                                                                   |
+| ---------------------- | ------------ | ---- | ------- | ----------------------------------------- | ----------------------- | ----------------------------------------------------------------------- |
+| id                     | INT UNSIGNED | no   | auto    | PK                                        | –                       |                                                                         |
+| staff_member_id        | INT UNSIGNED | no   |         | FK `staff_members.id` CASCADE             | – (route param)         |                                                                         |
+| property_id            | INT UNSIGNED | no   |         | FK `properties.id` CASCADE (cross-module) | int >= 1 (`propertyId`) | Must be one of the employer's own properties: service rule, STAFF-Q-006 |
+| created_at, updated_at | DATETIME     | no   | now     |                                           | –                       |                                                                         |
 
 Indexes: `uq_staff_property_assignments_staff_member_id_property_id` (no duplicate assignment; serves the FK on `staff_member_id`); `idx_staff_property_assignments_property_id` (staff of a property; serves the FK on `property_id`).
 
@@ -118,7 +118,7 @@ Models: `StaffMember.belongsToMany(Property, { through: StaffPropertyAssignment,
 
 ## Personal data and retention
 
-- `staff_members.full_name`, `email`, `phone`: personal data of a third person, entered by the developer. Needed to identify and contact the staff member (and to invite them, STAFF-DEC-001). Kept while the record exists and deleted with it on Remove; never logged. The employer account cannot be deleted while it has staff (PROP-DEC-001), so the records are removed first; nothing is kept after removal. Provisional (STAFF-Q-008, STAFF-DEC-003).
+- `staff_members.full_name`, `email`, `phone`: personal data of a third person, entered by the developer. Needed to identify and contact the staff member (and to invite them, STAFF-DEC-001). Kept while the record exists and deleted with it on Remove; never logged. The employer account cannot be deleted while it has staff (PROP-DEC-001), so the records are removed first; nothing is kept after removal. (STAFF-Q-008, STAFF-DEC-003).
 - `staff_members.user_id`: links to the member's own account (personal data in `users`, auth module). Set to NULL if that account is deleted.
 
 ## Answers, decisions and open items
@@ -134,4 +134,6 @@ Models: `StaffMember.belongsToMany(Property, { through: StaffPropertyAssignment,
 
 Follow-up for the integration owner: a staff login role in `user_roles.role` and `USER_ROLES`, plus the invitation flow (STAFF-DEC-001). Not changed here.
 
-Still to come from the user: the full staff role list (STAFF-Q-002, `ENUM('agent')` until then).
+Role list: only "Agent" (STAFF-Q-010 confirmed it); adding a role is a small migration plus `STAFF_ROLES`.
+
+In this build nothing writes `staff_members.user_id` (records only, STAFF-DEC-007); the module reads `properties` and `property_media` read-only to list and show assignable properties (STAFF-DEC-009).

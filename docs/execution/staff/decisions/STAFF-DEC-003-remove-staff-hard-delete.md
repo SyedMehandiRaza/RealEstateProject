@@ -1,6 +1,6 @@
 # STAFF-DEC-003: Remove Staff is a hard delete, and staff personal data lives only as long as the record
 
-- **Status:** accepted (user, 2026-10-31, recommended options, provisional: user will review; retention adjusted to PROP-DEC-001)
+- **Status:** accepted (user, 2026-10-31, recommended options, confirmed final by the user 2026-10-31 (STAFF-Q-010); retention adjusted to PROP-DEC-001)
 - **Answers:** STAFF-Q-004, STAFF-Q-008
 - **Tickets:** none yet
 

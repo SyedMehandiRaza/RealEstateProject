@@ -69,3 +69,25 @@ _Avoid_: Verified developer, approved account
 **Resubmission**:
 Uploading a new file for a rejected Verification document. Earlier uploads are kept.
 _Avoid_: Re-upload, retry
+
+## Staff
+
+**Staff member**:
+A person on an Active developer's team, recorded by that developer with name, email, phone, role and status. In this build a record only; does not log in yet.
+_Avoid_: Employee, team user, agent (as a person)
+
+**Employer**:
+The Active developer who added a Staff member and alone can see or change them.
+_Avoid_: Owner, manager
+
+**Staff role**:
+The job of a Staff member shown in the staff list: only "Agent" so far. Not an account Role.
+_Avoid_: Account role
+
+**Access permission**:
+One of five areas a Staff member is granted in full: Properties Management, Leads & CRM, Payment Tracking, Marketing, Facility Management. Stored, not enforced, until staff log in.
+_Avoid_: Privilege, right, scope
+
+**Property assignment**:
+A link between a Staff member and one of the Employer's own properties.
+_Avoid_: Allocation

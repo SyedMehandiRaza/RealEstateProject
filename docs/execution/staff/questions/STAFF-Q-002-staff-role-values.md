@@ -1,6 +1,6 @@
 # STAFF-Q-002: What are the values of the staff "Role" dropdown?
 
-- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
+- **Status:** answered (2026-10-31, recommended option; confirmed final by the user on 2026-10-31, grill round 1)
 - **Blocks:** approval of the staff migration (`20261030212742-create-staff-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 

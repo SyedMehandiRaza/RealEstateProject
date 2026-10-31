@@ -1,6 +1,6 @@
 # STAFF-DEC-001: Staff log in with their own account, linked by a nullable user_id
 
-- **Status:** accepted (user, 2026-10-31, recommended option, provisional: user will review)
+- **Status:** accepted (user, 2026-10-31, recommended option, confirmed final by the user 2026-10-31 (STAFF-Q-010))
 - **Answers:** STAFF-Q-001
 - **Tickets:** none yet
 

@@ -1,6 +1,6 @@
 # STAFF-DEC-006: The employer is an Active developer, and an account that employs staff cannot be deleted
 
-- **Status:** accepted (user, 2026-10-31). Who adds staff is the provisional recommended option of STAFF-Q-007 (user will review); the deletion rule is the user's explicit answer, recorded in PROP-DEC-001.
+- **Status:** accepted (user, 2026-10-31). Who adds staff is the recommended option of STAFF-Q-007, confirmed final 2026-10-31 (STAFF-Q-010); the deletion rule is the user's explicit answer, recorded in PROP-DEC-001.
 - **Answers:** STAFF-Q-007
 - **Tickets:** none yet
 

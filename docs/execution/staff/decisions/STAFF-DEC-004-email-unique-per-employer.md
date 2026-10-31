@@ -1,6 +1,6 @@
 # STAFF-DEC-004: A staff email is unique per employer; the phone is not unique
 
-- **Status:** accepted (user, 2026-10-31, recommended option, provisional: user will review)
+- **Status:** accepted (user, 2026-10-31, recommended option, confirmed final by the user 2026-10-31 (STAFF-Q-010))
 - **Answers:** STAFF-Q-005
 - **Tickets:** none yet
 
