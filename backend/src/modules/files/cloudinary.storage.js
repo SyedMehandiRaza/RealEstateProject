@@ -15,6 +15,13 @@ const assertInPrefix = (publicId) => {
   }
 };
 
+const DELIVERY_FORMATS = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'video/mp4': 'mp4',
+};
+
 // Cloudinary adapter. Every file is an 'authenticated' (non-public) asset under realestate/<env>/ (DEC-016).
 export const cloudinaryStorage = {
   prefix: env.cloudinaryPrefix,
@@ -40,6 +47,20 @@ export const cloudinaryStorage = {
               }),
       );
       stream.end(buffer);
+    });
+  },
+
+  // A signed URL that serves an authenticated file until `expiresAt` (PROP-004): Cloudinary's private download
+  // URL, computed locally from the API secret (no API call). Images and videos are served in the format of
+  // their MIME type; a raw file keeps its extension in the public id. `attachment` asks for a download.
+  deliveryUrl({ publicId, resourceType, deliveryType, mimeType, expiresAt, attachment = false }) {
+    assertInPrefix(publicId);
+    const format = resourceType === 'raw' ? undefined : DELIVERY_FORMATS[mimeType];
+    return cloudinary.utils.private_download_url(publicId, format, {
+      resource_type: resourceType,
+      type: deliveryType,
+      expires_at: Math.floor(expiresAt.getTime() / 1000),
+      attachment: attachment || undefined,
     });
   },
 

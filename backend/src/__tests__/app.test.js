@@ -5,6 +5,7 @@ import { AUTH_RATE_LIMIT } from '../middlewares/rateLimiter.js';
 import { cloudinaryStorage } from '../modules/files/cloudinary.storage.js';
 import { smtpMailer } from '../modules/mail/smtp.mailer.js';
 import { createFakeMailer } from '../test/fakeMailer.js';
+import { createFakeStorage } from '../test/fileFakes.js';
 import { createTestApp } from '../test/testApp.js';
 import { systemClock } from '../utils/clock.js';
 
@@ -56,6 +57,11 @@ describe('createApp dependencies', () => {
     expect(() => createApp({ mailler: createFakeMailer() })).toThrow(
       /Unknown createApp dependency "mailler"/,
     );
+  });
+
+  it('rejects a storage without deliveryUrl (signed file URLs, PROP-004)', () => {
+    const storage = { ...createFakeStorage(), deliveryUrl: undefined };
+    expect(() => createApp({ storage })).toThrow(/storage must implement deliveryUrl\(\)/);
   });
 
   it('rejects a dependency missing a required method', () => {

@@ -28,6 +28,11 @@ export function createFakeStorage({ prefix = 'realestate/test/', uniqueIds = fal
         throw new Error('Cloudinary unavailable');
       }
     },
+    // Predictable stand-in for the signed URL: the public id, the expiry (epoch seconds) and the disposition.
+    deliveryUrl({ publicId, resourceType, expiresAt, attachment = false }) {
+      const expires = Math.floor(expiresAt.getTime() / 1000);
+      return `https://files.test/${resourceType}/${publicId}?expires=${expires}&disposition=${attachment ? 'attachment' : 'inline'}`;
+    },
     async *list({ resourceType, deliveryType }) {
       for (const asset of this.assets) {
         if (asset.resourceType === resourceType && asset.deliveryType === deliveryType) yield asset;

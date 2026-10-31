@@ -15,7 +15,7 @@ import { errorHandler } from './middlewares/errorHandler.js';
 // The external dependencies createApp accepts, and the methods each must implement.
 const DEPENDENCY_METHODS = {
   mailer: ['sendVerificationCode'],
-  storage: ['newPublicId', 'upload', 'destroy', 'list'],
+  storage: ['newPublicId', 'upload', 'destroy', 'list', 'deliveryUrl'],
   clock: ['now'],
 };
 
