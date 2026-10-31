@@ -6,6 +6,7 @@ import styles from './Select.module.css';
 // WAI-ARIA select-only combobox: a button with role="combobox" opens a listbox below it.
 // Controlled: `value` is the selected option's value ('' or undefined for none), `onChange(value)`.
 // With react-hook-form, wrap it in <Controller> and pass field.value / field.onChange / field.onBlur.
+// Without a visible `label`, pass `ariaLabel` for the accessible name (the staff Detail status dropdown).
 // Keyboard: Enter, Space, Alt+Down or Down/Up open; Up/Down/Home/End move; Enter or Space selects;
 // Escape closes; Tab selects the highlighted option and moves on; typing a letter jumps to an option.
 export default function Select({
@@ -20,6 +21,7 @@ export default function Select({
   name,
   disabled = false,
   className,
+  ariaLabel,
   ref,
 }) {
   const generatedId = useId();
@@ -140,6 +142,7 @@ export default function Select({
           aria-expanded={open}
           aria-controls={listboxId}
           aria-labelledby={label ? `${labelId} ${buttonId}` : undefined}
+          aria-label={label ? undefined : ariaLabel}
           aria-activedescendant={open && activeIndex >= 0 ? optionId(activeIndex) : undefined}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}

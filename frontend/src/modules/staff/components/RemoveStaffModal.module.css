@@ -1,0 +1,78 @@
+/* Not in Figma: the success modal's frame (13009:18180) with the Detail's red Remove Staff colour. */
+.modal {
+  padding: var(--space-24);
+  border-radius: var(--space-20);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  line-height: var(--line-height-normal);
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  color: var(--color-text-success-title);
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-medium);
+}
+
+.text {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: var(--font-size-12);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-error-500);
+  font-size: var(--font-size-12);
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-10);
+}
+
+.cancel,
+.remove {
+  flex: 1 1 0;
+  height: 44px;
+  font: inherit;
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--space-12);
+  cursor: pointer;
+}
+
+.cancel {
+  color: var(--color-text-cancel);
+  background: var(--color-white);
+  border: 1px solid var(--color-border-input);
+}
+
+.remove {
+  color: var(--color-white);
+  background: var(--color-accents-red);
+  border: none;
+}
+
+.remove:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel:focus-visible,
+.remove:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}

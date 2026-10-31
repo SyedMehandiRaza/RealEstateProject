@@ -2,6 +2,9 @@ import { useEffect, useId, useRef } from 'react';
 import closeIcon from '../../assets/ui/close.svg';
 import styles from './Modal.module.css';
 
+// Open dialogs, oldest first: Escape belongs to the last one.
+const openDialogs = [];
+
 // Centred dialog over a backdrop (Figma: Add Staff 13009:18190, Staff Detail 13009:18226, success modal
 // 13009:18180). Escape and the close icon call onClose, unless a control inside handled Escape itself
 // (an open dropdown calls preventDefault). Focus moves into the dialog when it opens and back when it closes.
@@ -22,14 +25,21 @@ export default function Modal({
 
   useEffect(() => {
     const previouslyFocused = document.activeElement;
-    dialogRef.current?.focus();
-    return () => previouslyFocused?.focus?.();
+    const dialog = dialogRef.current;
+    openDialogs.push(dialog);
+    dialog?.focus();
+    return () => {
+      openDialogs.splice(openDialogs.indexOf(dialog), 1);
+      previouslyFocused?.focus?.();
+    };
   }, []);
 
   useEffect(() => {
     if (!onClose) return undefined;
+    // Only the topmost dialog closes (a confirmation opened over the Detail).
     const onKeyDown = (event) => {
-      if (event.key === 'Escape' && !event.defaultPrevented) onClose();
+      const isTop = openDialogs[openDialogs.length - 1] === dialogRef.current;
+      if (event.key === 'Escape' && !event.defaultPrevented && isTop) onClose();
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);

@@ -30,11 +30,39 @@ export const staffApi = baseApi.enhanceEndpoints({ addTagTypes: ['Staff'] }).inj
         { type: 'Staff', id },
       ],
     }),
+    // E5. The returned member replaces the cached Detail; the list refetches.
+    changeStaffStatus: build.mutation({
+      query: ({ id, status }) => ({ url: `/staff/${id}/status`, method: 'PATCH', body: { status } }),
+      transformResponse: (response) => response.data.staffMember,
+      onQueryStarted: (args, api) => replaceCachedMember(args.id, api),
+      invalidatesTags: [{ type: 'Staff', id: 'LIST' }],
+    }),
+    // E6. Also invalidates on 404 (already removed), so the list drops the member either way.
+    removeStaff: build.mutation({
+      query: (id) => ({ url: `/staff/${id}`, method: 'DELETE' }),
+      invalidatesTags: [{ type: 'Staff', id: 'LIST' }],
+    }),
   }),
 });
 
-export const { useListStaffQuery, useGetStaffQuery, useCreateStaffMutation, useUpdateStaffMutation } =
-  staffApi;
+// After a mutation that answers with the whole member, put it in the getStaff cache for that id.
+async function replaceCachedMember(id, { dispatch, queryFulfilled }) {
+  try {
+    const { data } = await queryFulfilled;
+    dispatch(staffApi.util.updateQueryData('getStaff', id, () => data));
+  } catch {
+    // The caller shows the error; the cached member stays as it was.
+  }
+}
+
+export const {
+  useListStaffQuery,
+  useGetStaffQuery,
+  useCreateStaffMutation,
+  useUpdateStaffMutation,
+  useChangeStaffStatusMutation,
+  useRemoveStaffMutation,
+} = staffApi;
 
 // The API's message for a failed request, or the shared load-failed text when there is none (network).
 export const apiErrorMessage = (error, fallback) => error?.data?.error?.message ?? fallback;

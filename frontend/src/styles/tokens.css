@@ -50,6 +50,16 @@
   --color-success-tile: rgba(39, 200, 64, 0.06);
   --color-success-button: rgba(39, 200, 64, 0.05);
   --color-text-success-title: #565656;
+  /* Staff Detail (13009:18226). */
+  --color-surface-info: #f8feff;
+  --color-surface-permissions: #f7fcf8;
+  --color-surface-properties: #fffdf6;
+  --color-text-caption: #8e8e8e;
+  --color-border-card: #bfbfbf;
+  --color-badge-ready-text: #009951;
+  --color-badge-ready-bg: rgba(52, 199, 89, 0.05);
+  --color-badge-construction-text: #8a6d00; /* not in Figma: assumed for "Under construction" */
+  --color-avatar-ring: rgba(255, 255, 255, 0.36);
 
   /* Typography (Poppins) */
   --font-family-base: 'Poppins', sans-serif;

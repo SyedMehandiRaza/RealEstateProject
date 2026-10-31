@@ -1,4 +1,5 @@
 import ProtectedRoute from '../../components/routing/ProtectedRoute.jsx';
+import StaffDetailModal from './pages/StaffDetailModal/StaffDetailModal.jsx';
 import StaffFormModal from './pages/StaffFormModal/StaffFormModal.jsx';
 import StaffListPage from './pages/StaffListPage/StaffListPage.jsx';
 
@@ -20,6 +21,7 @@ export const staffRoutes = [
         element: <StaffListPage />,
         children: [
           { path: 'new', element: <StaffFormModal mode="add" /> },
+          { path: ':id', element: <StaffDetailModal /> },
           { path: ':id/edit', element: <StaffFormModal mode="edit" /> },
         ],
       },

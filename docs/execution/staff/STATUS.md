@@ -12,7 +12,7 @@ Last updated: 2026-10-31
 
 ## Next actions
 
-- Phase 4 in progress: STAFF-001 to STAFF-013 done (backend API, layout, Staff List, Add/Edit); next STAFF-014.
+- Phase 4 in progress: STAFF-001 to STAFF-014 done (backend API, layout, Staff List, Add/Edit, Detail); next STAFF-015.
 
 ## Blockers
 

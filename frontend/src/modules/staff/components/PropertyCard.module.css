@@ -1,0 +1,113 @@
+/* Assigned Property card (Figma 13009:18309): white, #bfbfbf border, 12 px radius, 132 px tall; cover
+ * 52 px at 15 / 15; View Property 110 x 36 at the bottom right; status badge in the top-right corner. */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 132px;
+  padding: var(--space-15) var(--space-16) var(--space-15) var(--space-15);
+  background: var(--color-white);
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--space-12);
+}
+
+.badge {
+  position: absolute;
+  top: -1px;
+  right: -0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 95px;
+  height: 30px;
+  padding: 0 var(--space-6);
+  font-size: var(--font-size-9);
+  line-height: var(--line-height-normal);
+  border-radius: 0 var(--space-12) 0 var(--space-12);
+}
+
+.badge[data-status='ready_to_move'] {
+  color: var(--color-badge-ready-text);
+  background: var(--color-badge-ready-bg);
+}
+
+/* Not designed: Under construction uses the yellow accent tint (assumption). */
+.badge[data-status='under_construction'] {
+  color: var(--color-badge-construction-text);
+  background: var(--color-status-pending-bg);
+}
+
+.head {
+  display: flex;
+  gap: var(--space-14);
+  align-items: center;
+  padding-right: 100px;
+}
+
+.cover {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: var(--color-primary-500-a10);
+  border-radius: 13px;
+}
+
+.titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  line-height: var(--line-height-normal);
+}
+
+.name,
+.location {
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.name {
+  color: var(--color-text-option);
+  font-size: var(--font-size-15);
+  font-weight: var(--font-weight-medium);
+}
+
+.location {
+  color: var(--color-text-body);
+  font-size: var(--font-size-10);
+}
+
+.footer {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: var(--space-12);
+}
+
+.view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 110px;
+  height: 36px;
+  padding: 0 var(--space-16);
+  color: var(--color-white);
+  font-size: 10.5px;
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  text-decoration: none;
+  background: var(--color-primary-500);
+  border-radius: var(--radius-sm);
+}
+
+.view:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}

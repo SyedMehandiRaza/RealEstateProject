@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router';
+import { Link, Outlet } from 'react-router';
 import { LIMITS, staffMessages } from '@real-estate/shared';
 import addIcon from '../../../../assets/staff/add.svg';
 import DeveloperLayout from '../../../../components/layout/DeveloperLayout.jsx';
 import Pagination from '../../../../components/ui/Pagination.jsx';
 import { apiErrorMessage, useListStaffQuery } from '../../api/staffApi.js';
+import RemoveStaffModal from '../../components/RemoveStaffModal.jsx';
 import StaffBannerArt from '../../components/StaffBannerArt.jsx';
 import { STAFF_PATHS } from '../../routes.jsx';
 import styles from './StaffListPage.module.css';
@@ -15,7 +16,7 @@ const COLUMNS = ['Name', 'Role', 'Email', 'Phone', 'Status', 'Action'];
 // Staff Management (Figma 13009:17816, STAFF-012). Add, Detail and Edit open over it through <Outlet />.
 export default function StaffListPage() {
   const [page, setPage] = useState(1);
-  const navigate = useNavigate();
+  const [removing, setRemoving] = useState(null);
   const { data, error, isLoading, isFetching, isError, refetch } = useListStaffQuery({
     page,
     pageSize: LIMITS.staff.listPageSize,
@@ -119,7 +120,7 @@ export default function StaffListPage() {
                         type="button"
                         className={styles.remove}
                         aria-label={`Remove ${member.fullName}`}
-                        onClick={() => navigate(STAFF_PATHS.detail(member.id))}
+                        onClick={() => setRemoving(member)}
                       >
                         Remove
                       </button>
@@ -135,6 +136,13 @@ export default function StaffListPage() {
       </section>
 
       <Outlet />
+      {removing && (
+        <RemoveStaffModal
+          member={removing}
+          onCancel={() => setRemoving(null)}
+          onRemoved={() => setRemoving(null)}
+        />
+      )}
     </DeveloperLayout>
   );
 }

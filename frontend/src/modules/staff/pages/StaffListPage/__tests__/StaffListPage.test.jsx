@@ -74,7 +74,7 @@ describe('StaffListPage', () => {
     ).toEqual(['Name', 'Role', 'Email', 'Phone', 'Status', 'Action']);
   });
 
-  it('links View and Edit to the member, and Remove to the member for now', async () => {
+  it('links View and Edit to the member and has a Remove button', async () => {
     server.use(http.get(apiUrl('/staff'), () => listResponse([member(7, { fullName: 'Rajesh Mehta' })])));
     renderPage();
     const row = (await screen.findAllByRole('row'))[1];
