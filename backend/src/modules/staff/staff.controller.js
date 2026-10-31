@@ -27,5 +27,10 @@ export function createStaffController(staffService) {
         await staffService.changeStatus(req.user.id, req.validated.params.id, req.validated.body),
       );
     },
+
+    async remove(req, res) {
+      await staffService.remove(req.user.id, req.validated.params.id);
+      res.status(204).end();
+    },
   };
 }

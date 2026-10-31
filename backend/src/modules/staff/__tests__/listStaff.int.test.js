@@ -12,7 +12,9 @@ import {
 // STAFF-002: GET /api/staff (STAFF-SPEC-001 E1).
 const STAFF = '/api/staff';
 const bearer = (token) => ({ Authorization: `Bearer ${token}` });
-const minutesAgo = (minutes) => new Date(Math.floor(Date.now() / 1000) * 1000 - minutes * 60_000);
+// One base time for the whole file, so a date built twice (seed and assertion) is the same value.
+const NOW = Math.floor(Date.now() / 1000) * 1000;
+const minutesAgo = (minutes) => new Date(NOW - minutes * 60_000);
 
 describe('GET /api/staff', () => {
   let app;

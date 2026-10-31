@@ -23,6 +23,7 @@ export function createStaffRoutes(controller, { requireActiveDeveloper }) {
     validate({ params: idParamSchema, body: staffStatusSchema }),
     controller.changeStatus,
   );
+  router.delete('/:id', validate({ params: idParamSchema }), controller.remove);
 
   return router;
 }

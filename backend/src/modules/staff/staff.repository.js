@@ -62,6 +62,11 @@ export function createStaffRepository(models) {
       );
     },
 
+    // Hard delete (STAFF-DEC-003): permissions and assignments go with it by FK CASCADE. Returns the count.
+    remove(employerId, id) {
+      return StaffMember.destroy({ where: { id, employerId } });
+    },
+
     async create({ employerId, fullName, email, phone, role, permissions }, { transaction }) {
       const member = await StaffMember.create({ employerId, fullName, email, phone, role }, { transaction });
       await StaffMemberPermission.bulkCreate(

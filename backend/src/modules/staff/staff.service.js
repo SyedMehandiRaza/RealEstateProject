@@ -80,5 +80,10 @@ export function createStaffService({ sequelize, repository }) {
       });
       return { staffMember: toStaffMember(member) };
     },
+
+    // Remove (E6). Already removed, unknown or another developer's: 404.
+    async remove(employerId, id) {
+      if ((await repository.remove(employerId, id)) === 0) throw staffNotFound();
+    },
   };
 }
