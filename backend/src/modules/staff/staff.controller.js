@@ -36,5 +36,10 @@ export function createStaffController(staffService) {
     async assignableProperties(req, res) {
       sendSuccess(res, await staffService.assignableProperties(req.user.id, req.validated.params.id));
     },
+
+    async assignProperty(req, res) {
+      const { params, body } = req.validated;
+      sendSuccess(res, await staffService.assignProperty(req.user.id, params.id, body), { status: 201 });
+    },
   };
 }

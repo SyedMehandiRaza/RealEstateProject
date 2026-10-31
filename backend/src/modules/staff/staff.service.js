@@ -92,5 +92,25 @@ export function createStaffService({ sequelize, repository }) {
       const properties = await repository.assignableProperties(employerId, id);
       return { properties: properties.map((property) => toPropertyCard(property)) };
     },
+
+    // Assign Property (E8): ownership check and insert in one transaction; disabled members too.
+    async assignProperty(employerId, id, { propertyId }) {
+      try {
+        const member = await sequelize.transaction(async (transaction) => {
+          if (!(await repository.lockMember(employerId, id, { transaction }))) throw staffNotFound();
+          if (!(await repository.findOwnProperty(employerId, propertyId, { transaction }))) {
+            throw new AppError('NOT_FOUND', { message: staffMessages.api.propertyNotFound });
+          }
+          await repository.assignProperty(id, propertyId, { transaction });
+          return repository.findDetail(employerId, id, { transaction });
+        });
+        return { staffMember: toStaffMember(member) };
+      } catch (error) {
+        if (error instanceof UniqueConstraintError) {
+          throw new AppError('CONFLICT', { message: staffMessages.api.alreadyAssigned });
+        }
+        throw error;
+      }
+    },
   };
 }

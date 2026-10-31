@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  assignPropertySchema,
   idParamSchema,
   staffListQuerySchema,
   staffMemberSchema,
@@ -28,6 +29,11 @@ export function createStaffRoutes(controller, { requireActiveDeveloper }) {
     '/:id/assignable-properties',
     validate({ params: idParamSchema }),
     controller.assignableProperties,
+  );
+  router.post(
+    '/:id/properties',
+    validate({ params: idParamSchema, body: assignPropertySchema }),
+    controller.assignProperty,
   );
 
   return router;

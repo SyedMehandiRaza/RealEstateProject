@@ -85,6 +85,20 @@ export function createStaffRepository(models) {
       });
     },
 
+    // One of the employer's own properties (STAFF-DEC-005), or null.
+    findOwnProperty(employerId, propertyId, { transaction }) {
+      return Property.findOne({
+        where: { id: propertyId, ownerId: employerId },
+        attributes: ['id'],
+        transaction,
+      });
+    },
+
+    // The unique pair (staff_member_id, property_id) refuses a second assignment, also between races.
+    assignProperty(staffMemberId, propertyId, { transaction }) {
+      return StaffPropertyAssignment.create({ staffMemberId, propertyId }, { transaction });
+    },
+
     // Hard delete (STAFF-DEC-003): permissions and assignments go with it by FK CASCADE. Returns the count.
     remove(employerId, id) {
       return StaffMember.destroy({ where: { id, employerId } });
