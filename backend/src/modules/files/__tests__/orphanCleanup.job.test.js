@@ -51,6 +51,20 @@ describe('orphan cleanup job', () => {
     );
   });
 
+  it('enqueues unreferenced videos too (property gallery videos and 360 tours, PROP-DEC-013)', async () => {
+    const { job, repository } = setup({
+      assets: [asset('realestate/test/properties/1/staging/old-video', hoursAgo(25), 'video')],
+    });
+
+    expect(await job.run()).toEqual({ scanned: 1, queued: 1 });
+    expect(repository.rows).toEqual([
+      expect.objectContaining({
+        publicId: 'realestate/test/properties/1/staging/old-video',
+        resourceType: 'video',
+      }),
+    ]);
+  });
+
   it('ignores files younger than 24 hours (an upload may still be saving)', async () => {
     const { job, repository } = setup({
       assets: [

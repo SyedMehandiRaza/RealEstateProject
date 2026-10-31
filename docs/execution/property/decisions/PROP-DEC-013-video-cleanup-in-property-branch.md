@@ -17,3 +17,7 @@ Without it no video or 360 tour can be uploaded, and the user chose not to wait.
 ## Alternatives rejected
 
 - Wait for the integration owner: blocks the media tickets.
+
+## Implementation note (PROP-002, 2026-10-31)
+
+Built as migration `20261031090000-add-video-and-replaced-to-pending-file-deletions.cjs`. The same migration also adds `'replaced'` to `pending_file_deletions.reason`, because PROP-SPEC-001 (approved) queues a replaced document file with that reason and the ENUM did not have it. Both ENUMs only gain a value; nothing else in the shared table changes.

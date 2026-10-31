@@ -7,6 +7,7 @@ const DAY_MS = 24 * 60 * 60_000;
 const ASSET_KINDS = [
   { resourceType: 'image', deliveryType: 'authenticated' },
   { resourceType: 'raw', deliveryType: 'authenticated' },
+  { resourceType: 'video', deliveryType: 'authenticated' }, // property gallery videos and 360 tours
 ];
 
 export function createOrphanCleanupJob({

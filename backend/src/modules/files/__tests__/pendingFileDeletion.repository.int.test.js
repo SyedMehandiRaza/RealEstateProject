@@ -38,3 +38,36 @@ describe('Sequelize repository on MySQL (database-only behaviour)', () => {
     });
   });
 });
+
+// Property files (PROP-002, PROP-DEC-013): videos and replaced document files are queued like the others.
+describe('Sequelize repository on MySQL: property files', () => {
+  it('queues a video, and a file replaced by a new upload', async () => {
+    await repository.insertMany([
+      {
+        ...file,
+        publicId: 'realestate/test/properties/1/tour',
+        resourceType: 'video',
+        reason: 'record_deleted',
+      },
+      { ...file, publicId: 'realestate/test/properties/1/old.pdf', reason: 'replaced' },
+    ]);
+
+    const rows = await models.PendingFileDeletion.findAll({ raw: true, order: [['id', 'ASC']] });
+    expect(rows).toEqual([
+      expect.objectContaining({ resourceType: 'video', reason: 'record_deleted' }),
+      expect.objectContaining({ resourceType: 'raw', reason: 'replaced' }),
+    ]);
+  });
+
+  it('the table refuses a resource type or reason it does not know', async () => {
+    const insert = (resourceType, reason) =>
+      sequelize.query(
+        `INSERT INTO pending_file_deletions (public_id, resource_type, reason) VALUES ('realestate/test/x', :resourceType, :reason)`,
+        { replacements: { resourceType, reason } },
+      );
+
+    await expect(insert('audio', 'orphan')).rejects.toThrow();
+    await expect(insert('video', 'moved')).rejects.toThrow();
+    expect(await models.PendingFileDeletion.count()).toBe(0);
+  });
+});

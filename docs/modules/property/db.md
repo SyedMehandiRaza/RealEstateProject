@@ -202,7 +202,7 @@ Frames: add Property step 4 Upload Media (`13009:11051`), Gallery and "upload" t
 | property_id              | INT UNSIGNED                           | no   |         | FK `properties.id` CASCADE                                     | –                              |                                                           |
 | media_type               | ENUM(image, video, tour_360)           | no   |         |                                                                | `z.enum(MEDIA_TYPES)`          | "Property Images", "Videos", "360° Tour"                  |
 | cloudinary_public_id     | VARCHAR(255) utf8mb4_bin               | no   |         | unique                                                         | –                              |                                                           |
-| cloudinary_resource_type | ENUM(image, video)                     | no   |         | `chk_property_media_resource_type`: image <=> media_type image | –                              | `video` needs PROP-Q-011 for cleanup                      |
+| cloudinary_resource_type | ENUM(image, video)                     | no   |         | `chk_property_media_resource_type`: image <=> media_type image | –                              | `video` cleanup: migration 20261031090000 (PROP-002)      |
 | original_filename        | VARCHAR(255)                           | no   |         |                                                                | max 255                        |                                                           |
 | mime_type                | ENUM(image/jpeg, image/png, video/mp4) | no   |         | `chk_property_media_mime_type`                                 | file type check                | Images JPG/PNG, videos MP4. (PROP-Q-016)                  |
 | size_bytes               | INT UNSIGNED                           | no   |         | `chk_property_media_size`                                      | image <= 10 MB, video <= 40 MB | "Max size: 10 MB" / "40 MB"                               |
@@ -339,7 +339,7 @@ Answers and their decisions (confirmed by the user in the grill, 2026-10-31; PRO
 
 Follow-ups (not in this module's migration):
 
-- `pending_file_deletions.resource_type` needs `'video'`, plus video support in `cloudinaryStorage` (PROP-Q-011, PROP-DEC-009). Done in feature/property as a new additive migration (PROP-DEC-013), in its own ticket before media upload. Until then no video or 360 tour may be uploaded: a property delete would try to queue a `video` file and fail.
+- `pending_file_deletions.resource_type` gains `'video'` and `reason` gains `'replaced'` (for a replaced document file, PROP-SPEC-001) in migration `20261031090000-add-video-and-replaced-to-pending-file-deletions.cjs` (PROP-002, PROP-DEC-013). Both ENUMs only gain a value at the end; `down` refuses while a row uses a new value. The orphan job lists `video` assets too.
 - Account deletion: the 409 check lives in the auth user-deletion service (PROP-DEC-001, done). A MySQL integration test of the 409 case is still to add.
 
 Open:

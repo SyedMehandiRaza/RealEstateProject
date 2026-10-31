@@ -45,6 +45,19 @@ describe('file deletion worker (processDue)', () => {
     );
   });
 
+  it('deletes a queued video with its video resource type (PROP-DEC-013)', async () => {
+    const { storage, repository, service } = setup();
+    const destroy = jest.spyOn(storage, 'destroy');
+    const video = { ...doc, publicId: 'realestate/test/properties/1/walkthrough', resourceType: 'video' };
+    await service.enqueue([video], { reason: 'record_deleted' });
+
+    expect(await service.processDue()).toEqual({ deleted: 1, retried: 0, failed: 0 });
+    expect(destroy).toHaveBeenCalledWith(
+      expect.objectContaining({ publicId: video.publicId, resourceType: 'video' }),
+    );
+    expect(repository.rows).toEqual([]);
+  });
+
   it('retries with exponential backoff and records the last error', async () => {
     const { storage, repository, service, advance } = setup();
     await service.enqueue([doc], { reason: 'record_deleted' });
