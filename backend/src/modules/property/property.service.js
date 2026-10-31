@@ -37,6 +37,7 @@ export function createPropertyService({
   clock,
   uploadTokens,
   findReferencedPublicIds,
+  fileDeletion,
 }) {
   const detail = async (id) =>
     presentPropertyDetail(await repository.findDetail(id), { storage, now: clock.now() });
@@ -87,6 +88,17 @@ export function createPropertyService({
         );
       });
       return { property: await detail(property.id) };
+    },
+
+    // Delete Property (PROP-DEC-002, -016): one transaction locks the row, queues every file it owns for the
+    // deletion worker (DEC-018, deleted after commit) and deletes the property with its child rows.
+    async deleteProperty({ ownerId, property }) {
+      await sequelize.transaction(async (transaction) => {
+        await repository.findOwned(property.id, ownerId, { transaction, lock: transaction.LOCK.UPDATE });
+        const files = await repository.filesOfProperty(property.id, { transaction });
+        await fileDeletion.enqueue(files, { reason: 'record_deleted', transaction });
+        await repository.destroyProperty(property.id, { transaction });
+      });
     },
 
     // My Properties (PROP-DEC-014). Returns { data: { properties }, meta: { page, pageSize, total } }.

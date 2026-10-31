@@ -26,6 +26,11 @@ export function createPropertyController(service) {
       );
     },
 
+    async deleteProperty(req, res) {
+      await service.deleteProperty({ ownerId: req.user.id, property: req.property });
+      res.status(204).end();
+    },
+
     async createProperty(req, res) {
       sendSuccess(res, await service.createProperty({ ownerId: req.user.id, body: req.validated.body }), {
         status: 201,

@@ -15,6 +15,14 @@ const fileColumns = (upload) => ({
 // LIKE pattern for "contains text": %, _ and the escape character match themselves.
 const containsPattern = (text) => `%${text.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
 
+// A stored file as the deletion queue takes it (DEC-018).
+const storedFile = (row) => ({
+  publicId: row.cloudinaryPublicId,
+  resourceType: row.cloudinaryResourceType,
+  deliveryType: 'authenticated',
+});
+const FILE_ATTRIBUTES = ['cloudinaryPublicId', 'cloudinaryResourceType'];
+
 const groupBy = (rows, key) => {
   const groups = new Map();
   for (const row of rows) groups.set(row[key], [...(groups.get(row[key]) ?? []), row]);
@@ -94,6 +102,35 @@ export function createPropertyRepository(models) {
           [{ model: models.PropertyMedia, as: 'media' }, 'id', 'ASC'],
         ],
       });
+    },
+
+    // Every Cloudinary file a property owns: floor plans, media, documents and update images.
+    async filesOfProperty(propertyId, { transaction }) {
+      const configurations = await models.PropertyConfiguration.findAll({
+        where: { propertyId },
+        attributes: ['id'],
+        transaction,
+      });
+      const rows = await Promise.all([
+        models.PropertyConfigurationFloorPlan.findAll({
+          where: { propertyConfigurationId: configurations.map((c) => c.id) },
+          attributes: FILE_ATTRIBUTES,
+          transaction,
+        }),
+        models.PropertyMedia.findAll({ where: { propertyId }, attributes: FILE_ATTRIBUTES, transaction }),
+        models.PropertyDocument.findAll({ where: { propertyId }, attributes: FILE_ATTRIBUTES, transaction }),
+        models.PropertyUpdate.findAll({
+          where: { propertyId, cloudinaryPublicId: { [Op.ne]: null } },
+          attributes: FILE_ATTRIBUTES,
+          transaction,
+        }),
+      ]);
+      return rows.flat().map(storedFile);
+    },
+
+    // Deletes a property; its child rows go with it (ON DELETE CASCADE, PROP-DEC-002).
+    destroyProperty(propertyId, { transaction }) {
+      return models.Property.destroy({ where: { id: propertyId }, transaction });
     },
 
     // Edit Property inside `transaction` (PROP-DEC-015): the columns, the features as a set, and, when

@@ -49,5 +49,6 @@ export function createPropertyRoutes({ repository, controller }) {
   );
   router.get('/:id', controller.getProperty);
   router.put('/:id', validate({ body: updatePropertySchema }), controller.editProperty);
+  router.delete('/:id', controller.deleteProperty);
   return router;
 }
