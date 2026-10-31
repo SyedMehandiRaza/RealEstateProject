@@ -1,6 +1,6 @@
 # STAFF-Q-023: How does staff get a property's cover image URL?
 
-- **Status:** open
+- **Status:** answered (2026-10-31)
 - **Blocks:** the cover image on the Assigned Property card and the Assign picker (a later ticket); nothing else
 - **Asked by:** staff session, /to-spec, 2026-10-31
 
@@ -15,4 +15,4 @@ STAFF-DEC-009 shows the first image of the property as the card's cover. Propert
 
 ## Answer
 
-(open)
+User, 2026-10-31: "yes" (option 1). Placeholder image in this build; a later staff ticket adds `coverImageUrl` once property or the files module provides delivery URLs. That ticket stays `blocked` until then.

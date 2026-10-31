@@ -8,6 +8,8 @@ An **Active developer** (DEC-035) keeps a list of the team members (**staff memb
 
 In this build staff members are **records only**: they do not log in, no invitation is sent and their permissions are not enforced anywhere (STAFF-DEC-007). Staff login is the target design (STAFF-DEC-001), waiting for the integration owner (STAFF-Q-014).
 
+**What staff are (user, 2026-10-31):** staff are the developer's employees who will manage this panel on behalf of the property owner. The permissions and property assignments say what each one may manage once they can log in.
+
 ## Who may do what
 
 - Every staff route requires a logged-in **Active developer** (`authenticate` + `requireActiveDeveloper`): no token → 401; not a Developer → 403 `FORBIDDEN`; a Developer not Active → 403 `DEVELOPER_NOT_ACTIVE` (STAFF-DEC-006).

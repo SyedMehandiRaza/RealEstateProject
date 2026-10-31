@@ -73,7 +73,7 @@ _Avoid_: Re-upload, retry
 ## Staff
 
 **Staff member**:
-A person on an Active developer's team, recorded by that developer with name, email, phone, role and status. In this build a record only; does not log in yet.
+An employee of a Developer who manages the developer panel on the Developer's behalf, within the Access permissions and Property assignments the Developer gives them. Recorded by the Developer with name, email, phone, role and status; logging in to the panel comes later (STAFF-Q-014), so for now a Staff member is a record only.
 _Avoid_: Employee, team user, agent (as a person)
 
 **Employer**:
