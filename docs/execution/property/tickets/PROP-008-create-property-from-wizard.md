@@ -34,6 +34,6 @@ When the Developer presses Submit on step 6, the whole property is created at on
 - The detail shape (`property.presenter.js`) is reused by PROP-010. Derived values: price range from Active configurations, cover image (the first image, signed URL), and progress with phase badges, only while under construction. DECIMAL values are sent as JSON numbers.
 - Test helpers: `test/propertyUploads.js` (`stageToken`, `createBody`) stage real files through the API.
 - Tests:
-  - `createProperty.int.test.js`, 133 tests: the full detail response and every child row; progress only for under construction; 119 parity cases from `createPropertyCases` with the exact message at the dotted path; expired, tampered, other owner's and wrong-purpose tokens (422 at the path, no rows); an already-used token (409 at its path); a failure part way leaves no row; 401, 403 and 403 `DEVELOPER_NOT_ACTIVE`.
+  - `createProperty.int.test.js`, 133 tests: the full detail response and every child row; progress only for under construction; 122 parity cases from `createPropertyCases` with the exact message at the dotted path; expired, tampered, other owner's and wrong-purpose tokens (422 at the path, no rows); an already-used token (409 at its path); a failure part way leaves no row; 401, 403 and 403 `DEVELOPER_NOT_ACTIVE`.
   - `property.presenter.test.js`, 7 unit tests for the badges, the price range and progress.
 - `npm run check`: shared 687, backend unit 480, backend integration 490 passed + 1 skipped, frontend 276; lint, format and build pass.
