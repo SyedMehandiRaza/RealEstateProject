@@ -1,6 +1,6 @@
 # PROP-001: Add property test factories and fixtures
 
-- **Status:** ready-for-agent
+- **Status:** done (2026-10-31)
 - **Module:** property
 - **Blocked by:** None (can start immediately)
 - **Cites:** PROP-SPEC-001 §Testing Decisions, PROP-DEC-002, PROP-DEC-004
@@ -12,11 +12,11 @@ Tests can create a complete property for a Developer in one call: the property r
 
 ## Acceptance criteria
 
-- [ ] A factory creates a ready-to-move property with its required children (1 configuration, 1 image, the 4 required documents) for a given owner, and every row is readable back through the models
-- [ ] A factory option creates an under-construction property with its progress row (0%) and a possession date
-- [ ] Each child factory (configuration, floor plan, media, document, update, amenity with plans) accepts overrides and defaults to valid values that pass the shared schemas
-- [ ] Deleting a property through the model cascades to every child table (PROP-DEC-002), proved by counting rows
-- [ ] Factories create a Developer account in each state needed later: Active, not Active, and a Buyer
+- [x] A factory creates a ready-to-move property with its required children (1 configuration, 1 image, the 4 required documents) for a given owner, and every row is readable back through the models
+- [x] A factory option creates an under-construction property with its progress row (0%) and a possession date
+- [x] Each child factory (configuration, floor plan, media, document, update, amenity with plans) accepts overrides and defaults to valid values that pass the shared schemas
+- [x] Deleting a property through the model cascades to every child table (PROP-DEC-002), proved by counting rows
+- [x] Factories create a Developer account in each state needed later: Active, not Active, and a Buyer
 
 ## Out of scope
 
@@ -25,4 +25,6 @@ Tests can create a complete property for a Developer in one call: the property r
 
 ## Verification
 
-_Filled when done._
+- Factories: `backend/src/test/propertyFactories.js` (`seedDeveloper`, `createProperty` and one factory per child table). Defaults are the `valid` inputs of the shared parity cases.
+- Tests: `backend/src/test/__tests__/propertyFactories.int.test.js`, 8 tests. Each case is proved through the models against `real_estate_property_test`: the required children, progress for under construction, counts with unique names and public ids, child overrides and defaults that the shared schemas accept, the cascade on delete, and the three account states, checked by logging in and reading the verification status.
+- `npm run check`: shared 687, backend unit 454, backend integration 315 passed + 1 skipped, frontend 276; lint, format and build pass (only the existing Vite chunk-size warning).
