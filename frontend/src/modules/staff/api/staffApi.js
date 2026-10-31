@@ -9,10 +9,32 @@ export const staffApi = baseApi.enhanceEndpoints({ addTagTypes: ['Staff'] }).inj
       query: ({ page, pageSize }) => ({ url: '/staff', params: { page, pageSize } }),
       providesTags: [{ type: 'Staff', id: 'LIST' }],
     }),
+    // E3.
+    getStaff: build.query({
+      query: (id) => `/staff/${id}`,
+      transformResponse: (response) => response.data.staffMember,
+      providesTags: (result, error, id) => [{ type: 'Staff', id }],
+    }),
+    // E2.
+    createStaff: build.mutation({
+      query: (body) => ({ url: '/staff', method: 'POST', body }),
+      transformResponse: (response) => response.data.staffMember,
+      invalidatesTags: [{ type: 'Staff', id: 'LIST' }],
+    }),
+    // E4.
+    updateStaff: build.mutation({
+      query: ({ id, ...body }) => ({ url: `/staff/${id}`, method: 'PUT', body }),
+      transformResponse: (response) => response.data.staffMember,
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Staff', id: 'LIST' },
+        { type: 'Staff', id },
+      ],
+    }),
   }),
 });
 
-export const { useListStaffQuery } = staffApi;
+export const { useListStaffQuery, useGetStaffQuery, useCreateStaffMutation, useUpdateStaffMutation } =
+  staffApi;
 
 // The API's message for a failed request, or the shared load-failed text when there is none (network).
 export const apiErrorMessage = (error, fallback) => error?.data?.error?.message ?? fallback;

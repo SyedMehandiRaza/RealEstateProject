@@ -1,0 +1,63 @@
+/* Responsive rule (STAFF-SPEC-001): centred at the Figma width as a maximum; narrower screens get the full
+ * width minus 16 px margins; a dialog taller than the screen scrolls inside. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16);
+  overflow-y: auto;
+  background: var(--color-backdrop);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(var(--modal-width, 546px), 100%);
+  max-height: 100%;
+  overflow: hidden;
+  background: var(--color-white);
+  border-radius: var(--radius-panel);
+  outline: none;
+}
+
+.header {
+  flex: none;
+  display: flex;
+  gap: var(--space-16);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+/* Add Staff title (13009:18193): 20 px medium #444. */
+.title {
+  margin: 0;
+  color: var(--color-text-option);
+  font-size: var(--font-size-20);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}
+
+.close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}

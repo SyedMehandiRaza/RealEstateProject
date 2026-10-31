@@ -1,0 +1,74 @@
+/* Success modal (Figma 13009:18180). */
+.modal {
+  padding: var(--space-24);
+  border-radius: var(--space-20);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  align-items: center;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  align-items: center;
+  width: 100%;
+}
+
+.iconTile {
+  display: flex;
+  padding: 9.284px;
+  background: var(--color-success-tile);
+  border-radius: 116.056px;
+}
+
+.icon {
+  width: 45.4328px;
+  height: 45.4311px;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  width: 100%;
+  line-height: var(--line-height-normal);
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  color: var(--color-text-success-title);
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-medium);
+}
+
+.text {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-regular);
+}
+
+.done {
+  width: 100%;
+  height: 44px;
+  padding: var(--space-14) var(--space-16);
+  color: var(--color-success-500);
+  font: inherit;
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-success-button);
+  border: none;
+  border-radius: var(--space-12);
+  cursor: pointer;
+}
+
+.done:focus-visible {
+  outline: 2px solid var(--color-success-500);
+  outline-offset: 2px;
+}

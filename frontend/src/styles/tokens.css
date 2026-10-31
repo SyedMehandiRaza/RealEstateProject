@@ -44,6 +44,12 @@
   --color-shadow-sidebar: rgba(52, 52, 52, 0.1);
   --color-divider-row: #eeeeee;
   --color-backdrop: rgba(17, 17, 17, 0.4);
+  /* Staff modals (13009:18190 Add Staff, 13009:18180 success). */
+  --color-text-cancel: #999999;
+  --color-success-500: #27c840;
+  --color-success-tile: rgba(39, 200, 64, 0.06);
+  --color-success-button: rgba(39, 200, 64, 0.05);
+  --color-text-success-title: #565656;
 
   /* Typography (Poppins) */
   --font-family-base: 'Poppins', sans-serif;
@@ -72,6 +78,7 @@
   --space-10: 10px;
   --space-11: 11px;
   --space-12: 12px;
+  --space-14: 14px;
   --space-15: 15px;
   --space-16: 16px;
   --space-20: 20px;

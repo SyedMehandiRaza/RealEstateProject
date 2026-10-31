@@ -18,7 +18,8 @@
   gap: var(--space-10);
   height: var(--size-control-height);
   padding: 0 var(--space-16);
-  border: 1px solid var(--color-border-input);
+  /* A form may set --field-border-color (the staff modals use the lighter Figma border). */
+  border: 1px solid var(--field-border-color, var(--color-border-input));
   border-radius: var(--radius-md);
   background: var(--color-white);
 }
