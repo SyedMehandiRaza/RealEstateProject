@@ -6,6 +6,7 @@ import {
   updatePropertyCases,
 } from '@real-estate/shared/testing';
 import models, { sequelize } from '../models/index.js';
+import { logIn } from './authFlows.js';
 import { seedAccount } from './e2eSeeds.js';
 
 // Test data for the property module (PROP-001), written straight through the models. Defaults are the
@@ -201,4 +202,13 @@ export async function createProperty(
   for (let i = 0; i < updates; i += 1) await createUpdate(id);
   for (let i = 0; i < amenities; i += 1) await createAmenity(id);
   return property.reload();
+}
+
+// Seeds an Account in `state` (see seedDeveloper) and logs it in through the API.
+// Returns { account, token } with the access token for `Authorization: Bearer`.
+export async function developerSession(app, state = 'active') {
+  const account = await seedDeveloper(state);
+  const res = await logIn(app, account);
+  if (res.status !== 200) throw new Error(`developerSession: login failed with ${res.status}`);
+  return { account, token: res.body.data.accessToken };
 }
