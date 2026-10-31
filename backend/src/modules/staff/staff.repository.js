@@ -99,6 +99,11 @@ export function createStaffRepository(models) {
       return StaffPropertyAssignment.create({ staffMemberId, propertyId }, { transaction });
     },
 
+    // Returns the number of assignments removed (0 or 1).
+    unassignProperty(staffMemberId, propertyId, { transaction }) {
+      return StaffPropertyAssignment.destroy({ where: { staffMemberId, propertyId }, transaction });
+    },
+
     // Hard delete (STAFF-DEC-003): permissions and assignments go with it by FK CASCADE. Returns the count.
     remove(employerId, id) {
       return StaffMember.destroy({ where: { id, employerId } });

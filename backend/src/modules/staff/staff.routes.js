@@ -4,6 +4,7 @@ import {
   idParamSchema,
   staffListQuerySchema,
   staffMemberSchema,
+  staffPropertyParamsSchema,
   staffStatusSchema,
 } from '@real-estate/shared';
 import { authenticate } from '../../middlewares/authenticate.js';
@@ -34,6 +35,11 @@ export function createStaffRoutes(controller, { requireActiveDeveloper }) {
     '/:id/properties',
     validate({ params: idParamSchema, body: assignPropertySchema }),
     controller.assignProperty,
+  );
+  router.delete(
+    '/:id/properties/:propertyId',
+    validate({ params: staffPropertyParamsSchema }),
+    controller.unassignProperty,
   );
 
   return router;

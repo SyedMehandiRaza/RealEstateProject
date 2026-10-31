@@ -112,5 +112,17 @@ export function createStaffService({ sequelize, repository }) {
         throw error;
       }
     },
+
+    // Unassign (E9): the property itself is untouched.
+    async unassignProperty(employerId, id, propertyId) {
+      const member = await sequelize.transaction(async (transaction) => {
+        if (!(await repository.lockMember(employerId, id, { transaction }))) throw staffNotFound();
+        if ((await repository.unassignProperty(id, propertyId, { transaction })) === 0) {
+          throw new AppError('NOT_FOUND', { message: staffMessages.api.notAssigned });
+        }
+        return repository.findDetail(employerId, id, { transaction });
+      });
+      return { staffMember: toStaffMember(member) };
+    },
   };
 }
