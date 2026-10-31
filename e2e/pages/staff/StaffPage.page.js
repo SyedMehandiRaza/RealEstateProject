@@ -18,7 +18,15 @@ export class StaffPage {
     await login.goto();
     await login.logIn(credentials);
     await this.page.waitForURL((url) => url.pathname !== '/login');
+    await this.visit(path);
+  }
+
+  // A full page load. It waits until the layout shows, which means the app-start refresh has finished and
+  // stored the rotated refresh cookie: loading again while that refresh is in flight would abort it and
+  // lose the session (the auth refresh rotation, DEC-028 / DEC-039), as it would for a real user.
+  async visit(path) {
     await this.page.goto(path);
+    await this.heading.waitFor();
   }
 
   rows() {
