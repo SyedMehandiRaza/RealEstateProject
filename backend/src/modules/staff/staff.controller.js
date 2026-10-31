@@ -20,5 +20,12 @@ export function createStaffController(staffService) {
     async update(req, res) {
       sendSuccess(res, await staffService.update(req.user.id, req.validated.params.id, req.validated.body));
     },
+
+    async changeStatus(req, res) {
+      sendSuccess(
+        res,
+        await staffService.changeStatus(req.user.id, req.validated.params.id, req.validated.body),
+      );
+    },
   };
 }

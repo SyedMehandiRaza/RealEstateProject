@@ -69,5 +69,16 @@ export function createStaffService({ sequelize, repository }) {
       );
       return { staffMember: toStaffMember(member) };
     },
+
+    // Status dropdown (E5): saved at once; the same status again is a no-op 200 (STAFF-DEC-014).
+    async changeStatus(employerId, id, { status }) {
+      const member = await sequelize.transaction(async (transaction) => {
+        const locked = await repository.lockMember(employerId, id, { transaction });
+        if (!locked) throw staffNotFound();
+        if (locked.status !== status) await locked.update({ status }, { transaction });
+        return repository.findDetail(employerId, id, { transaction });
+      });
+      return { staffMember: toStaffMember(member) };
+    },
   };
 }

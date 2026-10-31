@@ -12,7 +12,7 @@ Last updated: 2026-10-31
 
 ## Next actions
 
-- Phase 4 in progress: STAFF-001 to STAFF-005 done; next STAFF-006.
+- Phase 4 in progress: STAFF-001 to STAFF-006 done; next STAFF-007.
 
 ## Blockers
 

@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { idParamSchema, staffListQuerySchema, staffMemberSchema } from '@real-estate/shared';
+import {
+  idParamSchema,
+  staffListQuerySchema,
+  staffMemberSchema,
+  staffStatusSchema,
+} from '@real-estate/shared';
 import { authenticate } from '../../middlewares/authenticate.js';
 import { validate } from '../../middlewares/validate.js';
 
@@ -13,6 +18,11 @@ export function createStaffRoutes(controller, { requireActiveDeveloper }) {
   router.post('/', validate({ body: staffMemberSchema }), controller.create);
   router.get('/:id', validate({ params: idParamSchema }), controller.get);
   router.put('/:id', validate({ params: idParamSchema, body: staffMemberSchema }), controller.update);
+  router.patch(
+    '/:id/status',
+    validate({ params: idParamSchema, body: staffStatusSchema }),
+    controller.changeStatus,
+  );
 
   return router;
 }
