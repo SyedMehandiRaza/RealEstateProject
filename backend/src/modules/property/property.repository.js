@@ -96,6 +96,25 @@ export function createPropertyRepository(models) {
       });
     },
 
+    // Edit Property inside `transaction` (PROP-DEC-015): the columns, the features as a set, and, when
+    // `possessionDate` is given (the property is under construction), the progress row: created at 0% if
+    // missing, its possession date set (null clears it). Without it the progress row is left as it is.
+    async saveEdit(propertyId, { fields, features, progress }, { transaction }) {
+      await models.Property.update(fields, { where: { id: propertyId }, transaction });
+      await models.PropertyFeature.destroy({ where: { propertyId }, transaction });
+      await models.PropertyFeature.bulkCreate(
+        features.map((name) => ({ propertyId, name })),
+        { transaction },
+      );
+      if (!progress) return;
+      const [row] = await models.PropertyConstructionProgress.findOrCreate({
+        where: { propertyId },
+        defaults: { propertyId, possessionDate: progress.possessionDate },
+        transaction,
+      });
+      await row.update({ possessionDate: progress.possessionDate }, { transaction });
+    },
+
     // Writes a whole property inside `transaction` (Add Property Submit). Files are uploads read from their
     // tokens. media: { image: [upload], video: [...], tour_360: [...] }, sort order = position.
     // documents: [{ documentType, upload }]. progress: { possessionDate } or null. Returns the property row.

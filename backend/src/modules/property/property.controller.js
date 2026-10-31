@@ -15,6 +15,17 @@ export function createPropertyController(service) {
       sendSuccess(res, await service.getProperty(req.property));
     },
 
+    async editProperty(req, res) {
+      sendSuccess(
+        res,
+        await service.editProperty({
+          ownerId: req.user.id,
+          property: req.property,
+          body: req.validated.body,
+        }),
+      );
+    },
+
     async createProperty(req, res) {
       sendSuccess(res, await service.createProperty({ ownerId: req.user.id, body: req.validated.body }), {
         status: 201,

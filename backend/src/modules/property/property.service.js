@@ -68,6 +68,27 @@ export function createPropertyService({
       return { property: await detail(property.id) };
     },
 
+    // Edit Property (PROP-DEC-015). The property row is locked so two edits cannot both create progress.
+    async editProperty({ ownerId, property, body }) {
+      const { features, possessionDate, ...fields } = body;
+      await sequelize.transaction(async (transaction) => {
+        await repository.findOwned(property.id, ownerId, { transaction, lock: transaction.LOCK.UPDATE });
+        await repository.saveEdit(
+          property.id,
+          {
+            fields,
+            features,
+            progress:
+              fields.propertyStatus === 'under_construction'
+                ? { possessionDate: possessionDate ?? null }
+                : null,
+          },
+          { transaction },
+        );
+      });
+      return { property: await detail(property.id) };
+    },
+
     // My Properties (PROP-DEC-014). Returns { data: { properties }, meta: { page, pageSize, total } }.
     async listProperties({ ownerId, query }) {
       const { page, pageSize, search } = query;

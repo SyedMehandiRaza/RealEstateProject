@@ -4,6 +4,7 @@ import {
   propertyListQuerySchema,
   propertyParamsSchema,
   stagedUploadFieldsSchema,
+  updatePropertySchema,
   toFieldErrors,
 } from '@real-estate/shared';
 import { authenticate } from '../../middlewares/authenticate.js';
@@ -47,5 +48,6 @@ export function createPropertyRoutes({ repository, controller }) {
     controller.stageUpload,
   );
   router.get('/:id', controller.getProperty);
+  router.put('/:id', validate({ body: updatePropertySchema }), controller.editProperty);
   return router;
 }
