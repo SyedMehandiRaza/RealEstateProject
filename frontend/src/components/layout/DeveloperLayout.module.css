@@ -55,7 +55,8 @@
   gap: var(--space-12);
   align-items: center;
   width: 100%;
-  padding: var(--space-12) var(--space-16);
+  /* Figma strokes are inside the 48 px item: the 1 px border takes 1 px of the 12 / 16 padding. */
+  padding: calc(var(--space-12) - 1px) calc(var(--space-16) - 1px);
   color: var(--color-text-nav);
   font: inherit;
   font-size: var(--font-size-14);
