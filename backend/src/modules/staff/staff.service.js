@@ -4,6 +4,8 @@ import { AppError } from '../../utils/AppError.js';
 import { toStaffMember, toStaffMemberSummary } from './staff.presenter.js';
 
 const emailConflict = (message) => new AppError('CONFLICT', { fields: { email: [message] } });
+// Unknown and other developers' staff members look the same: 404, never 403 (STAFF-SPEC-001 §Access).
+const staffNotFound = () => new AppError('NOT_FOUND', { message: staffMessages.api.notFound });
 
 // Staff use cases (STAFF-SPEC-001). `employerId` is always the caller's account id.
 export function createStaffService({ sequelize, repository }) {
@@ -23,6 +25,12 @@ export function createStaffService({ sequelize, repository }) {
     }
   }
 
+  async function findOwnMember(employerId, id, { transaction } = {}) {
+    const member = await repository.findDetail(employerId, id, { transaction });
+    if (!member) throw staffNotFound();
+    return member;
+  }
+
   return {
     async list(employerId, { page, pageSize }) {
       const { rows, count } = await repository.listForEmployer(employerId, { page, pageSize });
@@ -39,6 +47,11 @@ export function createStaffService({ sequelize, repository }) {
         }),
       );
       return { staffMember: toStaffMember(member) };
+    },
+
+    // Staff Detail (E3).
+    async get(employerId, id) {
+      return { staffMember: toStaffMember(await findOwnMember(employerId, id)) };
     },
   };
 }
