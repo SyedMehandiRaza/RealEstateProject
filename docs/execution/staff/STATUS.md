@@ -12,7 +12,7 @@ Last updated: 2026-10-31
 
 ## Next actions
 
-- Phase 4: /implement-spec STAFF-SPEC-001, tickets one at a time in order, starting with STAFF-001.
+- Phase 4 in progress: STAFF-001 done; next STAFF-002.
 
 ## Blockers
 
