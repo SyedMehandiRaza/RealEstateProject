@@ -8,7 +8,9 @@ import { VerifyEmailPage } from '../pages/auth/VerifyEmailPage.page.js';
 
 test.describe('e2e harness', () => {
   test('the app talks to the e2e API on the test database', async ({ harness }) => {
-    expect(await harness.status()).toEqual({ mode: 'e2e', database: 'real_estate_test' });
+    // DB_NAME_TEST differs per module folder (.env.worktree, loaded by playwright.config.js).
+    const database = process.env.DB_NAME_TEST ?? 'real_estate_test';
+    expect(await harness.status()).toEqual({ mode: 'e2e', database });
   });
 
   test('sign up, read the captured code, verify', async ({ page, harness }) => {

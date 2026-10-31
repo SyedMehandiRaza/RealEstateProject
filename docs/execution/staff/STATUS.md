@@ -4,6 +4,7 @@ Last updated: 2026-10-31
 
 ## Now
 
+- Phase 5 done 2026-10-31: code review (STAFF-020, 5 bugs fixed test-first + 3 refactors), security review (STAFF-021, no findings), full e2e suite 98 / 98 (auth 64, staff 34). Not merged: the user says "merge staff into testing" when ready.
 - Phase 3 (tickets) done 2026-10-31: STAFF-001 to STAFF-023 on the [board](README.md), approved by the user. STAFF-022 (blocked by STAFF-Q-023, answered: placeholder until property provides delivery URLs) and STAFF-023 (blocked by STAFF-Q-014) are not worked in this run.
 - Phase 2 (contract) done and approved (2026-10-31): [STAFF-SPEC-001](specs/STAFF-SPEC-001-staff-management.md) (9 endpoints, 4 routes, states, responsive rule). Shared: `staff.messages.js`, `staff.schema.js` (`staffMemberSchema`, `staffStatusSchema`, `assignPropertySchema`, `staffListQuerySchema`, `staffPropertyParamsSchema`), parity cases `staffValidationCases.js` (`@real-estate/shared/testing`), `LIMITS.staff.listPageSize = 10`; 59 schema tests. No new error code.
 - Phase 1 (align) done 2026-10-31: STAFF-Q-001 to STAFF-Q-022 answered, STAFF-Q-014 deferred to the integration owner; decisions STAFF-DEC-001 to STAFF-DEC-018; module spec in [docs/modules/staff/README.md](../../modules/staff/README.md). No table changed.
