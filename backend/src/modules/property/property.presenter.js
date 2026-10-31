@@ -36,6 +36,26 @@ export function presentProgress(row) {
   };
 }
 
+// A My Properties card (PROP-DEC-014). Progress shows only while the property is under construction.
+export function presentPropertyCard({ property, configurations, cover, progress }, { storage, now }) {
+  return {
+    id: property.id,
+    name: property.name,
+    propertyType: property.propertyType,
+    listingPurpose: property.listingPurpose,
+    propertyStatus: property.propertyStatus,
+    locality: property.locality,
+    city: property.city,
+    startingPrice: toNumber(property.startingPrice),
+    priceRange: priceRange(configurations),
+    totalUnits: property.totalUnits,
+    coverImage: cover ? presentFile(cover, { storage, now }) : null,
+    progressPercent:
+      property.propertyStatus === 'under_construction' && progress ? progress.overallPercent : null,
+    createdAt: iso(property.createdAt),
+  };
+}
+
 // property: loaded with features, configurations, media (images, in gallery order) and constructionProgress
 // (repository.findDetail). Progress is shown only while the property is under construction (PROP-DEC-015).
 export function presentPropertyDetail(property, { storage, now }) {

@@ -1,3 +1,5 @@
+import { Op } from 'sequelize';
+
 // Data access of the property module (PROP-SPEC-001). Every read of a property is scoped to its owner,
 // except findDetail, which the service calls only with an id it already checked.
 
@@ -10,8 +12,60 @@ const fileColumns = (upload) => ({
   sizeBytes: upload.sizeBytes,
 });
 
+// LIKE pattern for "contains text": %, _ and the escape character match themselves.
+const containsPattern = (text) => `%${text.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+
+const groupBy = (rows, key) => {
+  const groups = new Map();
+  for (const row of rows) groups.set(row[key], [...(groups.get(row[key]) ?? []), row]);
+  return groups;
+};
+
 export function createPropertyRepository(models) {
   return {
+    // My Properties (PROP-DEC-014): one page of the owner's properties, newest first, with what a card
+    // needs, in four queries whatever the page size. Returns { total, properties: [{ property,
+    // configurations, cover, progress }] }.
+    async listOwned({ ownerId, page, pageSize, search }) {
+      const where = { ownerId, ...(search && { name: { [Op.like]: containsPattern(search) } }) };
+      const { count, rows } = await models.Property.findAndCountAll({
+        where,
+        order: [
+          ['createdAt', 'DESC'],
+          ['id', 'DESC'],
+        ],
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
+      });
+      const propertyId = rows.map((row) => row.id);
+      const [configurations, images, progress] = await Promise.all([
+        models.PropertyConfiguration.findAll({
+          where: { propertyId },
+          attributes: ['propertyId', 'price', 'status'],
+        }),
+        models.PropertyMedia.findAll({
+          where: { propertyId, mediaType: 'image' },
+          order: [
+            ['sortOrder', 'ASC'],
+            ['id', 'ASC'],
+          ],
+        }),
+        models.PropertyConstructionProgress.findAll({ where: { propertyId } }),
+      ]);
+      const configurationsOf = groupBy(configurations, 'propertyId');
+      const imagesOf = groupBy(images, 'propertyId');
+      const progressOf = new Map(progress.map((row) => [row.propertyId, row]));
+      return {
+        total: count,
+        properties: rows.map((property) => ({
+          property,
+          configurations: configurationsOf.get(property.id) ?? [],
+          cover: imagesOf.get(property.id)?.[0] ?? null,
+          progress: progressOf.get(property.id) ?? null,
+        })),
+      };
+    },
+
     // The caller's property with this id, or null (also for another owner's property).
     findOwned(id, ownerId, { transaction, lock } = {}) {
       return models.Property.findOne({ where: { id, ownerId }, transaction, lock });

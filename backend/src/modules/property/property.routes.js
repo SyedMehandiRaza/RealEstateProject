@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createPropertySchema,
+  propertyListQuerySchema,
   propertyParamsSchema,
   stagedUploadFieldsSchema,
   toFieldErrors,
@@ -37,6 +38,7 @@ export function createPropertyRoutes({ repository, controller }) {
   router.use(authenticate, requireActiveDeveloper);
   router.param('id', ownedPropertyParam(repository));
 
+  router.get('/', validate({ query: propertyListQuerySchema }), controller.listProperties);
   router.post('/', validate({ body: createPropertySchema }), controller.createProperty);
   router.post(
     '/uploads',

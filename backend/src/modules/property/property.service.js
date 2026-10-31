@@ -1,7 +1,7 @@
 import { UniqueConstraintError } from 'sequelize';
 import { propertyMessages as m, WIZARD_DOCUMENT_SLOTS } from '@real-estate/shared';
 import { AppError } from '../../utils/AppError.js';
-import { presentPropertyDetail } from './property.presenter.js';
+import { presentPropertyCard, presentPropertyDetail } from './property.presenter.js';
 import { RESOURCE_TYPE_BY_MIME } from './propertyUpload.js';
 
 const MEDIA_GROUPS = { images: 'image', videos: 'video', tours: 'tour_360' };
@@ -61,6 +61,17 @@ export function createPropertyService({
         fileName,
       });
       return { upload: { uploadToken, purpose, fileName, mimeType, sizeBytes } };
+    },
+
+    // My Properties (PROP-DEC-014). Returns { data: { properties }, meta: { page, pageSize, total } }.
+    async listProperties({ ownerId, query }) {
+      const { page, pageSize, search } = query;
+      const { total, properties } = await repository.listOwned({ ownerId, page, pageSize, search });
+      const now = clock.now();
+      return {
+        data: { properties: properties.map((entry) => presentPropertyCard(entry, { storage, now })) },
+        meta: { page, pageSize, total },
+      };
     },
 
     // Add Property Submit (PROP-DEC-012): every token must be valid, unexpired, the caller's and staged for
