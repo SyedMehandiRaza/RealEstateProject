@@ -12,6 +12,7 @@ export function createStaffRoutes(controller, { requireActiveDeveloper }) {
   router.get('/', validate({ query: staffListQuerySchema }), controller.list);
   router.post('/', validate({ body: staffMemberSchema }), controller.create);
   router.get('/:id', validate({ params: idParamSchema }), controller.get);
+  router.put('/:id', validate({ params: idParamSchema, body: staffMemberSchema }), controller.update);
 
   return router;
 }

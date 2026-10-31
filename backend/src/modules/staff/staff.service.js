@@ -53,5 +53,21 @@ export function createStaffService({ sequelize, repository }) {
     async get(employerId, id) {
       return { staffMember: toStaffMember(await findOwnMember(employerId, id)) };
     },
+
+    // Edit Staff (E4): fields and the permission set in one transaction; status and assignments stay.
+    // The member is found (or 404) before the email rules, so another developer's data never shows.
+    async update(employerId, id, { permissions, ...fields }) {
+      const member = await mappingDuplicateEmail(() =>
+        sequelize.transaction(async (transaction) => {
+          const locked = await repository.lockMember(employerId, id, { transaction });
+          if (!locked) throw staffNotFound();
+          await assertNotOwnEmail(employerId, fields.email, { transaction });
+          await repository.update(locked, fields, { transaction });
+          await repository.replacePermissions(id, permissions, { transaction });
+          return repository.findDetail(employerId, id, { transaction });
+        }),
+      );
+      return { staffMember: toStaffMember(member) };
+    },
   };
 }

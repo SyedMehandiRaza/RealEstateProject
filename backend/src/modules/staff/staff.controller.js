@@ -16,5 +16,9 @@ export function createStaffController(staffService) {
     async get(req, res) {
       sendSuccess(res, await staffService.get(req.user.id, req.validated.params.id));
     },
+
+    async update(req, res) {
+      sendSuccess(res, await staffService.update(req.user.id, req.validated.params.id, req.validated.body));
+    },
   };
 }

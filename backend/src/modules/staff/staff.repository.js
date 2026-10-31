@@ -44,6 +44,24 @@ export function createStaffRepository(models) {
       return user?.email ?? null;
     },
 
+    // Locks the member row for a write, so concurrent edits of one member run in turn.
+    lockMember(employerId, id, { transaction }) {
+      return StaffMember.findOne({ where: { id, employerId }, transaction, lock: transaction.LOCK.UPDATE });
+    },
+
+    update(member, { fullName, email, phone, role }, { transaction }) {
+      return member.update({ fullName, email, phone, role }, { transaction });
+    },
+
+    // Replaces the member's permission set (STAFF-SPEC-001 E4).
+    async replacePermissions(staffMemberId, permissions, { transaction }) {
+      await StaffMemberPermission.destroy({ where: { staffMemberId }, transaction });
+      await StaffMemberPermission.bulkCreate(
+        permissions.map((permission) => ({ staffMemberId, permission })),
+        { transaction },
+      );
+    },
+
     async create({ employerId, fullName, email, phone, role, permissions }, { transaction }) {
       const member = await StaffMember.create({ employerId, fullName, email, phone, role }, { transaction });
       await StaffMemberPermission.bulkCreate(
