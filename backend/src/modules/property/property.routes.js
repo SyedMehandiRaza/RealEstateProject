@@ -1,7 +1,13 @@
 import { Router } from 'express';
-import { propertyParamsSchema, stagedUploadFieldsSchema, toFieldErrors } from '@real-estate/shared';
+import {
+  createPropertySchema,
+  propertyParamsSchema,
+  stagedUploadFieldsSchema,
+  toFieldErrors,
+} from '@real-estate/shared';
 import { authenticate } from '../../middlewares/authenticate.js';
 import { propertyUploadRateLimiter } from '../../middlewares/rateLimiter.js';
+import { validate } from '../../middlewares/validate.js';
 import { AppError } from '../../utils/AppError.js';
 import { requireActiveDeveloper } from '../auth/index.js';
 import { propertyUpload } from './propertyUpload.js';
@@ -31,6 +37,7 @@ export function createPropertyRoutes({ repository, controller }) {
   router.use(authenticate, requireActiveDeveloper);
   router.param('id', ownedPropertyParam(repository));
 
+  router.post('/', validate({ body: createPropertySchema }), controller.createProperty);
   router.post(
     '/uploads',
     propertyUploadRateLimiter,
