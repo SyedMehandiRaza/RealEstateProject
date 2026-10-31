@@ -1,6 +1,6 @@
 # STAFF-011: Build the shared developer layout (sidebar and top bar)
 
-- **Status:** ready-for-agent
+- **Status:** review (screenshot check with STAFF-012)
 - **Module:** staff
 - **Blocked by:** None (can start immediately)
 - **Cites:** STAFF-SPEC-001 §Pages, §Responsive rule; STAFF-DEC-008, STAFF-DEC-018
@@ -28,4 +28,8 @@ Every developer page gets the sidebar and top bar from Figma: the logo text, the
 
 ## Verification
 
-(filled when done)
+- Built from `get_design_context` of 13009:18179 (sidebar) and 13009:17817 (top bar); icons downloaded to `frontend/src/assets/layout/` (10 nav SVGs + bell), used unchanged as CSS masks so the active item recolours them. The Figma avatar photo is replaced by initials (STAFF-DEC-018).
+- `frontend/src/components/layout/__tests__/DeveloperLayout.test.jsx`: 11 tests (logo, 9 links in order with routes, Log out; active item on `/staff` and `/staff/:id`; initials for 3 names; bell button; menu open / Escape / focus return; backdrop close; logout calls the API, clears the session and opens Log in, also when the request fails). Written before the component; not run red first (the component file did not exist).
+- Tokens added to `tokens.css` (developer panel colours, sidebar sizes, radii, shadow); helper `frontend/src/lib/initials.js`.
+- Pending: screenshot comparison with Figma at 1440x832 and the responsive sizes, done with the first page using the layout (STAFF-012).
+- `npm run check`: shared 274, backend unit 454, backend integration 460 + 1 skipped, frontend 287; lint, format, build green.

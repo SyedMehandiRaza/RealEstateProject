@@ -1,0 +1,267 @@
+/* Developer layout (Figma 13009:18179 sidebar, 13009:17817 top bar; 1440x832 frame). Responsive rule:
+ * STAFF-SPEC-001 "Responsive rule" — at 1024 px and wider the sidebar is fixed on the left; below, it opens
+ * as an overlay from the menu button. */
+.layout {
+  min-height: 100vh;
+  background: var(--color-surface-page);
+}
+
+/* ---------------------------------------------------------------- sidebar */
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-28);
+  width: var(--size-sidebar-width);
+  padding: var(--space-16);
+  overflow-y: auto;
+  background: var(--color-white);
+  border-radius: 0 var(--radius-sidebar) var(--radius-sidebar) 0;
+  box-shadow: var(--shadow-sidebar);
+}
+
+.logo {
+  display: flex;
+  align-items: flex-end;
+  height: var(--space-40);
+  margin: 0;
+  color: var(--color-text-logo);
+  font-size: var(--font-size-20);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}
+
+.nav {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-9);
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-9);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navItem {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  width: 100%;
+  padding: var(--space-12) var(--space-16);
+  color: var(--color-text-nav);
+  font: inherit;
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  white-space: nowrap;
+  text-align: left;
+  text-decoration: none;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.navItem:hover {
+  color: var(--color-primary-500);
+}
+
+.navItem:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+.navItemActive {
+  color: var(--color-primary-500);
+  background: var(--color-primary-500-a10);
+  border-color: var(--color-primary-500);
+}
+
+.icon {
+  flex: none;
+  width: var(--size-icon-lg);
+  height: var(--size-icon-lg);
+  background: currentColor;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+/* The Log out glyph is drawn red in Figma whatever the item colour. */
+.nav > button .icon {
+  background: var(--color-accents-red);
+}
+
+/* ------------------------------------------------------------------ main */
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 26px; /* top bar bottom (78) to banner top (104) */
+  min-width: 0;
+  margin-left: var(--size-sidebar-width);
+  padding: var(--space-30) var(--space-28) var(--space-30) var(--space-29);
+}
+
+.topBar {
+  display: flex;
+  gap: var(--space-16);
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--size-topbar-control);
+}
+
+.titleRow {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text-heading);
+  font-size: var(--font-size-20);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  gap: var(--space-40);
+  align-items: center;
+}
+
+.bell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-topbar-control);
+  height: var(--size-topbar-control);
+  padding: 0;
+  background: var(--color-surface-bell);
+  border: none;
+  border-radius: var(--radius-panel);
+  cursor: pointer;
+}
+
+.bellIcon {
+  width: 24.3725px;
+  height: 26.875px;
+}
+
+.avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-topbar-control);
+  height: var(--size-topbar-control);
+  color: var(--color-primary-500);
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-semibold);
+  background: var(--color-primary-500-a10);
+  border-radius: 50%;
+}
+
+.content {
+  min-width: 0;
+}
+
+.menuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-topbar-control);
+  height: var(--size-topbar-control);
+  padding: 0;
+  background: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.menuBars,
+.menuBars::before,
+.menuBars::after {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--color-text-heading);
+  border-radius: 1px;
+}
+
+.menuBars {
+  position: relative;
+}
+
+.menuBars::before,
+.menuBars::after {
+  position: absolute;
+  left: 0;
+  content: '';
+}
+
+.menuBars::before {
+  top: -6px;
+}
+
+.menuBars::after {
+  top: 6px;
+}
+
+.backdrop {
+  display: none;
+}
+
+/* ------------------------------------------------- below 1024 px: overlay */
+@media (max-width: 1023.98px) {
+  .sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform 0.2s ease,
+      visibility 0.2s;
+  }
+
+  .sidebarOpen {
+    transform: none;
+    visibility: visible;
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: block;
+    background: var(--color-backdrop);
+  }
+
+  .main {
+    margin-left: 0;
+    padding: var(--space-16);
+  }
+
+  .menuButton {
+    display: flex;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .actions {
+    gap: var(--space-12);
+  }
+
+  .title {
+    font-size: var(--font-size-16);
+  }
+}
