@@ -10,7 +10,13 @@ import statusIcon from '../../../../assets/staff/status-time.svg';
 import Modal from '../../../../components/ui/Modal.jsx';
 import Select from '../../../../components/ui/Select.jsx';
 import { initials } from '../../../../lib/initials.js';
-import { apiErrorMessage, useChangeStaffStatusMutation, useGetStaffQuery } from '../../api/staffApi.js';
+import {
+  apiErrorMessage,
+  useChangeStaffStatusMutation,
+  useGetStaffQuery,
+  useUnassignPropertyMutation,
+} from '../../api/staffApi.js';
+import AssignPropertyModal from '../../components/AssignPropertyModal.jsx';
 import PropertyCard from '../../components/PropertyCard.jsx';
 import RemoveStaffModal from '../../components/RemoveStaffModal.jsx';
 import { STAFF_PATHS } from '../../routes.jsx';
@@ -20,15 +26,18 @@ const { labels } = staffMessages;
 const STATUS_OPTIONS = STAFF_STATUSES.map((status) => ({ value: status, label: labels.statuses[status] }));
 
 // Staff Detail (/staff/:id, Figma 13009:18226, 833 x 593). The status dropdown saves at once (STAFF-DEC-014);
-// Remove Staff asks first (STAFF-DEC-013).
+// Remove Staff asks first (STAFF-DEC-013); Assign Property opens the picker and Unassign acts at once
+// (STAFF-DEC-015).
 export default function StaffDetailModal() {
   const id = Number(useParams().id);
   const navigate = useNavigate();
   const toList = () => navigate(STAFF_PATHS.list);
   const { data: member, error, isError } = useGetStaffQuery(id);
   const [changeStatus, { isLoading: savingStatus }] = useChangeStaffStatusMutation();
-  const [statusError, setStatusError] = useState(null);
+  const [unassignProperty] = useUnassignPropertyMutation();
+  const [actionError, setActionError] = useState(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   if (isError) {
     return (
@@ -49,11 +58,20 @@ export default function StaffDetailModal() {
 
   async function onStatusChange(status) {
     if (status === member.status) return;
-    setStatusError(null);
+    setActionError(null);
     try {
       await changeStatus({ id, status }).unwrap();
     } catch (failure) {
-      setStatusError(apiErrorMessage(failure, staffMessages.ui.loadFailed));
+      setActionError(apiErrorMessage(failure, staffMessages.ui.loadFailed));
+    }
+  }
+
+  async function onUnassign(propertyId) {
+    setActionError(null);
+    try {
+      await unassignProperty({ id, propertyId }).unwrap();
+    } catch (failure) {
+      setActionError(apiErrorMessage(failure, staffMessages.ui.loadFailed));
     }
   }
 
@@ -107,9 +125,9 @@ export default function StaffDetailModal() {
             </div>
           </div>
 
-          {statusError && (
+          {actionError && (
             <p role="alert" className={styles.alert}>
-              {statusError}
+              {actionError}
             </p>
           )}
 
@@ -172,16 +190,38 @@ export default function StaffDetailModal() {
                   <ul className={styles.propertyList} aria-labelledby="staff-properties-title">
                     {member.assignedProperties.map((property) => (
                       <li key={property.id}>
-                        <PropertyCard property={property} />
+                        <PropertyCard
+                          property={property}
+                          actions={
+                            <button
+                              type="button"
+                              className={styles.unassign}
+                              aria-label={`Unassign ${property.name}`}
+                              onClick={() => onUnassign(property.id)}
+                            >
+                              Unassign
+                            </button>
+                          }
+                        />
                       </li>
                     ))}
                   </ul>
                 )}
+                <button type="button" className={styles.assign} onClick={() => setPicking(true)}>
+                  Assign Property
+                </button>
               </section>
             </div>
           </div>
         </div>
       </Modal>
+      {picking && (
+        <AssignPropertyModal
+          staffMemberId={id}
+          hasAssigned={member.assignedProperties.length > 0}
+          onClose={() => setPicking(false)}
+        />
+      )}
       {confirmRemove && (
         <RemoveStaffModal member={member} onCancel={() => setConfirmRemove(false)} onRemoved={toList} />
       )}

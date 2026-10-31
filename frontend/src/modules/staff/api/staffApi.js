@@ -37,6 +37,30 @@ export const staffApi = baseApi.enhanceEndpoints({ addTagTypes: ['Staff'] }).inj
       onQueryStarted: (args, api) => replaceCachedMember(args.id, api),
       invalidatesTags: [{ type: 'Staff', id: 'LIST' }],
     }),
+    // E7. Refetched after every assign / unassign of this member.
+    listAssignableProperties: build.query({
+      query: (id) => `/staff/${id}/assignable-properties`,
+      transformResponse: (response) => response.data.properties,
+      providesTags: (result, error, id) => [{ type: 'Staff', id: `assignable-${id}` }],
+    }),
+    // E8. Also refetches the picker on a 404 / 409, so it never offers a property that is gone or taken.
+    assignProperty: build.mutation({
+      query: ({ id, propertyId }) => ({
+        url: `/staff/${id}/properties`,
+        method: 'POST',
+        body: { propertyId },
+      }),
+      transformResponse: (response) => response.data.staffMember,
+      onQueryStarted: (args, api) => replaceCachedMember(args.id, api),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Staff', id: `assignable-${id}` }],
+    }),
+    // E9.
+    unassignProperty: build.mutation({
+      query: ({ id, propertyId }) => ({ url: `/staff/${id}/properties/${propertyId}`, method: 'DELETE' }),
+      transformResponse: (response) => response.data.staffMember,
+      onQueryStarted: (args, api) => replaceCachedMember(args.id, api),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Staff', id: `assignable-${id}` }],
+    }),
     // E6. Also invalidates on 404 (already removed), so the list drops the member either way.
     removeStaff: build.mutation({
       query: (id) => ({ url: `/staff/${id}`, method: 'DELETE' }),
@@ -62,6 +86,9 @@ export const {
   useUpdateStaffMutation,
   useChangeStaffStatusMutation,
   useRemoveStaffMutation,
+  useListAssignablePropertiesQuery,
+  useAssignPropertyMutation,
+  useUnassignPropertyMutation,
 } = staffApi;
 
 // The API's message for a failed request, or the shared load-failed text when there is none (network).

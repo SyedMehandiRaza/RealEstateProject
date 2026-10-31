@@ -1,0 +1,194 @@
+/* Not in Figma: the Add Staff modal frame (30 px padding, 24 px radius, title row then 27 px) with a list
+ * of compact property rows in the Assigned Property card's style. */
+.modal {
+  gap: 27px;
+  padding: var(--space-30);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+  margin: 0;
+  /* Room for the focus outline inside the scrolling body. */
+  padding: 3px;
+  border: none;
+}
+
+.legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.option {
+  display: flex;
+  gap: var(--space-14);
+  align-items: center;
+  padding: var(--space-12) var(--space-15);
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--space-12);
+  cursor: pointer;
+}
+
+.option[data-checked] {
+  background: var(--color-primary-500-a05);
+  border-color: var(--color-primary-500);
+}
+
+.option:focus-within {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+.radio {
+  flex: none;
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
+  margin: 0;
+  accent-color: var(--color-primary-500);
+}
+
+.cover {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: var(--color-primary-500-a10);
+  border-radius: 13px;
+}
+
+.titles {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  line-height: var(--line-height-normal);
+}
+
+.name {
+  overflow: hidden;
+  color: var(--color-text-option);
+  font-size: var(--font-size-15);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.location {
+  color: var(--color-text-body);
+  font-size: var(--font-size-10);
+}
+
+.badge {
+  flex: none;
+  padding: var(--space-6) var(--space-8);
+  font-size: var(--font-size-9);
+  border-radius: var(--radius-sm);
+}
+
+.badge[data-status='ready_to_move'] {
+  color: var(--color-badge-ready-text);
+  background: var(--color-badge-ready-bg);
+}
+
+.badge[data-status='under_construction'] {
+  color: var(--color-badge-construction-text);
+  background: var(--color-status-pending-bg);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-24) 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-14);
+  text-align: center;
+}
+
+.skeleton {
+  height: 156px;
+  background: var(--color-divider-row);
+  border-radius: var(--space-12);
+}
+
+.alert,
+.error {
+  margin: 0;
+  color: var(--color-error-500);
+  font-size: var(--font-size-12);
+}
+
+.alert {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.alert p {
+  margin: 0;
+}
+
+.retry {
+  padding: var(--space-8) var(--space-16);
+  color: var(--color-white);
+  font: inherit;
+  background: var(--color-primary-500);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-10);
+  justify-content: flex-end;
+}
+
+.cancel,
+.assign {
+  height: var(--size-control-height);
+  padding: 0 25px;
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.cancel {
+  width: 128px;
+  color: var(--color-text-cancel);
+  font-size: var(--font-size-14);
+  background: var(--color-white);
+  border: 1px solid var(--color-border-input);
+}
+
+.assign {
+  color: var(--color-white);
+  font-size: var(--font-size-16);
+  background: var(--color-primary-500);
+  border: none;
+}
+
+.assign:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel:focus-visible,
+.assign:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}

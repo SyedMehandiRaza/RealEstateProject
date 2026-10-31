@@ -293,6 +293,38 @@
   list-style: none;
 }
 
+/* Assign Property (13009:18348): full width, 48 px, primary border and 12 px semibold text. */
+.assign {
+  width: 100%;
+  height: var(--size-topbar-control);
+  padding: 0 var(--space-16);
+  color: var(--color-primary-500);
+  font: inherit;
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-semibold);
+  background: none;
+  border: 1px solid var(--color-primary-500);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+/* Not in Figma (STAFF-DEC-015): a quiet text button next to View Property. */
+.unassign {
+  padding: 0;
+  color: var(--color-accents-red);
+  font: inherit;
+  font-size: var(--font-size-12);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.assign:focus-visible,
+.unassign:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
 .empty {
   margin: 0;
   color: var(--color-text-muted);
