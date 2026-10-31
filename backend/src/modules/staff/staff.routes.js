@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { staffListQuerySchema } from '@real-estate/shared';
+import { staffListQuerySchema, staffMemberSchema } from '@real-estate/shared';
 import { authenticate } from '../../middlewares/authenticate.js';
 import { validate } from '../../middlewares/validate.js';
 
@@ -10,6 +10,7 @@ export function createStaffRoutes(controller, { requireActiveDeveloper }) {
   router.use(authenticate, requireActiveDeveloper);
 
   router.get('/', validate({ query: staffListQuerySchema }), controller.list);
+  router.post('/', validate({ body: staffMemberSchema }), controller.create);
 
   return router;
 }

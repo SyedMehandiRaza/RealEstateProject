@@ -8,5 +8,9 @@ export function createStaffController(staffService) {
       const { staffMembers, total } = await staffService.list(req.user.id, { page, pageSize });
       sendSuccess(res, staffMembers, { meta: paginationMeta({ page, pageSize, total }) });
     },
+
+    async create(req, res) {
+      sendSuccess(res, await staffService.create(req.user.id, req.validated.body), { status: 201 });
+    },
   };
 }
