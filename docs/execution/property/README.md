@@ -12,7 +12,6 @@ Prefix `PROP`. Branch `feature/property`. Spec: [PROP-SPEC-001](specs/PROP-SPEC-
 | ID                                                               | Question                                                 | Blocks                                                      |
 | ---------------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------- |
 | [PROP-Q-022](questions/PROP-Q-022-staff-access-to-properties.md) | How do staff members act on their employer's properties? | nothing in PROP-SPEC-001 (staff access is out of its scope) |
-| [PROP-Q-033](questions/PROP-Q-033-property-country-list.md)      | Which countries can a property be in?                    | nothing (assumption in force, reversible)                   |
 
 ## Answered questions
 
@@ -51,6 +50,7 @@ PROP-Q-001 to PROP-Q-016 were answered provisionally on 2026-10-31 and confirmed
 | [PROP-Q-030](questions/PROP-Q-030-updates-and-progress-rules.md)      | How are construction updates listed and removed, and how is progress saved?                       | [PROP-DEC-021](decisions/PROP-DEC-021-updates-and-progress-rules.md)            |
 | [PROP-Q-031](questions/PROP-Q-031-detail-page-derived-and-hidden.md)  | What does Property Detail derive, and what does it hide?                                          | [PROP-DEC-022](decisions/PROP-DEC-022-detail-page-derived-and-hidden.md)        |
 | [PROP-Q-032](questions/PROP-Q-032-wizard-behaviour.md)                | How do the Add Property wizard steps validate, keep data and submit?                              | [PROP-DEC-023](decisions/PROP-DEC-023-wizard-behaviour.md)                      |
+| [PROP-Q-033](questions/PROP-Q-033-property-country-list.md)           | Which countries can a property be in?                                                             |                                                                                 |
 
 ## Decisions
 

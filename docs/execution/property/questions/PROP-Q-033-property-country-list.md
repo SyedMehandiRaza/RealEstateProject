@@ -1,7 +1,7 @@
 # PROP-Q-033: Which countries can a property be in?
 
-- **Status:** assumed (2026-10-31)
-- **Blocks:** nothing (assumption in force, reversible)
+- **Status:** answered (2026-10-31)
+- **Blocks:** nothing
 - **Asked by:** /to-spec for PROP-SPEC-001, 2026-10-31
 
 ## Context
@@ -16,4 +16,6 @@ PROP-DEC-004 stores `country_code` as ISO 3166-1 alpha-2 and the Country field o
 
 ## Answer
 
-Assumed option 1 on 2026-10-31 so the contract can be written; reversible without a migration. To confirm with the user at the Phase 2 stop.
+User, 2026-10-31: "ok keep as you want for now. For all of my project I will be needing country, city and all in tables." Option 1 stays for now (AE, GB, IN, SG, US; state and city free text).
+
+Later, for the whole project (not only property): countries, states and cities become lookup tables. That is a cross-module change (auth's `users.preferred_country_code`, `properties.country_code` / `state` / `city`, and any later module), so it belongs to the integration owner as a project decision in `docs/DECISIONS.md` with its own migration and data backfill; it is not built in PROP-SPEC-001. Until then, property keeps the ISO code and the text columns so the move is a plain data migration (match the text to the new rows, then add the FK).
