@@ -2,11 +2,9 @@ import express from 'express';
 import request from 'supertest';
 import { commonMessages, ERROR_CODES } from '@real-estate/shared';
 import { errorHandler } from '../../../middlewares/errorHandler.js';
-import models from '../../../models/index.js';
 import { createProperty, developerSession } from '../../../test/propertyFactories.js';
 import { createTestApp } from '../../../test/testApp.js';
-import { createPropertyRepository } from '../property.repository.js';
-import { createPropertyRoutes } from '../property.routes.js';
+import { createPropertyRouter } from '../index.js';
 
 // Access to /api/properties (PROP-006, PROP-DEC-011): authenticate → requireActiveDeveloper on every route,
 // and every :id route answers 404 unless the caller owns the property.
@@ -48,19 +46,20 @@ describe('/api/properties access', () => {
   });
 });
 
-// The :id guard, through a probe router built like the module's (the module has no :id route yet).
+// The :id guard, through probe routes added to the module's router (unique paths, so real routes never
+// shadow them).
 describe('owned property guard', () => {
   let app;
   let bodyRead;
   beforeEach(() => {
-    const { app: realApp } = createTestApp();
+    const { app: realApp, storage, clock } = createTestApp();
     bodyRead = jest.fn();
     // Routes added after creation get the same guards (router.use and router.param apply to them).
-    const probe = createPropertyRoutes({ repository: createPropertyRepository(models) });
-    probe.get('/:id', (req, res) => res.json({ id: req.property.id }));
+    const probe = createPropertyRouter({ storage, clock });
+    probe.get('/:id/__probe', (req, res) => res.json({ id: req.property.id }));
     // Stands in for a multipart route: the body parser must not run for a refused request.
     probe.post(
-      '/:id/files',
+      '/:id/__probe-files',
       (_req, _res, next) => {
         bodyRead();
         next();
@@ -77,7 +76,7 @@ describe('owned property guard', () => {
     const { account, token } = await sessionIn('active');
     const property = await createProperty(account.id);
     const res = await request(app)
-      .get(`/api/properties/${property.id}`)
+      .get(`/api/properties/${property.id}/__probe`)
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ id: property.id });
@@ -89,10 +88,10 @@ describe('owned property guard', () => {
     const property = await createProperty(owner.account.id);
 
     const foreign = await request(app)
-      .get(`/api/properties/${property.id}`)
+      .get(`/api/properties/${property.id}/__probe`)
       .set('Authorization', `Bearer ${other.token}`);
     const missing = await request(app)
-      .get(`/api/properties/${property.id + 1000}`)
+      .get(`/api/properties/${property.id + 1000}/__probe`)
       .set('Authorization', `Bearer ${other.token}`);
 
     expect(foreign.status).toBe(404);
@@ -105,7 +104,9 @@ describe('owned property guard', () => {
 
   it.each(['abc', '0', '-3', '1.5'])('refuses the id %s with 422 on id', async (id) => {
     const { token } = await sessionIn('active');
-    const res = await request(app).get(`/api/properties/${id}`).set('Authorization', `Bearer ${token}`);
+    const res = await request(app)
+      .get(`/api/properties/${id}/__probe`)
+      .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: 'VALIDATION_ERROR',
@@ -120,7 +121,7 @@ describe('owned property guard', () => {
     const property = await createProperty(owner.account.id);
     const post = (token) =>
       request(app)
-        .post(`/api/properties/${property.id}/files`)
+        .post(`/api/properties/${property.id}/__probe-files`)
         .set('Authorization', `Bearer ${token}`)
         .attach('file', Buffer.from('%PDF-1.4'), 'a.pdf');
 

@@ -71,3 +71,13 @@ export function oneRequestAtATime() {
 export function resetRateLimiters() {
   return Promise.all(stores.map((store) => store.resetAll()));
 }
+
+// Property file uploads (PROP-SPEC-001, assumption confirmed by the user): every route that stores a property
+// file counts, per signed-in Account (use after authenticate). Each request buffers up to one 40 MB video.
+export const PROPERTY_UPLOAD_RATE_LIMIT = 200;
+export const PROPERTY_UPLOAD_RATE_WINDOW_MS = 60 * 60 * 1000;
+export const propertyUploadRateLimiter = createLimiter({
+  windowMs: PROPERTY_UPLOAD_RATE_WINDOW_MS,
+  limit: PROPERTY_UPLOAD_RATE_LIMIT,
+  keyGenerator: (req) => `user:${req.user.id}`,
+});

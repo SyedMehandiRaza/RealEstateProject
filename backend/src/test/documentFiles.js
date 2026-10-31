@@ -6,6 +6,8 @@ const SIGNATURES = {
   'image/png': Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
   'image/jpeg': Buffer.from([0xff, 0xd8, 0xff, 0xe0]),
   'image/gif': Buffer.from('GIF89a'),
+  // ISO base media: a box size, then "ftyp" and a brand (property videos, PROP-007).
+  'video/mp4': Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32]),
 };
 
 // The bytes of a file of `type` (its signature, then zeros) of `size` bytes. size 0 gives an empty file.
