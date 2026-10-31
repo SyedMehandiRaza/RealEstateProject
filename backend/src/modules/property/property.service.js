@@ -63,6 +63,11 @@ export function createPropertyService({
       return { upload: { uploadToken, purpose, fileName, mimeType, sizeBytes } };
     },
 
+    // Property Detail header (PROP-DEC-022). `property` is the caller's, loaded by the :id guard.
+    async getProperty(property) {
+      return { property: await detail(property.id) };
+    },
+
     // My Properties (PROP-DEC-014). Returns { data: { properties }, meta: { page, pageSize, total } }.
     async listProperties({ ownerId, query }) {
       const { page, pageSize, search } = query;

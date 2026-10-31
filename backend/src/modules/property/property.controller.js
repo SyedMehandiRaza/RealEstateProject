@@ -11,6 +11,10 @@ export function createPropertyController(service) {
       sendSuccess(res, data, { meta });
     },
 
+    async getProperty(req, res) {
+      sendSuccess(res, await service.getProperty(req.property));
+    },
+
     async createProperty(req, res) {
       sendSuccess(res, await service.createProperty({ ownerId: req.user.id, body: req.validated.body }), {
         status: 201,

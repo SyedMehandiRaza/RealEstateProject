@@ -46,5 +46,6 @@ export function createPropertyRoutes({ repository, controller }) {
     propertyUpload({ fieldsSchema: stagedUploadFieldsSchema, purposeOf: (fields) => fields.purpose }),
     controller.stageUpload,
   );
+  router.get('/:id', controller.getProperty);
   return router;
 }

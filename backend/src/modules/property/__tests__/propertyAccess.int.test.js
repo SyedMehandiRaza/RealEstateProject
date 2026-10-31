@@ -19,10 +19,10 @@ describe('/api/properties access', () => {
     ({ app } = createTestApp());
   });
 
-  it('is mounted: an Active Developer passes the guards (no route yet answers 404)', async () => {
+  it('is mounted: an Active Developer passes the guards (an unknown path answers 404)', async () => {
     const { token } = await developerSession(app);
     const res = await request(app)
-      .get('/api/properties/nothing-here')
+      .get('/api/properties/1/no-such-route')
       .set('Authorization', `Bearer ${token}`);
     expect(errorOf(res)).toEqual({ status: 404, code: 'NOT_FOUND' });
   });
