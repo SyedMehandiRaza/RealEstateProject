@@ -32,5 +32,9 @@ export function createStaffController(staffService) {
       await staffService.remove(req.user.id, req.validated.params.id);
       res.status(204).end();
     },
+
+    async assignableProperties(req, res) {
+      sendSuccess(res, await staffService.assignableProperties(req.user.id, req.validated.params.id));
+    },
   };
 }

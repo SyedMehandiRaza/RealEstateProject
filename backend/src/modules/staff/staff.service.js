@@ -1,7 +1,7 @@
 import { staffMessages } from '@real-estate/shared';
 import { UniqueConstraintError } from 'sequelize';
 import { AppError } from '../../utils/AppError.js';
-import { toStaffMember, toStaffMemberSummary } from './staff.presenter.js';
+import { toPropertyCard, toStaffMember, toStaffMemberSummary } from './staff.presenter.js';
 
 const emailConflict = (message) => new AppError('CONFLICT', { fields: { email: [message] } });
 // Unknown and other developers' staff members look the same: 404, never 403 (STAFF-SPEC-001 §Access).
@@ -84,6 +84,13 @@ export function createStaffService({ sequelize, repository }) {
     // Remove (E6). Already removed, unknown or another developer's: 404.
     async remove(employerId, id) {
       if ((await repository.remove(employerId, id)) === 0) throw staffNotFound();
+    },
+
+    // Assign Property picker (E7).
+    async assignableProperties(employerId, id) {
+      if (!(await repository.memberExists(employerId, id))) throw staffNotFound();
+      const properties = await repository.assignableProperties(employerId, id);
+      return { properties: properties.map((property) => toPropertyCard(property)) };
     },
   };
 }

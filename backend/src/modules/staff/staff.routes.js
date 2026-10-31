@@ -24,6 +24,11 @@ export function createStaffRoutes(controller, { requireActiveDeveloper }) {
     controller.changeStatus,
   );
   router.delete('/:id', validate({ params: idParamSchema }), controller.remove);
+  router.get(
+    '/:id/assignable-properties',
+    validate({ params: idParamSchema }),
+    controller.assignableProperties,
+  );
 
   return router;
 }

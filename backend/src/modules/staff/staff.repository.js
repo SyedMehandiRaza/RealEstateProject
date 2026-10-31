@@ -1,3 +1,5 @@
+import { Op } from 'sequelize';
+
 // Staff queries. Every query is scoped to the employer, so another developer's staff are never read.
 export function createStaffRepository(models) {
   const { Property, StaffMember, StaffMemberPermission, StaffPropertyAssignment, User } = models;
@@ -60,6 +62,27 @@ export function createStaffRepository(models) {
         permissions.map((permission) => ({ staffMemberId, permission })),
         { transaction },
       );
+    },
+
+    async memberExists(employerId, id, { transaction } = {}) {
+      return (await StaffMember.count({ where: { id, employerId }, transaction })) > 0;
+    },
+
+    // The employer's properties not yet assigned to this member, for the Assign Property picker (E7).
+    // Read-only on the property tables (STAFF-DEC-009).
+    async assignableProperties(employerId, staffMemberId) {
+      const assigned = await StaffPropertyAssignment.findAll({
+        where: { staffMemberId },
+        attributes: ['propertyId'],
+      });
+      return Property.findAll({
+        where: { ownerId: employerId, id: { [Op.notIn]: assigned.map((a) => a.propertyId) } },
+        attributes: ['id', 'name', 'city', 'state', 'propertyStatus'],
+        order: [
+          ['name', 'ASC'],
+          ['id', 'ASC'],
+        ],
+      });
     },
 
     // Hard delete (STAFF-DEC-003): permissions and assignments go with it by FK CASCADE. Returns the count.
