@@ -1,6 +1,6 @@
 # PROP-DEC-003: The property module owns only the listing tables
 
-- **Status:** accepted (user, 2026-10-31, recommended option, provisional: user will review)
+- **Status:** accepted (user, 2026-10-31, recommended option, confirmed final by the user in the grill, 2026-10-31)
 - **Answers:** PROP-Q-003
 - **Tickets:** none yet
 

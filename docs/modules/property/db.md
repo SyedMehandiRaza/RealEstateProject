@@ -2,15 +2,15 @@
 
 Produced by `/db-design`, checked with `/db-design-review` on 2026-10-31 (second review after the answers, same day). Global view: `docs/database/SCHEMA.md`.
 
-Status: **DRAFT**, not migrated on any database. Migration: `backend/src/migrations/20261030212741-create-property-tables.cjs` (one file with every property table, so the property and staff branches can work in parallel). Models: `backend/src/models/property*.model.js`; enums `shared/src/enums/property.enums.js`; limits `LIMITS.property` in `shared/src/limits.js`.
+Status: **agreed** (grill, 2026-10-31); migrated on the property folder databases (`real_estate_property`, `real_estate_property_test`) on 2026-10-31. Migration: `backend/src/migrations/20261030212741-create-property-tables.cjs` (one file with every property table, so the property and staff branches can work in parallel). Models: `backend/src/models/property*.model.js`; enums `shared/src/enums/property.enums.js`; limits `LIMITS.property` in `shared/src/limits.js`.
 
-Questions PROP-Q-001 to PROP-Q-016 in [docs/execution/property/questions/](../../execution/property/questions/) were answered on 2026-10-31 with their recommended option, **provisionally**: the user will review each one. Every item marked **provisional (Q-ID)** below follows that answer and is reversible. Decisions: PROP-DEC-001 to PROP-DEC-010 in [docs/execution/property/decisions/](../../execution/property/decisions/). Open: PROP-Q-017 (update image formats).
+Questions PROP-Q-001 to PROP-Q-032 are answered and their decisions (PROP-DEC-001 to PROP-DEC-023, [docs/execution/property/decisions/](../../execution/property/decisions/)) are final (grill with the user, 2026-10-31). Items marked with a question id below follow that answer. Open: PROP-Q-022 (staff access, for the staff module; no table change here).
 
 Figma: file `iREXbZTABmZigGHBpTpOnz`, page "Property mangement module" (node `13009:7144`). Frame ids below are on that page; see [figma.md](figma.md).
 
 ## Scope
 
-The property module owns the listing itself: the property, its configurations (unit types) and floor plans, media, documents, features, construction progress and updates, and bookable amenities with their price plans. The Property Detail tabs CRM, Payment, Buyers, Marketing and Facility, and the stat cards, show other modules' data and have **no table here** (provisional, PROP-Q-003); see "Figma items not mapped to a table".
+The property module owns the listing itself: the property, its configurations (unit types) and floor plans, media, documents, features, construction progress and updates, and bookable amenities with their price plans. The Property Detail tabs CRM, Payment, Buyers, Marketing and Facility, and the stat cards, show other modules' data and have **no table here** (PROP-Q-003); see "Figma items not mapped to a table".
 
 ## ERD
 
@@ -90,7 +90,7 @@ Foreign keys (all `ON UPDATE RESTRICT`):
 | FK                                                              | From                                                           | To                           | ON DELETE                                                   |
 | --------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------- |
 | `fk_properties_users`                                           | `properties.owner_id`                                          | `users.id` (auth)            | RESTRICT (PROP-DEC-001: an owner account cannot be deleted) |
-| `fk_property_configurations_properties`                         | `property_configurations.property_id`                          | `properties.id`              | CASCADE (provisional, PROP-Q-002)                           |
+| `fk_property_configurations_properties`                         | `property_configurations.property_id`                          | `properties.id`              | CASCADE (PROP-Q-002)                                        |
 | `fk_property_configuration_floor_plans_property_configurations` | `property_configuration_floor_plans.property_configuration_id` | `property_configurations.id` | CASCADE                                                     |
 | `fk_property_media_properties`                                  | `property_media.property_id`                                   | `properties.id`              | CASCADE                                                     |
 | `fk_property_documents_properties`                              | `property_documents.property_id`                               | `properties.id`              | CASCADE                                                     |
@@ -111,7 +111,7 @@ CASCADE deletes rows only. Before deleting a property, configuration, update, me
 - `id INT UNSIGNED AUTO_INCREMENT` PK; `created_at`, `updated_at` `DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP` (UTC, set by Sequelize); InnoDB, `utf8mb4` / `utf8mb4_unicode_ci`.
 - Files follow DEC-016/DEC-018: `cloudinary_public_id VARCHAR(255) utf8mb4_bin` (unique), `cloudinary_resource_type`, `original_filename VARCHAR(255)`, `mime_type` ENUM, `size_bytes INT UNSIGNED`. No URL is stored; the backend signs delivery URLs. "File columns" below means these five.
 - Required text has a CHECK `TRIM(col) <> ''` so a blank value cannot slip past the API.
-- No soft delete (provisional, PROP-Q-002).
+- No soft delete (PROP-Q-002).
 
 ## Tables
 
@@ -119,34 +119,34 @@ CASCADE deletes rows only. Before deleting a property, configuration, update, me
 
 Frames: add Property step 1 Basic Information (`13009:10644`), step 2 Property Details (`13009:10825`), step 6 Review & Submit (`13009:11344`); My Property cards (`13009:7145`); Property Detail header, Overview and Address (`13009:7369`); dropdowns Property Type (`13009:12418`), Listing purpose (`13009:12390`), Listing Category (`13009:12396`).
 
-| Column           | Type                                                                     | Null | Default | Constraint                                 | Zod rule (shared, proposed)                        | Figma / notes                                                        |
-| ---------------- | ------------------------------------------------------------------------ | ---- | ------- | ------------------------------------------ | -------------------------------------------------- | -------------------------------------------------------------------- |
-| id               | INT UNSIGNED                                                             | no   | auto    | PK                                         | –                                                  |                                                                      |
-| owner_id         | INT UNSIGNED                                                             | no   |         | FK `users.id` RESTRICT                     | – (from the session)                               | "My Properties" of the signed-in Developer. provisional (PROP-Q-001) |
-| name             | VARCHAR(150)                                                             | no   |         | `chk_properties_name`                      | string, trim, min 1, max 150                       | "Property Name"                                                      |
-| property_type    | ENUM(apartment, villa, studio, farmland, townhouse, plot, shops, duplex) | no   |         |                                            | `z.enum(PROPERTY_TYPES)`                           | "Property Type" dropdown (8 values)                                  |
-| listing_purpose  | ENUM(sale, rent)                                                         | no   |         |                                            | `z.enum(LISTING_PURPOSES)`                         | "Listing Purpose": For Sale / For Rent                               |
-| listing_category | ENUM(single_property, project)                                           | no   |         |                                            | `z.enum(LISTING_CATEGORIES)`                       | "Listing Category": Single Property / Project                        |
-| property_status  | ENUM(ready_to_move, under_construction)                                  | no   |         |                                            | `z.enum(PROPERTY_STATUSES)`                        | "Property Status"; list provisional (PROP-Q-004)                     |
-| country_code     | CHAR(2)                                                                  | no   |         | `chk_properties_country_code` `^[A-Z]{2}$` | ISO 3166-1 alpha-2, upper case                     | "Country" (DEC-012 format). provisional (PROP-Q-005)                 |
-| state            | VARCHAR(100)                                                             | no   |         |                                            | string, trim, min 1, max 100                       | "State" / "State/county". text provisional (PROP-Q-005)              |
-| city             | VARCHAR(100)                                                             | no   |         |                                            | string, trim, min 1, max 100                       | "City". text provisional (PROP-Q-005)                                |
-| locality         | VARCHAR(150)                                                             | no   |         |                                            | string, trim, min 1, max 150                       | "Locality / Area"; card subtitle "Arera Colony, Bhopal"              |
-| postal_code      | VARCHAR(10)                                                              | no   |         | `chk_properties_postal_code`               | regex `^[A-Za-z0-9][A-Za-z0-9 -]{1,8}[A-Za-z0-9]$` | "Pin / Postal code" (3 to 10 chars, letters, digits, space, hyphen)  |
-| address          | VARCHAR(255)                                                             | no   |         |                                            | string, trim, min 1, max 255                       | "Address" (Enter Full Address)                                       |
-| latitude         | DECIMAL(8,6)                                                             | no   |         | `chk_properties_coordinates` (-90..90)     | number, -90..90, 6 decimals                        | "Pin Location on Map"; required provisional (PROP-Q-014)             |
-| longitude        | DECIMAL(9,6)                                                             | no   |         | `chk_properties_coordinates` (-180..180)   | number, -180..180, 6 decimals                      | same                                                                 |
-| total_area       | DECIMAL(12,2)                                                            | no   |         | `chk_properties_total_area` > 0            | number > 0, 2 decimals                             | "Total Area" ("3 Acres")                                             |
-| total_area_unit  | ENUM(sq_ft, acre)                                                        | no   |         |                                            | `z.enum(AREA_UNITS)`                               | provisional (PROP-Q-006); needs a unit dropdown in the form          |
-| total_units      | INT UNSIGNED                                                             | no   |         | `chk_properties_counts` >= 1               | int >= 1                                           | "Total Units"                                                        |
-| tower_count      | SMALLINT UNSIGNED                                                        | no   |         | `chk_properties_counts` >= 1               | int >= 1, max 65535                                | "No. of Towers / Blocks"                                             |
-| floor_count      | SMALLINT UNSIGNED                                                        | no   |         | `chk_properties_counts` >= 1               | int >= 1, max 65535                                | "No. of Floors"                                                      |
-| starting_price   | DECIMAL(12,2)                                                            | no   |         | `chk_properties_starting_price` > 0        | number > 0, 2 decimals, max 9999999999.99          | "Starting Price"; one currency provisional (PROP-Q-007)              |
-| year_built       | SMALLINT UNSIGNED                                                        | no   |         | `chk_properties_year_built` 1800..2100     | int 1800..2100                                     | "Year Build"                                                         |
-| builder_name     | VARCHAR(150)                                                             | no   |         |                                            | string, trim, min 1, max 150                       | "Developer / Builder Name"                                           |
-| description      | TEXT                                                                     | no   |         |                                            | string, trim, min 1, max 5000                      | "Property Description"                                               |
-| created_at       | DATETIME                                                                 | no   | now     |                                            | –                                                  | "Listed on: 22 Oct 2025"                                             |
-| updated_at       | DATETIME                                                                 | no   | now     |                                            | –                                                  |                                                                      |
+| Column           | Type                                                                     | Null | Default | Constraint                                 | Zod rule (shared, proposed)                        | Figma / notes                                                       |
+| ---------------- | ------------------------------------------------------------------------ | ---- | ------- | ------------------------------------------ | -------------------------------------------------- | ------------------------------------------------------------------- |
+| id               | INT UNSIGNED                                                             | no   | auto    | PK                                         | –                                                  |                                                                     |
+| owner_id         | INT UNSIGNED                                                             | no   |         | FK `users.id` RESTRICT                     | – (from the session)                               | "My Properties" of the signed-in Developer. (PROP-Q-001)            |
+| name             | VARCHAR(150)                                                             | no   |         | `chk_properties_name`                      | string, trim, min 1, max 150                       | "Property Name"                                                     |
+| property_type    | ENUM(apartment, villa, studio, farmland, townhouse, plot, shops, duplex) | no   |         |                                            | `z.enum(PROPERTY_TYPES)`                           | "Property Type" dropdown (8 values)                                 |
+| listing_purpose  | ENUM(sale, rent)                                                         | no   |         |                                            | `z.enum(LISTING_PURPOSES)`                         | "Listing Purpose": For Sale / For Rent                              |
+| listing_category | ENUM(single_property, project)                                           | no   |         |                                            | `z.enum(LISTING_CATEGORIES)`                       | "Listing Category": Single Property / Project                       |
+| property_status  | ENUM(ready_to_move, under_construction)                                  | no   |         |                                            | `z.enum(PROPERTY_STATUSES)`                        | "Property Status"; list (PROP-Q-004)                                |
+| country_code     | CHAR(2)                                                                  | no   |         | `chk_properties_country_code` `^[A-Z]{2}$` | ISO 3166-1 alpha-2, upper case                     | "Country" (DEC-012 format). (PROP-Q-005)                            |
+| state            | VARCHAR(100)                                                             | no   |         |                                            | string, trim, min 1, max 100                       | "State" / "State/county". text (PROP-Q-005)                         |
+| city             | VARCHAR(100)                                                             | no   |         |                                            | string, trim, min 1, max 100                       | "City". text (PROP-Q-005)                                           |
+| locality         | VARCHAR(150)                                                             | no   |         |                                            | string, trim, min 1, max 150                       | "Locality / Area"; card subtitle "Arera Colony, Bhopal"             |
+| postal_code      | VARCHAR(10)                                                              | no   |         | `chk_properties_postal_code`               | regex `^[A-Za-z0-9][A-Za-z0-9 -]{1,8}[A-Za-z0-9]$` | "Pin / Postal code" (3 to 10 chars, letters, digits, space, hyphen) |
+| address          | VARCHAR(255)                                                             | no   |         |                                            | string, trim, min 1, max 255                       | "Address" (Enter Full Address)                                      |
+| latitude         | DECIMAL(8,6)                                                             | no   |         | `chk_properties_coordinates` (-90..90)     | number, -90..90, 6 decimals                        | "Pin Location on Map"; required (PROP-Q-014)                        |
+| longitude        | DECIMAL(9,6)                                                             | no   |         | `chk_properties_coordinates` (-180..180)   | number, -180..180, 6 decimals                      | same                                                                |
+| total_area       | DECIMAL(12,2)                                                            | no   |         | `chk_properties_total_area` > 0            | number > 0, 2 decimals                             | "Total Area" ("3 Acres")                                            |
+| total_area_unit  | ENUM(sq_ft, acre)                                                        | no   |         |                                            | `z.enum(AREA_UNITS)`                               | (PROP-Q-006); needs a unit dropdown in the form                     |
+| total_units      | INT UNSIGNED                                                             | no   |         | `chk_properties_counts` >= 1               | int >= 1                                           | "Total Units"                                                       |
+| tower_count      | SMALLINT UNSIGNED                                                        | no   |         | `chk_properties_counts` >= 1               | int >= 1, max 65535                                | "No. of Towers / Blocks"                                            |
+| floor_count      | SMALLINT UNSIGNED                                                        | no   |         | `chk_properties_counts` >= 1               | int >= 1, max 65535                                | "No. of Floors"                                                     |
+| starting_price   | DECIMAL(12,2)                                                            | no   |         | `chk_properties_starting_price` > 0        | number > 0, 2 decimals, max 9999999999.99          | "Starting Price"; one currency (PROP-Q-007)                         |
+| year_built       | SMALLINT UNSIGNED                                                        | no   |         | `chk_properties_year_built` 1800..2100     | int 1800..2100                                     | "Year Build"                                                        |
+| builder_name     | VARCHAR(150)                                                             | no   |         |                                            | string, trim, min 1, max 150                       | "Developer / Builder Name"                                          |
+| description      | TEXT                                                                     | no   |         |                                            | string, trim, min 1, max 5000                      | "Property Description"                                              |
+| created_at       | DATETIME                                                                 | no   | now     |                                            | –                                                  | "Listed on: 22 Oct 2025"                                            |
+| updated_at       | DATETIME                                                                 | no   | now     |                                            | –                                                  |                                                                     |
 
 Indexes:
 
@@ -168,10 +168,10 @@ Frames: Configuration tab cards and table (`13009:9932`), Add Configuration moda
 | price                  | DECIMAL(12,2)          | no   |         | `chk_property_configurations_price` > 0                 | number > 0, 2 decimals                                   | "Price"                                                    |
 | total_units            | INT UNSIGNED           | no   |         | `chk_property_configurations_units` >= 1                | int >= 1                                                 | "Total Units"                                              |
 | available_units        | INT UNSIGNED           | no   |         | `chk_property_configurations_units` <= total            | int >= 0, refine <= total_units (path `available_units`) | "Available Units"; "Available" badge = available_units > 0 |
-| status                 | ENUM(active, inactive) | no   | active  |                                                         | `z.enum(CONFIGURATION_STATUSES)`                         | Status "Active". list provisional (PROP-Q-009)             |
+| status                 | ENUM(active, inactive) | no   | active  |                                                         | `z.enum(CONFIGURATION_STATUSES)`                         | Status "Active". list (PROP-Q-009)                         |
 | created_at, updated_at | DATETIME               | no   | now     |                                                         | –                                                        |                                                            |
 
-Indexes: `uq_property_configurations_property_id_name` (property_id, name): one "2 BHK" per property (provisional, PROP-Q-014); serves the FK and the configuration list.
+Indexes: `uq_property_configurations_property_id_name` (property_id, name): one "2 BHK" per property (PROP-Q-014); serves the FK and the configuration list.
 
 Not modelled: the hidden "Type" select of Add Configuration (PROP-Q-009). The sum of configuration units is not tied to `properties.total_units` (the designs show different numbers).
 
@@ -196,18 +196,18 @@ CHECKs: `chk_property_configuration_floor_plans_size`, `chk_property_configurati
 
 Frames: add Property step 4 Upload Media (`13009:11051`), Gallery and "upload" tile (`13009:7369`, `13009:7612`), Upload image or video modal (`13009:12032`), full-screen viewer (`13009:12356`), card cover image (`13009:7145`).
 
-| Column                   | Type                                   | Null | Default | Constraint                                                     | Zod rule (proposed)            | Notes                                                                 |
-| ------------------------ | -------------------------------------- | ---- | ------- | -------------------------------------------------------------- | ------------------------------ | --------------------------------------------------------------------- |
-| id                       | INT UNSIGNED                           | no   | auto    | PK                                                             | –                              |                                                                       |
-| property_id              | INT UNSIGNED                           | no   |         | FK `properties.id` CASCADE                                     | –                              |                                                                       |
-| media_type               | ENUM(image, video, tour_360)           | no   |         |                                                                | `z.enum(MEDIA_TYPES)`          | "Property Images", "Videos", "360° Tour"                              |
-| cloudinary_public_id     | VARCHAR(255) utf8mb4_bin               | no   |         | unique                                                         | –                              |                                                                       |
-| cloudinary_resource_type | ENUM(image, video)                     | no   |         | `chk_property_media_resource_type`: image <=> media_type image | –                              | `video` needs PROP-Q-011 for cleanup                                  |
-| original_filename        | VARCHAR(255)                           | no   |         |                                                                | max 255                        |                                                                       |
-| mime_type                | ENUM(image/jpeg, image/png, video/mp4) | no   |         | `chk_property_media_mime_type`                                 | file type check                | Images JPG/PNG, videos MP4. provisional (PROP-Q-016)                  |
-| size_bytes               | INT UNSIGNED                           | no   |         | `chk_property_media_size`                                      | image <= 10 MB, video <= 40 MB | "Max size: 10 MB" / "40 MB"                                           |
-| sort_order               | SMALLINT UNSIGNED                      | no   | 0       |                                                                | int >= 0                       | Gallery order ("2/12"); first image = cover. provisional (PROP-Q-016) |
-| created_at, updated_at   | DATETIME                               | no   | now     |                                                                | –                              |                                                                       |
+| Column                   | Type                                   | Null | Default | Constraint                                                     | Zod rule (proposed)            | Notes                                                     |
+| ------------------------ | -------------------------------------- | ---- | ------- | -------------------------------------------------------------- | ------------------------------ | --------------------------------------------------------- |
+| id                       | INT UNSIGNED                           | no   | auto    | PK                                                             | –                              |                                                           |
+| property_id              | INT UNSIGNED                           | no   |         | FK `properties.id` CASCADE                                     | –                              |                                                           |
+| media_type               | ENUM(image, video, tour_360)           | no   |         |                                                                | `z.enum(MEDIA_TYPES)`          | "Property Images", "Videos", "360° Tour"                  |
+| cloudinary_public_id     | VARCHAR(255) utf8mb4_bin               | no   |         | unique                                                         | –                              |                                                           |
+| cloudinary_resource_type | ENUM(image, video)                     | no   |         | `chk_property_media_resource_type`: image <=> media_type image | –                              | `video` needs PROP-Q-011 for cleanup                      |
+| original_filename        | VARCHAR(255)                           | no   |         |                                                                | max 255                        |                                                           |
+| mime_type                | ENUM(image/jpeg, image/png, video/mp4) | no   |         | `chk_property_media_mime_type`                                 | file type check                | Images JPG/PNG, videos MP4. (PROP-Q-016)                  |
+| size_bytes               | INT UNSIGNED                           | no   |         | `chk_property_media_size`                                      | image <= 10 MB, video <= 40 MB | "Max size: 10 MB" / "40 MB"                               |
+| sort_order               | SMALLINT UNSIGNED                      | no   | 0       |                                                                | int >= 0                       | Gallery order ("2/12"); first image = cover. (PROP-Q-016) |
+| created_at, updated_at   | DATETIME                               | no   | now     |                                                                | –                              |                                                           |
 
 Indexes: `uq_property_media_cloudinary_public_id`; `idx_property_media_property_id_type_sort_order` (gallery in order, cover image; serves the FK).
 
@@ -215,14 +215,14 @@ Indexes: `uq_property_media_cloudinary_public_id`; `idx_property_media_property_
 
 Frames: add Property step 5 Documents (`13009:11196`), Documents tab with filters All Status / All Category and View / Download / Replace (`13009:10202`), Replace Document modal (`13009:12013`).
 
-| Column                 | Type                                                                                       | Null | Default  | Constraint                                                            | Zod rule (proposed)               | Notes                                                                                            |
-| ---------------------- | ------------------------------------------------------------------------------------------ | ---- | -------- | --------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------ |
-| id                     | INT UNSIGNED                                                                               | no   | auto     | PK                                                                    | –                                 |                                                                                                  |
-| property_id            | INT UNSIGNED                                                                               | no   |          | FK `properties.id` CASCADE                                            | –                                 |                                                                                                  |
-| document_type          | ENUM(rera_certificate, floor_plan, legal_noc, ownership_proof, financial_statement, other) | no   |          |                                                                       | `z.enum(PROPERTY_DOCUMENT_TYPES)` | Upload slots; category (Legal, Financial, Architecture, Other) derived. provisional (PROP-Q-010) |
-| status                 | ENUM(uploaded, pending, verified)                                                          | no   | uploaded |                                                                       | – (server set)                    | Badges Uploaded / Pending / Verified. workflow provisional (PROP-Q-010)                          |
-| file columns           | as floor plans (PDF/JPG/PNG, 10 MB)                                                        | no   |          | `chk_property_documents_size`, `chk_property_documents_resource_type` | max 10 MB                         | "Rera_Certificate.pdf, Size: 4.54 mb"                                                            |
-| created_at, updated_at | DATETIME                                                                                   | no   | now      |                                                                       | –                                 |                                                                                                  |
+| Column                 | Type                                                                                       | Null | Default  | Constraint                                                            | Zod rule (proposed)               | Notes                                                                                |
+| ---------------------- | ------------------------------------------------------------------------------------------ | ---- | -------- | --------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
+| id                     | INT UNSIGNED                                                                               | no   | auto     | PK                                                                    | –                                 |                                                                                      |
+| property_id            | INT UNSIGNED                                                                               | no   |          | FK `properties.id` CASCADE                                            | –                                 |                                                                                      |
+| document_type          | ENUM(rera_certificate, floor_plan, legal_noc, ownership_proof, financial_statement, other) | no   |          |                                                                       | `z.enum(PROPERTY_DOCUMENT_TYPES)` | Upload slots; category (Legal, Financial, Architecture, Other) derived. (PROP-Q-010) |
+| status                 | ENUM(uploaded, pending, verified)                                                          | no   | uploaded |                                                                       | – (server set)                    | Badges Uploaded / Pending / Verified. workflow (PROP-Q-010)                          |
+| file columns           | as floor plans (PDF/JPG/PNG, 10 MB)                                                        | no   |          | `chk_property_documents_size`, `chk_property_documents_resource_type` | max 10 MB                         | "Rera_Certificate.pdf, Size: 4.54 mb"                                                |
+| created_at, updated_at | DATETIME                                                                                   | no   | now      |                                                                       | –                                 |                                                                                      |
 
 Indexes: `uq_property_documents_cloudinary_public_id`; `idx_property_documents_property_id_document_type` ("All Category" filter, serves the FK); `idx_property_documents_property_id_status` ("All Status" filter).
 
@@ -230,12 +230,12 @@ Indexes: `uq_property_documents_cloudinary_public_id`; `idx_property_documents_p
 
 Frames: "Amenities" input of step 2 (`13009:10825`), Review "Swimming Pool, Gym, Lift, 24x7 Water Supply" (`13009:11344`), "Amenities & Features" list (`13009:7369`).
 
-| Column                 | Type         | Null | Default | Constraint                                        | Zod rule (proposed)                                       | Notes                    |
-| ---------------------- | ------------ | ---- | ------- | ------------------------------------------------- | --------------------------------------------------------- | ------------------------ |
-| id                     | INT UNSIGNED | no   | auto    | PK                                                | –                                                         |                          |
-| property_id            | INT UNSIGNED | no   |         | FK `properties.id` CASCADE                        | –                                                         |                          |
-| name                   | VARCHAR(100) | no   |         | `chk_property_features_name`; unique per property | array of string, trim, min 1, max 100 each, no duplicates | provisional (PROP-Q-008) |
-| created_at, updated_at | DATETIME     | no   | now     |                                                   | –                                                         |                          |
+| Column                 | Type         | Null | Default | Constraint                                        | Zod rule (proposed)                                       | Notes        |
+| ---------------------- | ------------ | ---- | ------- | ------------------------------------------------- | --------------------------------------------------------- | ------------ |
+| id                     | INT UNSIGNED | no   | auto    | PK                                                | –                                                         |              |
+| property_id            | INT UNSIGNED | no   |         | FK `properties.id` CASCADE                        | –                                                         |              |
+| name                   | VARCHAR(100) | no   |         | `chk_property_features_name`; unique per property | array of string, trim, min 1, max 100 each, no duplicates | (PROP-Q-008) |
+| created_at, updated_at | DATETIME     | no   | now     |                                                   | –                                                         |              |
 
 Indexes: `uq_property_features_property_id_name` (serves the FK).
 
@@ -247,7 +247,7 @@ One row per under-construction property. Frames: Project Overview card (`13009:7
 | ---------------------- | ---------------- | ---- | ------- | --------------------------------------------------- | ------------------- | ------------------------------------------------------------ |
 | id                     | INT UNSIGNED     | no   | auto    | PK                                                  | –                   |                                                              |
 | property_id            | INT UNSIGNED     | no   |         | FK `properties.id` CASCADE, unique                  | –                   |                                                              |
-| overall_percent        | TINYINT UNSIGNED | no   | 0       | `chk_property_construction_progress_percent` <= 100 | int 0..100          | "Overall Progress" (entered, provisional PROP-Q-013)         |
+| overall_percent        | TINYINT UNSIGNED | no   | 0       | `chk_property_construction_progress_percent` <= 100 | int 0..100          | "Overall Progress" (entered, PROP-Q-013)                     |
 | foundation_percent     | TINYINT UNSIGNED | no   | 0       | same                                                | int 0..100          | "Foundation"; badge derived (100 Complete, 1-99 In progress) |
 | structure_percent      | TINYINT UNSIGNED | no   | 0       | same                                                | int 0..100          | "Structure"                                                  |
 | interior_percent       | TINYINT UNSIGNED | no   | 0       | same                                                | int 0..100          | "Interior"                                                   |
@@ -261,15 +261,15 @@ Indexes: `uq_property_construction_progress_property_id` (1:1, serves the FK). T
 
 Frames: Updates list with title, text and date, "Add Update" (`13009:7876`; card button on `13009:7145`), Add Update modal (`13009:10615`).
 
-| Column       | Type                         | Null | Default | Constraint                                                                           | Zod rule (proposed)                   | Notes                                                               |
-| ------------ | ---------------------------- | ---- | ------- | ------------------------------------------------------------------------------------ | ------------------------------------- | ------------------------------------------------------------------- |
-| id           | INT UNSIGNED                 | no   | auto    | PK                                                                                   | –                                     |                                                                     |
-| property_id  | INT UNSIGNED                 | no   |         | FK `properties.id` CASCADE                                                           | –                                     |                                                                     |
-| title        | VARCHAR(150)                 | no   |         | `chk_property_updates_text`                                                          | string, trim, min 1, max 150          | "Title"                                                             |
-| description  | VARCHAR(2000)                | no   |         | `chk_property_updates_text`                                                          | string, trim, min 1, max 2000         | "Description"                                                       |
-| file columns | as floor plans, all nullable | yes  | NULL    | `chk_property_updates_file_all_or_none`, `_size`, `_resource_type`; unique public id | optional file, PDF/JPG/PNG, max 10 MB | "Upload Image (optional)"; PDF allowed until PROP-Q-017 is answered |
-| created_at   | DATETIME                     | no   | now     |                                                                                      | –                                     | Shown date ("16 Feb 2025")                                          |
-| updated_at   | DATETIME                     | no   | now     |                                                                                      | –                                     |                                                                     |
+| Column       | Type                         | Null | Default | Constraint                                                                           | Zod rule (proposed)                   | Notes                                                                                              |
+| ------------ | ---------------------------- | ---- | ------- | ------------------------------------------------------------------------------------ | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| id           | INT UNSIGNED                 | no   | auto    | PK                                                                                   | –                                     |                                                                                                    |
+| property_id  | INT UNSIGNED                 | no   |         | FK `properties.id` CASCADE                                                           | –                                     |                                                                                                    |
+| title        | VARCHAR(150)                 | no   |         | `chk_property_updates_text`                                                          | string, trim, min 1, max 150          | "Title"                                                                                            |
+| description  | VARCHAR(2000)                | no   |         | `chk_property_updates_text`                                                          | string, trim, min 1, max 2000         | "Description"                                                                                      |
+| file columns | as floor plans, all nullable | yes  | NULL    | `chk_property_updates_file_all_or_none`, `_size`, `_resource_type`; unique public id | optional file, PDF/JPG/PNG, max 10 MB | "Upload Image (optional)"; JPG/PNG only through the API (PROP-DEC-011); the column also allows PDF |
+| created_at   | DATETIME                     | no   | now     |                                                                                      | –                                     | Shown date ("16 Feb 2025")                                                                         |
+| updated_at   | DATETIME                     | no   | now     |                                                                                      | –                                     |                                                                                                    |
 
 Indexes: `uq_property_updates_cloudinary_public_id` (NULLs allowed); `idx_property_updates_property_id_created_at` (list newest first; serves the FK).
 
@@ -277,17 +277,17 @@ Indexes: `uq_property_updates_cloudinary_public_id` (NULLs allowed); `idx_proper
 
 Bookable amenities ("New Feature"). Frames: Amenity tab with filters All Status / All Amenities (`13009:8335`), Add Amenities Detail (`13009:11821`), Edit Gym Amenities Detail (`13009:11898`), Delete GYM Amenity "permanent" (`13009:12402`), success "New amenity added" (`13009:11589`).
 
-| Column                 | Type                           | Null | Default | Constraint                                         | Zod rule (proposed)             | Notes                                              |
-| ---------------------- | ------------------------------ | ---- | ------- | -------------------------------------------------- | ------------------------------- | -------------------------------------------------- |
-| id                     | INT UNSIGNED                   | no   | auto    | PK                                                 | –                               |                                                    |
-| property_id            | INT UNSIGNED                   | no   |         | FK `properties.id` CASCADE                         | –                               |                                                    |
-| name                   | VARCHAR(100)                   | no   |         | `chk_property_amenities_name`; unique per property | string, trim, min 1, max 100    | "Amenity Name" (free text, provisional PROP-Q-012) |
-| category               | ENUM(sports, event, parking)   | no   |         |                                                    | `z.enum(AMENITY_CATEGORIES)`    | List "Category" column. provisional (PROP-Q-012)   |
-| pricing_type           | ENUM(subscription, time_based) | no   |         |                                                    | `z.enum(AMENITY_PRICING_TYPES)` | List "Type": Monthly / Time Based                  |
-| description            | VARCHAR(1000)                  | no   |         |                                                    | string, trim, min 1, max 1000   | "Amenity Description"                              |
-| features               | VARCHAR(1000)                  | no   |         |                                                    | string, trim, min 1, max 1000   | "Amenity Features"                                 |
-| status                 | ENUM(active, inactive)         | no   | active  |                                                    | `z.enum(AMENITY_STATUSES)`      | Status "Active". Provisional (PROP-Q-012)          |
-| created_at, updated_at | DATETIME                       | no   | now     |                                                    | –                               |                                                    |
+| Column                 | Type                           | Null | Default | Constraint                                         | Zod rule (proposed)             | Notes                                  |
+| ---------------------- | ------------------------------ | ---- | ------- | -------------------------------------------------- | ------------------------------- | -------------------------------------- |
+| id                     | INT UNSIGNED                   | no   | auto    | PK                                                 | –                               |                                        |
+| property_id            | INT UNSIGNED                   | no   |         | FK `properties.id` CASCADE                         | –                               |                                        |
+| name                   | VARCHAR(100)                   | no   |         | `chk_property_amenities_name`; unique per property | string, trim, min 1, max 100    | "Amenity Name" (free text, PROP-Q-012) |
+| category               | ENUM(sports, event, parking)   | no   |         |                                                    | `z.enum(AMENITY_CATEGORIES)`    | List "Category" column. (PROP-Q-012)   |
+| pricing_type           | ENUM(subscription, time_based) | no   |         |                                                    | `z.enum(AMENITY_PRICING_TYPES)` | List "Type": Monthly / Time Based      |
+| description            | VARCHAR(1000)                  | no   |         |                                                    | string, trim, min 1, max 1000   | "Amenity Description"                  |
+| features               | VARCHAR(1000)                  | no   |         |                                                    | string, trim, min 1, max 1000   | "Amenity Features"                     |
+| status                 | ENUM(active, inactive)         | no   | active  |                                                    | `z.enum(AMENITY_STATUSES)`      | Status "Active". (PROP-Q-012)          |
+| created_at, updated_at | DATETIME                       | no   | now     |                                                    | –                               |                                        |
 
 Indexes: `uq_property_amenities_property_id_name` (unique name per property; serves the FK and name search); `idx_property_amenities_property_id_status` ("All Status").
 
@@ -295,15 +295,15 @@ Indexes: `uq_property_amenities_property_id_name` (unique name per property; ser
 
 Frames: "Subscription" block with Plan, Billing Cycle, Price, Feature (`13009:11821`, `13009:11898`); list "Pricing" "$100", "$10hr/ $40day" (`13009:8335`).
 
-| Column                 | Type                   | Null | Default | Constraint                              | Zod rule (proposed)              | Notes                                                                              |
-| ---------------------- | ---------------------- | ---- | ------- | --------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------- |
-| id                     | INT UNSIGNED           | no   | auto    | PK                                      | –                                |                                                                                    |
-| property_amenity_id    | INT UNSIGNED           | no   |         | FK `property_amenities.id` CASCADE      | –                                |                                                                                    |
-| plan_name              | VARCHAR(50)            | no   |         | `chk_property_amenity_plans_plan_name`  | string, trim, min 1, max 50      | "Plan" ("Basic")                                                                   |
-| billing_cycle          | ENUM(hour, day, month) | no   |         |                                         | `z.enum(AMENITY_BILLING_CYCLES)` | "Billing Cycle" ("Month"); hour/day from "$10hr/ $40day". Provisional (PROP-Q-012) |
-| price                  | DECIMAL(12,2)          | no   |         | `chk_property_amenity_plans_price` >= 0 | number >= 0, 2 decimals          | "Price"                                                                            |
-| features               | VARCHAR(255)           | yes  | NULL    |                                         | string, trim, max 255, optional  | "Feature". Optional, provisional (PROP-Q-012; a time-based price has none)         |
-| created_at, updated_at | DATETIME               | no   | now     |                                         | –                                |                                                                                    |
+| Column                 | Type                   | Null | Default | Constraint                              | Zod rule (proposed)              | Notes                                                                  |
+| ---------------------- | ---------------------- | ---- | ------- | --------------------------------------- | -------------------------------- | ---------------------------------------------------------------------- |
+| id                     | INT UNSIGNED           | no   | auto    | PK                                      | –                                |                                                                        |
+| property_amenity_id    | INT UNSIGNED           | no   |         | FK `property_amenities.id` CASCADE      | –                                |                                                                        |
+| plan_name              | VARCHAR(50)            | no   |         | `chk_property_amenity_plans_plan_name`  | string, trim, min 1, max 50      | "Plan" ("Basic")                                                       |
+| billing_cycle          | ENUM(hour, day, month) | no   |         |                                         | `z.enum(AMENITY_BILLING_CYCLES)` | "Billing Cycle" ("Month"); hour/day from "$10hr/ $40day". (PROP-Q-012) |
+| price                  | DECIMAL(12,2)          | no   |         | `chk_property_amenity_plans_price` >= 0 | number >= 0, 2 decimals          | "Price"                                                                |
+| features               | VARCHAR(255)           | yes  | NULL    |                                         | string, trim, max 255, optional  | "Feature". Optional (PROP-Q-012; a time-based price has none)          |
+| created_at, updated_at | DATETIME               | no   | now     |                                         | –                                |                                                                        |
 
 Indexes: `uq_property_amenity_plans_amenity_id_plan_name_cycle` (one price per plan and cycle; serves the FK). An amenity must have at least one plan: enforced in the service (the DB cannot require a child row).
 
@@ -322,7 +322,7 @@ Indexes: `uq_property_amenity_plans_amenity_id_plan_name_cycle` (one price per p
 
 ## Answers, decisions and open items
 
-Provisional answers (2026-10-31, recommended options, the user will review each one), with their decision:
+Answers and their decisions (confirmed by the user in the grill, 2026-10-31; PROP-DEC-011 to PROP-DEC-023 add API and UI rules, no table change):
 
 | Question                                                           | Decision                                  |
 | ------------------------------------------------------------------ | ----------------------------------------- |
@@ -337,14 +337,14 @@ Provisional answers (2026-10-31, recommended options, the user will review each 
 | PROP-Q-011 video cleanup, Q-016 media rules                        | PROP-DEC-009                              |
 | PROP-Q-013 construction progress                                   | PROP-DEC-010                              |
 
-Follow-ups for the integration owner (not in this module's migration):
+Follow-ups (not in this module's migration):
 
-- `pending_file_deletions.resource_type` needs `'video'`, plus video support in `cloudinaryStorage` (PROP-Q-011, PROP-DEC-009). Until then no video or 360 tour may be uploaded: a property delete would try to queue a `video` file and fail.
+- `pending_file_deletions.resource_type` needs `'video'`, plus video support in `cloudinaryStorage` (PROP-Q-011, PROP-DEC-009). Done in feature/property as a new additive migration (PROP-DEC-013), in its own ticket before media upload. Until then no video or 360 tour may be uploaded: a property delete would try to queue a `video` file and fail.
 - Account deletion: the 409 check lives in the auth user-deletion service (PROP-DEC-001, done). A MySQL integration test of the 409 case is still to add.
 
 Open:
 
-- PROP-Q-017: which formats the optional update image accepts (the DB allows PDF/JPG/PNG today).
+- PROP-Q-022: staff access to properties (staff module). Answered PROP-Q-017: update images JPG/PNG only (PROP-DEC-011).
 
 Service rules the DB cannot enforce (to cover in the spec and tests): an amenity has at least one plan; which billing cycles fit each pricing type; the progress row exists only for under-construction properties (and what happens to it when the status changes back); required document slots on submit; gallery order ties are broken by `id`; only the owner's properties are assigned to its staff.
 

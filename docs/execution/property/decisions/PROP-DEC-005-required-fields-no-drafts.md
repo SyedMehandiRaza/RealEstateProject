@@ -1,6 +1,6 @@
 # PROP-DEC-005: Required fields, unique names, and no drafts or approval
 
-- **Status:** accepted (user, 2026-10-31, recommended options, provisional: user will review)
+- **Status:** accepted (user, 2026-10-31, recommended options, confirmed final by the user in the grill, 2026-10-31)
 - **Answers:** PROP-Q-014, PROP-Q-015
 - **Tickets:** none yet
 

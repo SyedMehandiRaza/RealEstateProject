@@ -1,6 +1,6 @@
 # PROP-Q-009: What are the configuration status values, and is there a configuration "Type"?
 
-- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
+- **Status:** answered (2026-10-31, recommended option, confirmed final by the user in the grill, 2026-10-31)
 - **Blocks:** approval of the property migration (`20261030212741-create-property-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 

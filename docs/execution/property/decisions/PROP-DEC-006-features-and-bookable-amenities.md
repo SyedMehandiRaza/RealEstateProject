@@ -1,6 +1,6 @@
 # PROP-DEC-006: Listing features and bookable amenities are separate tables
 
-- **Status:** accepted (user, 2026-10-31, recommended options, provisional: user will review)
+- **Status:** accepted (user, 2026-10-31, recommended options, confirmed final by the user in the grill, 2026-10-31)
 - **Answers:** PROP-Q-008, PROP-Q-012
 - **Tickets:** none yet
 

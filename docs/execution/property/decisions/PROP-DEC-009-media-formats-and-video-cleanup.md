@@ -1,6 +1,6 @@
 # PROP-DEC-009: Gallery media formats, order and video file cleanup
 
-- **Status:** accepted (user, 2026-10-31, recommended options, provisional: user will review)
+- **Status:** accepted (user, 2026-10-31, recommended options, confirmed final by the user in the grill, 2026-10-31)
 - **Answers:** PROP-Q-016, PROP-Q-011
 - **Tickets:** none yet
 

@@ -1,6 +1,6 @@
 # PROP-DEC-004: Property status, location, total area unit and currency
 
-- **Status:** accepted (user, 2026-10-31, recommended options, provisional: user will review)
+- **Status:** accepted (user, 2026-10-31, recommended options, confirmed final by the user in the grill, 2026-10-31)
 - **Answers:** PROP-Q-004, PROP-Q-005, PROP-Q-006, PROP-Q-007
 - **Tickets:** none yet
 

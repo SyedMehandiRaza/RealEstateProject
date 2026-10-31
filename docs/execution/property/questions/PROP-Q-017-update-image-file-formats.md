@@ -1,6 +1,6 @@
 # PROP-Q-017: Which file formats does the optional image of a construction update accept?
 
-- **Status:** open
+- **Status:** answered (2026-10-31)
 - **Blocks:** the "add update" ticket (shared schema and upload check); not the migration
 - **Asked by:** db-design-review of the property migration, 2026-10-31
 
@@ -15,4 +15,4 @@ Add Update has "Upload Image (optional)" ([13009:10615](https://www.figma.com/de
 
 ## Answer
 
-Not answered yet. The migration allows option 2's formats, which also covers option 1, so the migration does not wait for this answer.
+User, 2026-10-31 (grill round 1, "yes to all"): option 1. The update image accepts JPG/PNG only, up to 10 MB. The shared schema and the upload check accept only `image/jpeg` and `image/png`; the column keeps its wider ENUM (the API never writes a PDF). Recorded in [PROP-DEC-011](../decisions/PROP-DEC-011-access-and-update-image.md).

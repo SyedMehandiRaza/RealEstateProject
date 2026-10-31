@@ -1,6 +1,6 @@
 # PROP-DEC-001: A property is owned by a Developer account, and an account with properties or staff cannot be deleted
 
-- **Status:** accepted (user, 2026-10-31). The owner column is the provisional recommended option of PROP-Q-001 (user will review); blocking the delete is the user's explicit answer to the property/staff conflict.
+- **Status:** accepted (user, 2026-10-31). The owner column is the provisional recommended option of PROP-Q-001 (confirmed final by the user in the grill, 2026-10-31); blocking the delete is the user's explicit answer to the property/staff conflict.
 - **Answers:** PROP-Q-001; also decides the deletion part of [STAFF-Q-007](../../staff/questions/STAFF-Q-007-who-employs-staff.md)
 - **Tickets:** none yet
 

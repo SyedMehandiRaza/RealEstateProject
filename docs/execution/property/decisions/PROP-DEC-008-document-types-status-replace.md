@@ -1,6 +1,6 @@
 # PROP-DEC-008: Property document types, review status and Replace
 
-- **Status:** accepted (user, 2026-10-31, recommended option, provisional: user will review)
+- **Status:** accepted (user, 2026-10-31, recommended option, confirmed final by the user in the grill, 2026-10-31)
 - **Answers:** PROP-Q-010
 - **Tickets:** none yet
 

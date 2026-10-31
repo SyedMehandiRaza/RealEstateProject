@@ -1,6 +1,6 @@
 # PROP-Q-002: What does "Delete" on a property do: hard delete, soft delete or archive?
 
-- **Status:** answered (2026-10-31, recommended option, provisional: user will review)
+- **Status:** answered (2026-10-31, recommended option, confirmed final by the user in the grill, 2026-10-31)
 - **Blocks:** approval of the property migration (`20261030212741-create-property-tables.cjs`)
 - **Asked by:** db-architect session (DB design for property and staff), 2026-10-31
 

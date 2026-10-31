@@ -4,18 +4,15 @@ Last updated: 2026-10-31
 
 ## Now
 
-- Database draft (not migrated): `backend/src/migrations/20261030212741-create-property-tables.cjs`, [db.md](../../modules/property/db.md), [figma.md](../../modules/property/figma.md). 10 tables, all property tables in one migration so property and staff can be built on parallel branches.
-- PROP-Q-001 to PROP-Q-016 answered on 2026-10-31 with the recommended options, **provisionally** (the user will review each one); recorded in PROP-DEC-001 to PROP-DEC-010 on the [board](README.md). The user decided explicitly that an account that owns properties or employs staff cannot be deleted (PROP-DEC-001); the auth user-deletion service now answers 409 for it.
-- Sequelize models (`backend/src/models/property*.model.js`), shared enums (`shared/src/enums/property.enums.js`) and `LIMITS.property` added, with parity tests against the migration text and a model-vs-migration test. Unit tests pass; no MySQL test was run (MySQL login is broken).
-- Open: PROP-Q-017 (formats of the update image), found by the review.
+- Phase 0 done: property and staff migrations run on `real_estate_property`; `npm run check` green (shared 215, backend unit 454, backend integration 307 + 1 skipped on `real_estate_property_test`, frontend 276); pushed.
+- Phase 1 (align) done: grill with the user, three rounds. PROP-DEC-001 to PROP-DEC-010 confirmed final; PROP-Q-017 to PROP-Q-032 answered; new decisions PROP-DEC-011 to PROP-DEC-023; module spec in [docs/modules/property/README.md](../../modules/property/README.md). No property table changed.
+- Open: PROP-Q-022 (staff access to properties), for the staff module; outside PROP-SPEC-001.
 
 ## Next actions
 
-- User reviews the provisional answers, then approves the schema; run the migrations and the integration tests once MySQL works again.
-- Integration owner: `'video'` in `pending_file_deletions.resource_type` and video support in `cloudinaryStorage` (PROP-DEC-009) before the media-upload ticket; a MySQL integration test for the 409 account-deletion case (PROP-DEC-001).
-- Then `/new-module property` continues: spec (`/grill-with-docs`), `/shared-validation`, `/to-tickets`.
+- Phase 2: `/to-spec` (PROP-SPEC-001) and `/shared-validation property`, then stop for approval of the endpoints and pages.
+- Then `/to-tickets`, stop for approval, and build ticket by ticket.
 
 ## Blockers
 
-- Migrations and integration tests wait for a working MySQL login.
-- Video and 360 tour uploads wait for the integration owner's `pending_file_deletions` change.
+- None for this module. Staff access waits for the staff module (PROP-Q-022).
