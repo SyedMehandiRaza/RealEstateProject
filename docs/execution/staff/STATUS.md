@@ -12,7 +12,7 @@ Last updated: 2026-10-31
 
 ## Next actions
 
-- Phase 4 in progress: STAFF-001 to STAFF-016 done (backend API, every UI page, e2e list, add, detail, edit, status, remove, assign, visual and responsive baselines); STAFF-020 code review done; next STAFF-021 security review.
+- Phase 4 in progress: STAFF-001 to STAFF-016 done (backend API, every UI page, e2e list, add, detail, edit, status, remove, assign, visual and responsive baselines); STAFF-020 code review and STAFF-021 security review done; all unblocked tickets done. Remaining: STAFF-022 (STAFF-Q-023) and STAFF-023 (STAFF-Q-014), blocked.
 
 ## Blockers
 
