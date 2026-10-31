@@ -27,9 +27,39 @@ describe('property enums', () => {
   });
 
   it('has no duplicate value in any list', () => {
-    for (const values of Object.values(enums)) {
+    for (const values of Object.values(enums).filter(Array.isArray)) {
       expect(new Set(values).size).toBe(values.length);
     }
+  });
+
+  it('gives every document type a category, and requires every wizard slot but Other', () => {
+    expect(Object.keys(enums.PROPERTY_DOCUMENT_CATEGORY_BY_TYPE).sort()).toEqual(
+      [...enums.PROPERTY_DOCUMENT_TYPES].sort(),
+    );
+    for (const category of Object.values(enums.PROPERTY_DOCUMENT_CATEGORY_BY_TYPE)) {
+      expect(enums.PROPERTY_DOCUMENT_CATEGORIES).toContain(category);
+    }
+    const slotTypes = Object.values(enums.WIZARD_DOCUMENT_SLOTS);
+    expect(enums.REQUIRED_PROPERTY_DOCUMENT_TYPES).toEqual(slotTypes.filter((type) => type !== 'other'));
+    expect(slotTypes).not.toContain('financial_statement');
+  });
+
+  it('allows month for subscriptions and hour/day for time based amenities', () => {
+    expect(Object.keys(enums.AMENITY_BILLING_CYCLES_BY_PRICING_TYPE).sort()).toEqual(
+      [...enums.AMENITY_PRICING_TYPES].sort(),
+    );
+    expect(enums.AMENITY_BILLING_CYCLES_BY_PRICING_TYPE).toEqual({
+      subscription: ['month'],
+      time_based: ['hour', 'day'],
+    });
+  });
+
+  it('stages only gallery, floor plan and document files, and lists the property countries in ISO form', () => {
+    expect(enums.PROPERTY_UPLOAD_PURPOSES).toEqual(
+      enums.PROPERTY_FILE_PURPOSES.filter((p) => p !== 'update_image'),
+    );
+    expect(enums.PROPERTY_COUNTRY_CODES).toEqual(['AE', 'GB', 'IN', 'SG', 'US']);
+    for (const code of enums.PROPERTY_COUNTRY_CODES) expect(code).toMatch(/^[A-Z]{2}$/);
   });
 
   it('accepts no PDF as gallery media, and no video as a document', () => {

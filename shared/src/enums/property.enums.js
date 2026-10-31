@@ -57,3 +57,56 @@ export const AMENITY_CATEGORIES = ['sports', 'event', 'parking'];
 export const AMENITY_PRICING_TYPES = ['subscription', 'time_based'];
 export const AMENITY_STATUSES = ['active', 'inactive'];
 export const AMENITY_BILLING_CYCLES = ['hour', 'day', 'month'];
+
+// Countries a property can be in (PROP-Q-033, assumed): the auth countries plus India. The column only
+// checks the ISO format, so adding a country needs no migration.
+export const PROPERTY_COUNTRY_CODES = ['AE', 'GB', 'IN', 'SG', 'US'];
+
+// Category shown in the Documents tab, derived from the type (PROP-DEC-008).
+export const PROPERTY_DOCUMENT_CATEGORIES = ['legal', 'architecture', 'financial', 'other'];
+export const PROPERTY_DOCUMENT_CATEGORY_BY_TYPE = {
+  rera_certificate: 'legal',
+  floor_plan: 'architecture',
+  legal_noc: 'legal',
+  ownership_proof: 'legal',
+  financial_statement: 'financial',
+  other: 'other',
+};
+
+// Upload slots of Add Property step 5 (request keys -> document_type). All but `other` are required on
+// Submit; financial_statement is added only in the Documents tab (PROP-DEC-019).
+export const WIZARD_DOCUMENT_SLOTS = {
+  reraCertificate: 'rera_certificate',
+  floorPlan: 'floor_plan',
+  legalNoc: 'legal_noc',
+  ownershipProof: 'ownership_proof',
+  other: 'other',
+};
+export const REQUIRED_PROPERTY_DOCUMENT_TYPES = [
+  'rera_certificate',
+  'floor_plan',
+  'legal_noc',
+  'ownership_proof',
+];
+
+// What a file is for: decides its formats and size. The first five can be staged for the wizard and
+// come back as upload tokens (PROP-DEC-012); update images are sent with their update.
+export const PROPERTY_FILE_PURPOSES = [
+  'image',
+  'video',
+  'tour_360',
+  'floor_plan',
+  'document',
+  'update_image',
+];
+export const PROPERTY_UPLOAD_PURPOSES = ['image', 'video', 'tour_360', 'floor_plan', 'document'];
+export const PROPERTY_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png'];
+
+// Billing cycles each pricing type allows (PROP-DEC-020).
+export const AMENITY_BILLING_CYCLES_BY_PRICING_TYPE = {
+  subscription: ['month'],
+  time_based: ['hour', 'day'],
+};
+
+// Construction phases, in display order (PROP-DEC-010).
+export const CONSTRUCTION_PHASES = ['foundation', 'structure', 'interior', 'finishing'];

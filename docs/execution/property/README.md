@@ -1,6 +1,6 @@
 # Property: execution board
 
-Prefix `PROP`. Branch `feature/property`. Spec: [PROP-SPEC-001](specs/). Module docs: [docs/modules/property/](../../modules/property/). Rules: [issue-tracker.md](../../agents/issue-tracker.md).
+Prefix `PROP`. Branch `feature/property`. Spec: [PROP-SPEC-001](specs/PROP-SPEC-001-property-listings-api-and-pages.md) (awaiting approval). Module docs: [docs/modules/property/](../../modules/property/). Rules: [issue-tracker.md](../../agents/issue-tracker.md).
 
 ## Tickets
 
@@ -12,6 +12,7 @@ Prefix `PROP`. Branch `feature/property`. Spec: [PROP-SPEC-001](specs/). Module 
 | ID                                                               | Question                                                 | Blocks                                                      |
 | ---------------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------- |
 | [PROP-Q-022](questions/PROP-Q-022-staff-access-to-properties.md) | How do staff members act on their employer's properties? | nothing in PROP-SPEC-001 (staff access is out of its scope) |
+| [PROP-Q-033](questions/PROP-Q-033-property-country-list.md)      | Which countries can a property be in?                    | nothing (assumption in force, reversible)                   |
 
 ## Answered questions
 

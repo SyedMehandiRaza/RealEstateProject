@@ -42,6 +42,22 @@ export const LIMITS = {
     fileName: { max: 255 }, // original_filename VARCHAR(255) on every property file table
     maxFileBytes: 10 * 1024 * 1024, // images, PDFs: "Max size: 10 MB"
     maxVideoBytes: 40 * 1024 * 1024, // videos, 360 tours: "Max size: 40 MB"
+    // PROP-SPEC-001 (PROP-DEC-012 to PROP-DEC-021).
+    maxMoney: 9999999999.99, // DECIMAL(12,2)
+    maxConfigurationArea: 99999999.99, // property_configurations.area_sqft DECIMAL(10,2)
+    maxTotalUnits: 4294967295, // INT UNSIGNED
+    maxSmallCount: 65535, // tower_count, floor_count SMALLINT UNSIGNED
+    features: { min: 1, max: 30 }, // feature chips per property
+    configurations: { min: 1, max: 20 }, // PROP-DEC-017
+    maxFloorPlans: 10, // per configuration, PROP-DEC-017
+    images: { min: 1, max: 30 }, // PROP-DEC-018
+    maxVideos: 5,
+    maxTours: 5,
+    maxOtherDocuments: 5, // PROP-DEC-019
+    plans: { min: 1, max: 5 }, // per amenity, PROP-DEC-020
+    search: { max: 100 },
+    uploadToken: { max: 4096 },
+    pageSize: { max: 50, properties: 12, amenities: 10, updates: 10 },
   },
   // Staff (STAFF-DEC-001 to STAFF-DEC-006). Same rules as the auth account fields, so a staff member can
   // become a user. Column lengths in 20261030212742-create-staff-tables.cjs.

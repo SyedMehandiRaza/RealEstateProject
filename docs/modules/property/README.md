@@ -1,6 +1,6 @@
 # Property
 
-Status: **spec agreed** (grill with the user, 2026-10-31, three rounds). The API and page contract is written next in PROP-SPEC-001 (`/to-spec`). Board: [docs/execution/property/README.md](../../execution/property/README.md).
+Status: **spec agreed** (grill with the user, 2026-10-31, three rounds). API and page contract: [PROP-SPEC-001](../../execution/property/specs/PROP-SPEC-001-property-listings-api-and-pages.md); shared schemas and messages in `shared/src/schemas/property.schema.js` and `shared/src/messages/property.messages.js`. Board: [docs/execution/property/README.md](../../execution/property/README.md).
 
 ## Purpose and users
 
