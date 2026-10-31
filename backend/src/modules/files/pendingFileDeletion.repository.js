@@ -42,17 +42,31 @@ export function createPendingFileDeletionRepository({ PendingFileDeletion }) {
   };
 }
 
-// Public ids still used by a DB row. Add a lookup here when another module (e.g. properties) stores files.
-export function createReferenceLookup({ VerificationDocument }) {
+// Public ids still used by a DB row. Every model with a `cloudinaryPublicId` column must be listed here, or the
+// orphan job would delete its live files: add a model when another module stores files.
+export const FILE_MODELS = [
+  'VerificationDocument',
+  // Property module (PROP-003).
+  'PropertyConfigurationFloorPlan',
+  'PropertyMedia',
+  'PropertyDocument',
+  'PropertyUpdate',
+];
+
+export function createReferenceLookup(models) {
+  const fileModels = FILE_MODELS.map((name) => models[name]);
   return async function findReferencedPublicIds(publicIds) {
     const referenced = new Set();
     for (let i = 0; i < publicIds.length; i += REFERENCE_CHUNK) {
-      const rows = await VerificationDocument.findAll({
-        attributes: ['cloudinaryPublicId'],
-        where: { cloudinaryPublicId: publicIds.slice(i, i + REFERENCE_CHUNK) },
-        raw: true,
-      });
-      for (const row of rows) referenced.add(row.cloudinaryPublicId);
+      const chunk = publicIds.slice(i, i + REFERENCE_CHUNK);
+      for (const model of fileModels) {
+        const rows = await model.findAll({
+          attributes: ['cloudinaryPublicId'],
+          where: { cloudinaryPublicId: chunk },
+          raw: true,
+        });
+        for (const row of rows) referenced.add(row.cloudinaryPublicId);
+      }
     }
     return referenced;
   };
