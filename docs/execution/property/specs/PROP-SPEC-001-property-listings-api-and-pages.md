@@ -1,6 +1,6 @@
 # PROP-SPEC-001: Property listings API and pages
 
-- **Status:** ready-for-agent (awaiting the user's approval of the endpoints and pages)
+- **Status:** ready-for-agent (endpoints and pages approved by the user, 2026-10-31)
 - **Module:** property
 - **Sources:** [module spec](../../../modules/property/README.md), [db.md](../../../modules/property/db.md), [figma.md](../../../modules/property/figma.md), PROP-DEC-001 to PROP-DEC-023, DEC-016, DEC-018, DEC-035, DEC-036
 - **Shared contract:** `shared/src/schemas/property.schema.js`, `shared/src/messages/property.messages.js`, `LIMITS.property`
@@ -304,6 +304,6 @@ States on every page and tab:
 
 ## Further Notes
 
-- Assumed, reversible: the country list ([PROP-Q-033](../questions/PROP-Q-033-property-country-list.md)); the upload limiter budget (200 uploads per hour per account); the gallery upload modal gets a "Type" select (Image / Video / 360° tour) because the frame has no way to mark a 360 tour.
-- Map pin: the map picker uses OpenStreetMap tiles through Leaflet (one new frontend dependency, to be confirmed in the map ticket); the detail page's map is a static view of the same pin.
+- Confirmed by the user with the approval (2026-10-31): the country list stays AE, GB, IN, SG, US for now ([PROP-Q-033](../questions/PROP-Q-033-property-country-list.md); project-wide location tables come later); the upload limiter budget (200 uploads per hour per account); the gallery upload modal gets a "Type" select (Image / Video / 360° tour) because the frame has no way to mark a 360 tour.
+- Map pin: the map picker uses OpenStreetMap tiles through Leaflet (one new frontend dependency, confirmed by the user 2026-10-31); the detail page's map is a static view of the same pin.
 - Risk: the app shell (sidebar and top bar) does not exist yet and other module branches may build it too; it is built additively under `frontend/src/components/` and noted for the merge into `testing`.

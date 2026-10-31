@@ -1,6 +1,6 @@
 # Property: execution board
 
-Prefix `PROP`. Branch `feature/property`. Spec: [PROP-SPEC-001](specs/PROP-SPEC-001-property-listings-api-and-pages.md) (awaiting approval). Module docs: [docs/modules/property/](../../modules/property/). Rules: [issue-tracker.md](../../agents/issue-tracker.md).
+Prefix `PROP`. Branch `feature/property`. Spec: [PROP-SPEC-001](specs/PROP-SPEC-001-property-listings-api-and-pages.md) (approved 2026-10-31). Module docs: [docs/modules/property/](../../modules/property/). Rules: [issue-tracker.md](../../agents/issue-tracker.md).
 
 ## Tickets
 
