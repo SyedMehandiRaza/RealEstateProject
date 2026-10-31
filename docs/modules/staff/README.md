@@ -46,7 +46,7 @@ In this build staff members are **records only**: they do not log in, no invitat
 
 ### Responsive
 
-Every page works from 375 px to the 1440 px frame and on 1366x768 and 1280x720, with no horizontal scroll. Below 1024 px the sidebar collapses behind a menu button; modals become full width with a 16 px margin and scroll inside when taller than the screen; the staff table becomes one card per member below 768 px. Exact rules: STAFF-SPEC-001.
+Every page works from 375 px to the 1440 px frame and on 1366x768 and 1280x720, with no horizontal scroll. Below 1024 px the sidebar collapses behind a menu button; modals become full width with a 16 px margin and scroll inside when taller than the screen; the staff table becomes cards when the list is under 860 px wide. Exact rules: STAFF-SPEC-001.
 
 ## Scope
 

@@ -183,8 +183,9 @@ Texts not in Figma are shared constants in `staffMessages.ui` so the UI and test
 ### Responsive rule (sizes without a frame)
 
 - **≥ 1024 px wide**: sidebar fixed at the Figma width on the left; content fills the rest with the Figma paddings. At 1366x768 and 1280x720 the list page fits without vertical scroll for 10 rows only if the screen allows; the page scrolls vertically, never horizontally. Table columns shrink; long emails wrap (as in Figma).
-- **768–1023 px**: the sidebar collapses behind a menu button in the top bar and opens as an overlay with a backdrop (Escape and backdrop click close it). The table stays a table; the Action links stay on one line.
-- **< 768 px (down to 375)**: the staff table becomes one card per member (name, role, email, phone, status, then View / Edit / Remove). The banner illustration is hidden and the banner stacks.
+- **768–1023 px**: the sidebar collapses behind a menu button in the top bar and opens as an overlay with a backdrop (Escape and backdrop click close it).
+- **Staff table**: a table while the list card is at least 860 px wide; narrower (from about 1100 px screens with the sidebar, and every tablet and phone) it becomes one card per member (name, role, email, phone, status, then View / Edit / Remove), two or more per row when they fit (min 300 px). Decided while building STAFF-012: a six-column table cannot fit 669–860 px without breaking names and phone numbers.
+- **< 768 px (down to 375)**: the banner illustration is hidden and the banner stacks; Add Staff takes the full width.
 - **Modals**: centred with the Figma width as a maximum; below that width they take the full width minus 16 px margins. When taller than the viewport (for example the 593 px Detail on 1280x720 minus chrome, or any modal at 375x667) the modal body scrolls inside and the header with the close icon stays visible. The Detail's two panels (permissions, assigned property) sit side by side from 768 px and stack below.
 - No horizontal page scroll at any width from 375 px; nothing overlaps; every control stays reachable by keyboard.
 

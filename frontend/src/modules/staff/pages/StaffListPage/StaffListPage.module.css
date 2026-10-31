@@ -1,0 +1,328 @@
+/* Staff Management (Figma 13009:17816, 1440x832). Content area starts at x 279; the banner sits 4 px further
+ * in (x 283, 1129 wide) and the Staff List card at x 279 (1133 wide), 64 px below the banner.
+ * Responsive rule: STAFF-SPEC-001 — the list becomes one card per member when its card is under 860 px wide;
+ * below 768 px the banner stacks and the illustration is hidden. */
+
+/* ----------------------------------------------------------------- banner */
+.banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 168px;
+  margin-left: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-primary-500);
+  border-radius: var(--radius-md);
+}
+
+.bannerText {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  align-items: flex-start;
+  padding: 0 var(--space-16) 0 var(--space-29);
+}
+
+.bannerCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.bannerTitle {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: var(--font-size-18);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}
+
+.bannerDescription {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+.addButton {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  justify-content: center;
+  width: 256px;
+  max-width: 100%;
+  height: var(--size-topbar-control);
+  padding: 0 var(--space-16);
+  color: var(--color-white);
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-normal);
+  text-decoration: none;
+  background: var(--color-primary-500);
+  border-radius: var(--radius-md);
+}
+
+.addButton:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------- list card */
+.listCard {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  margin-top: 64px;
+  padding: var(--space-24);
+  background: var(--color-white);
+  border-radius: var(--radius-panel);
+}
+
+.listTitle {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: var(--font-size-18);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}
+
+/* Figma's table is flex rows (13009:18132): four equal columns, Status 100 px, Action 150 px, 32 px gaps and
+ * 12 px row padding. Each row is a grid with the same template, so the columns line up; the markup keeps
+ * explicit table roles because the CSS display changes. */
+.table {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  color: var(--color-text-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-align: left;
+}
+
+.table thead,
+.table tbody {
+  display: block;
+}
+
+.table tr {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) 100px 150px;
+  column-gap: var(--space-32);
+  align-items: center;
+  padding: 0 var(--space-12);
+}
+
+.table th,
+.table td {
+  display: block;
+  padding: 0;
+}
+
+/* Header row: 12 px padding, 8 px radius, 5% primary (13009:18133). */
+.table thead tr {
+  padding: var(--space-12);
+  background: var(--color-primary-500-a05);
+  border-radius: var(--radius-sm);
+}
+
+.table th {
+  font-size: var(--font-size-15);
+  font-weight: var(--font-weight-regular);
+}
+
+/* Rows: 16 px / 1 px #eee divider / 16 px between rows (13009:18140). */
+.table tbody tr {
+  padding-block: var(--space-16);
+  border-bottom: 1px solid var(--color-divider-row);
+}
+
+.table tbody tr:first-child {
+  padding-top: 0;
+}
+
+.table tbody tr:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.table td {
+  font-size: var(--font-size-13);
+  overflow-wrap: anywhere;
+}
+
+.status[data-status='active'] {
+  color: var(--color-accents-green);
+}
+
+.status[data-status='disabled'] {
+  color: var(--color-accents-red);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 150px;
+  color: var(--color-primary-500);
+  white-space: nowrap;
+}
+
+.view,
+.edit,
+.remove {
+  padding: 0;
+  font: inherit;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.view {
+  color: var(--color-primary-500);
+}
+
+.edit {
+  color: var(--color-accents-yellow);
+}
+
+.remove {
+  color: var(--color-accents-red);
+}
+
+.view:focus-visible,
+.edit:focus-visible,
+.remove:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* ----------------------------------------------------------------- states */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.skeletonRow {
+  height: 38px;
+  background: var(--color-divider-row);
+  border-radius: var(--radius-sm);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-32) 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-14);
+  text-align: center;
+}
+
+.error {
+  display: flex;
+  gap: var(--space-16);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-16);
+  color: var(--color-accents-red);
+  font-size: var(--font-size-14);
+  background: var(--color-status-rejected-bg);
+  border-radius: var(--radius-sm);
+}
+
+.error p {
+  margin: 0;
+}
+
+.retry {
+  flex: none;
+  padding: var(--space-8) var(--space-16);
+  color: var(--color-white);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  background: var(--color-primary-500);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------- responsive */
+@media (max-width: 1023.98px) {
+  .banner {
+    margin-left: 0;
+  }
+
+  .listCard {
+    margin-top: var(--space-32);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .banner {
+    height: auto;
+    padding: var(--space-24) 0;
+  }
+
+  .bannerText {
+    padding: 0 var(--space-16);
+  }
+
+  .addButton {
+    width: 100%;
+  }
+
+  .listCard {
+    padding: var(--space-16);
+  }
+}
+
+/* One card per member when the list card is under 860 px wide (the six columns no longer fit). */
+@container (max-width: 859.98px) {
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .table tbody {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: var(--space-12);
+  }
+
+  .table tbody tr,
+  .table tbody tr:first-child,
+  .table tbody tr:last-child {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-12);
+    padding: var(--space-12);
+    border: 1px solid var(--color-divider-row);
+    border-radius: var(--radius-md);
+  }
+
+  .table td {
+    display: flex;
+    gap: var(--space-12);
+    justify-content: space-between;
+    text-align: right;
+  }
+
+  .table td::before {
+    flex: none;
+    color: var(--color-text-muted);
+    text-align: left;
+    content: attr(data-label);
+  }
+}

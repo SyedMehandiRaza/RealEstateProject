@@ -1,0 +1,78 @@
+/* Geometry from Figma get_design_context of 13009:17944 (banner 1129 x 168, positions inside its border). */
+.art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Waves: a 1135 x 410 group at 40% opacity, tilted -7.54°, inside a 1179 x 555 box. */
+.wavesBox {
+  position: absolute;
+  top: -79.7px;
+  left: -28.99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1178.987px;
+  height: 555.391px;
+}
+
+.wavesTilt {
+  position: relative;
+  flex: none;
+  width: 1135px;
+  height: 410px;
+  overflow: clip;
+  opacity: 0.4;
+  transform: rotate(-7.54deg);
+}
+
+/* Illustration box (node 13009:17982), anchored to the banner's right edge as in Figma. */
+.illustration {
+  position: absolute;
+  inset: calc(-5.95% - 1.12px) calc(1.33% - 0.97px) calc(-13.1% - 1.26px) calc(80.96% + 0.62px);
+  overflow: clip;
+}
+
+.piece {
+  position: absolute;
+}
+
+.masked {
+  mask-mode: alpha;
+  mask-composite: intersect;
+  mask-clip: no-clip;
+  mask-repeat: no-repeat;
+}
+
+.rotatedBox {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+}
+
+.rotated {
+  position: relative;
+  flex: none;
+  width: hypot(50cqw, -50cqh);
+  height: hypot(50cqw, 50cqh);
+  transform: rotate(-45deg);
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+}
+
+/* Below 768 px the banner stacks and the illustration is hidden (STAFF-SPEC-001 responsive rule). */
+@media (max-width: 767.98px) {
+  .illustration {
+    display: none;
+  }
+}
