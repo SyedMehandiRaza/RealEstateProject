@@ -1,6 +1,6 @@
 # Staff
 
-Status: **specified** (grill done 2026-10-31, `/grill-with-docs` rounds 1-3, all answers from the user). API contract: [STAFF-SPEC-001](../../execution/staff/specs/) (written by `/to-spec`). Decisions: STAFF-DEC-001 to STAFF-DEC-018 on the [board](../../execution/staff/README.md).
+Status: **specified** (grill done 2026-10-31, `/grill-with-docs` rounds 1-3, all answers from the user). API contract: [STAFF-SPEC-001](../../execution/staff/specs/STAFF-SPEC-001-staff-management.md). Decisions: STAFF-DEC-001 to STAFF-DEC-018 on the [board](../../execution/staff/README.md).
 
 ## Purpose and users
 
@@ -73,4 +73,4 @@ Every page works from 375 px to the 1440 px frame and on 1366x768 and 1280x720, 
 
 ## Open questions
 
-- STAFF-Q-014 (integration owner): the staff account role and invitation flow.
+- STAFF-Q-023: how staff gets a property cover image URL (placeholder until then). STAFF-Q-014 (staff login) was answered: deferred to a separate integration-owner change after the modules are merged.

@@ -49,5 +49,6 @@ export const LIMITS = {
     fullName: { min: 2, max: 100 }, // staff_members.full_name VARCHAR(100)
     email: { max: 254 }, // staff_members.email VARCHAR(254)
     phone: { max: 16 }, // staff_members.phone VARCHAR(16), E.164
+    listPageSize: 10, // Staff List default page size (STAFF-DEC-010)
   },
 };

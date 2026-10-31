@@ -1,6 +1,6 @@
 # Staff: execution board
 
-Prefix `STAFF`. Branch `feature/staff`. Spec: [STAFF-SPEC-001](specs/). Module docs: [docs/modules/staff/](../../modules/staff/) (module spec in [README.md](../../modules/staff/README.md)). Rules: [issue-tracker.md](../../agents/issue-tracker.md).
+Prefix `STAFF`. Branch `feature/staff`. Spec: [STAFF-SPEC-001](specs/STAFF-SPEC-001-staff-management.md). Module docs: [docs/modules/staff/](../../modules/staff/) (module spec in [README.md](../../modules/staff/README.md)). Rules: [issue-tracker.md](../../agents/issue-tracker.md).
 
 ## Tickets
 
@@ -9,9 +9,9 @@ Prefix `STAFF`. Branch `feature/staff`. Spec: [STAFF-SPEC-001](specs/). Module d
 
 ## Open questions
 
-| ID                                                                        | Question                                                          | Blocks                            |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------- |
-| [STAFF-Q-014](questions/STAFF-Q-014-staff-account-role-and-invitation.md) | Integration owner: the staff account role and the invitation flow | staff invitation and login ticket |
+| ID                                                               | Question                                         | Blocks                                                                                             |
+| ---------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| [STAFF-Q-023](questions/STAFF-Q-023-property-cover-image-url.md) | How does staff get a property's cover image URL? | the cover image on the Assigned Property card and the Assign picker (a later ticket); nothing else |
 
 ## Answered questions
 
@@ -32,6 +32,7 @@ STAFF-Q-001 to STAFF-Q-008 were answered provisionally on 2026-10-31 and confirm
 | [STAFF-Q-011](questions/STAFF-Q-011-developer-app-shell.md)                  | Who builds the developer app shell (sidebar and top bar)?                                   | [STAFF-DEC-008](decisions/STAFF-DEC-008-shared-developer-layout.md)           |
 | [STAFF-Q-012](questions/STAFF-Q-012-assign-property-without-property-api.md) | How does Assign Property work before the property module is merged?                         | [STAFF-DEC-009](decisions/STAFF-DEC-009-staff-reads-employer-properties.md)   |
 | [STAFF-Q-013](questions/STAFF-Q-013-staff-list-paging-empty-state.md)        | How is the staff list ordered and paged, and what are its empty, loading and error states?  | [STAFF-DEC-010](decisions/STAFF-DEC-010-staff-list-paging-states.md)          |
+| [STAFF-Q-014](questions/STAFF-Q-014-staff-account-role-and-invitation.md)    | Integration owner: the staff account role and the invitation flow                           | [STAFF-DEC-007](decisions/STAFF-DEC-007-records-only-no-staff-login-yet.md)   |
 | [STAFF-Q-015](questions/STAFF-Q-015-staff-routes-modals-edit.md)             | How do View, Edit and Add open, and what is Edit?                                           | [STAFF-DEC-011](decisions/STAFF-DEC-011-staff-routes-modals-edit.md)          |
 | [STAFF-Q-016](questions/STAFF-Q-016-staff-form-field-rules.md)               | Which Add/Edit fields are required, and what are their rules?                               | [STAFF-DEC-012](decisions/STAFF-DEC-012-staff-form-field-rules.md)            |
 | [STAFF-Q-017](questions/STAFF-Q-017-remove-staff-confirmation.md)            | Does Remove ask for confirmation?                                                           | [STAFF-DEC-013](decisions/STAFF-DEC-013-remove-staff-confirmation.md)         |

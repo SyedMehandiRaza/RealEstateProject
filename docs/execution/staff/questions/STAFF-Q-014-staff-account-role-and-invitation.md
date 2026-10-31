@@ -1,7 +1,7 @@
 # STAFF-Q-014: Integration owner: the staff account role and the invitation flow
 
-- **Status:** open
-- **Blocks:** the staff invitation and login ticket (created by /to-tickets)
+- **Status:** answered (2026-10-31): deferred to a separate integration-owner change
+- **Blocks:** the staff invitation and login ticket (created by /to-tickets), until that change is planned
 - **Asked by:** staff session, /grill-with-docs round 1, 2026-10-31
 
 ## Context
@@ -15,4 +15,4 @@ STAFF-DEC-001 (staff log in) is the target design, but this build stops at recor
 
 ## Answer
 
-(open)
+User, 2026-10-31: "ok yes" (option 1). Staff login (role, invitation, accept page, permission enforcement) is designed by the integration owner as its own change after property, facility and staff are merged into `testing`. Until then staff are records only (STAFF-DEC-007). The staff login ticket stays `blocked` on this.
