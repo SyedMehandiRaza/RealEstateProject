@@ -7,6 +7,7 @@ import { resetLoginAttemptLimiters } from '../modules/auth/loginAttemptLimiter.j
 import { systemClock } from '../utils/clock.js';
 import { E2E_BASE_PATH, assertE2eAllowed } from './e2eMode.js';
 import { SeedError, seedAccount, setDocumentReview } from './e2eSeeds.js';
+import { seedStaff } from './e2eStaffSeeds.js';
 import { createFakeMailer } from './fakeMailer.js';
 import { createFakeStorage } from './fileFakes.js';
 import { resetDatabase } from './testDatabase.js';
@@ -68,6 +69,11 @@ export function createE2eRouter({ models, sequelize, mailer, storage }) {
   router.post(
     '/seed/document-reviews',
     seedRoute((body) => setDocumentReview(models, body)),
+  );
+  // Staff and properties of an employer (STAFF-016).
+  router.post(
+    '/seed/staff',
+    seedRoute((body) => seedStaff(models, body)),
   );
 
   // Anything unexpected: the message stays in the e2e server's output, never in the response.

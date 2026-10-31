@@ -18,6 +18,7 @@ const E2E_ROUTES = [
   ['get', '/storage'],
   ['post', '/seed/accounts'],
   ['post', '/seed/document-reviews'],
+  ['post', '/seed/staff'],
 ];
 
 describe('e2e start mode', () => {

@@ -92,6 +92,11 @@ export function createHarness(request) {
         .then(dataOf);
     },
 
+    // An employer's properties and staff (STAFF-016); see backend/src/test/e2eStaffSeeds.js for the body.
+    // Returns { properties: [{ id, name }], staff: [{ id, fullName, email }] }.
+    seedStaff: (employerEmail, { properties = [], staff = [] } = {}) =>
+      request.post(`${BASE}/seed/staff`, { data: { employerEmail, properties, staff } }).then(dataOf),
+
     // [operation, publicId] pairs the fake storage received (uploads and destroys); nothing reaches Cloudinary.
     storageCalls: () =>
       request
