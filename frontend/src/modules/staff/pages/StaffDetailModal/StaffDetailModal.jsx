@@ -35,6 +35,8 @@ export default function StaffDetailModal() {
   const { data: member, error, isError } = useGetStaffQuery(id);
   const [changeStatus, { isLoading: savingStatus }] = useChangeStaffStatusMutation();
   const [unassignProperty] = useUnassignPropertyMutation();
+  // Properties whose Unassign is in flight, so a double click sends one request.
+  const [unassigning, setUnassigning] = useState(() => new Set());
   const [actionError, setActionError] = useState(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [picking, setPicking] = useState(false);
@@ -68,10 +70,17 @@ export default function StaffDetailModal() {
 
   async function onUnassign(propertyId) {
     setActionError(null);
+    setUnassigning((ids) => new Set(ids).add(propertyId));
     try {
       await unassignProperty({ id, propertyId }).unwrap();
     } catch (failure) {
       setActionError(apiErrorMessage(failure, staffMessages.ui.loadFailed));
+    } finally {
+      setUnassigning((ids) => {
+        const next = new Set(ids);
+        next.delete(propertyId);
+        return next;
+      });
     }
   }
 
@@ -198,6 +207,7 @@ export default function StaffDetailModal() {
                               className={styles.unassign}
                               aria-label={`Unassign ${property.name}`}
                               onClick={() => onUnassign(property.id)}
+                              disabled={unassigning.has(property.id)}
                             >
                               Unassign
                             </button>

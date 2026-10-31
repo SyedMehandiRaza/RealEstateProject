@@ -321,3 +321,35 @@ describe('Remove from the Staff List', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
+
+// Code review fix (STAFF-020): a removed member's Detail is not served from the cache.
+it('does not show a removed member from the cache', async () => {
+  const user = userEvent.setup();
+  let removed = false;
+  useApi();
+  server.use(
+    http.get(apiUrl('/staff/7'), () =>
+      removed
+        ? HttpResponse.json(
+            { success: false, error: { code: 'NOT_FOUND', message: staffMessages.api.notFound } },
+            { status: 404 },
+          )
+        : HttpResponse.json({ success: true, data: { staffMember } }),
+    ),
+    http.delete(apiUrl('/staff/7'), () => {
+      removed = true;
+      return new HttpResponse(null, { status: 204 });
+    }),
+  );
+  const { router } = renderAt('/staff/7');
+  await findDetail();
+  await user.click(screen.getByRole('button', { name: 'Close' }));
+  await user.click(await screen.findByRole('button', { name: 'Remove Shivam Gawali' }));
+  await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Remove' }));
+  await waitFor(() => expect(removed).toBe(true));
+
+  await router.navigate('/staff/7');
+  expect(
+    await within(await screen.findByRole('dialog')).findByText(staffMessages.api.notFound),
+  ).toBeInTheDocument();
+});

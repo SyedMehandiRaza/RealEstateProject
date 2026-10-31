@@ -198,3 +198,22 @@ describe('Unassign', () => {
     expect(within(d).getByText('Skyline Tower')).toBeInTheDocument();
   });
 });
+
+// Code review fix (STAFF-020): no second DELETE while the first is in flight.
+it('disables Unassign while the request is in flight', async () => {
+  const user = userEvent.setup();
+  useApi({ assigned: [{ ...skyline, assignedAt: '2026-10-31T10:00:00.000Z' }] });
+  let calls = 0;
+  server.use(
+    http.delete(apiUrl('/staff/7/properties/9'), () => {
+      calls += 1;
+      return new Promise(() => {});
+    }),
+  );
+  renderDetail();
+  const button = within(await detail()).getByRole('button', { name: 'Unassign Skyline Tower' });
+  await user.click(button);
+  await waitFor(() => expect(button).toBeDisabled());
+  await user.click(button);
+  expect(calls).toBe(1);
+});

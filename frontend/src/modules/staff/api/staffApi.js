@@ -64,7 +64,11 @@ export const staffApi = baseApi.enhanceEndpoints({ addTagTypes: ['Staff'] }).inj
     // E6. Also invalidates on 404 (already removed), so the list drops the member either way.
     removeStaff: build.mutation({
       query: (id) => ({ url: `/staff/${id}`, method: 'DELETE' }),
-      invalidatesTags: [{ type: 'Staff', id: 'LIST' }],
+      // The member's own tag too, so its cached Detail is never shown again.
+      invalidatesTags: (result, error, id) => [
+        { type: 'Staff', id: 'LIST' },
+        { type: 'Staff', id },
+      ],
     }),
   }),
 });

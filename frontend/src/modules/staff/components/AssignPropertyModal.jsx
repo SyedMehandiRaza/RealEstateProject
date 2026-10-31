@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { staffMessages } from '@real-estate/shared';
-import placeholderIcon from '../../../assets/staff/property-placeholder.svg';
 import Modal from '../../../components/ui/Modal.jsx';
 import {
   apiErrorMessage,
@@ -8,6 +7,7 @@ import {
   useListAssignablePropertiesQuery,
 } from '../api/staffApi.js';
 import styles from './AssignPropertyModal.module.css';
+import { PropertyStatusBadge, PropertySummary } from './PropertySummary.jsx';
 
 // Assign Property picker (STAFF-DEC-015; no Figma frame, built from the Add Staff modal and the property
 // card). One property per Assign. `hasAssigned` tells "none at all" from "all already assigned".
@@ -70,18 +70,8 @@ export default function AssignPropertyModal({ staffMemberId, hasAssigned, onClos
               onChange={() => setSelected(property.id)}
               className={styles.radio}
             />
-            <span className={styles.cover} aria-hidden="true">
-              <img src={placeholderIcon} alt="" width="16" height="16" />
-            </span>
-            <span className={styles.titles}>
-              <span className={styles.name}>{property.name}</span>
-              <span className={styles.location}>
-                {property.city}, {property.state}
-              </span>
-            </span>
-            <span className={styles.badge} data-status={property.propertyStatus}>
-              {staffMessages.labels.propertyStatuses[property.propertyStatus]}
-            </span>
+            <PropertySummary property={property} wrap />
+            <PropertyStatusBadge status={property.propertyStatus} className={styles.badge} />
           </label>
         ))}
       </fieldset>

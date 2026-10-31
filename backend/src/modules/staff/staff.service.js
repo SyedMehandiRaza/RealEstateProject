@@ -1,5 +1,5 @@
 import { staffMessages } from '@real-estate/shared';
-import { UniqueConstraintError } from 'sequelize';
+import { ForeignKeyConstraintError, UniqueConstraintError } from 'sequelize';
 import { AppError } from '../../utils/AppError.js';
 import { toPropertyCard, toStaffMember, toStaffMemberSummary } from './staff.presenter.js';
 
@@ -15,15 +15,21 @@ export function createStaffService({ sequelize, repository }) {
     if (ownEmail?.toLowerCase() === email) throw emailConflict(staffMessages.email.self);
   }
 
-  // The unique index (employer_id, email) decides duplicates, also between concurrent requests (STAFF-DEC-004).
-  async function mappingDuplicateEmail(work) {
+  // Runs a write and turns the DB constraint errors it can hit into the API's answers: the unique indexes
+  // decide duplicates (also between concurrent requests), and a foreign key failing means a row was deleted
+  // meanwhile. `onUnique` / `onForeignKey` build the AppError; without one, the error goes on unchanged.
+  async function mappingConstraintErrors(work, { onUnique, onForeignKey } = {}) {
     try {
       return await work();
     } catch (error) {
-      if (error instanceof UniqueConstraintError) throw emailConflict(staffMessages.email.taken);
+      if (onUnique && error instanceof UniqueConstraintError) throw onUnique();
+      if (onForeignKey && error instanceof ForeignKeyConstraintError) throw onForeignKey();
       throw error;
     }
   }
+
+  // The unique index (employer_id, email) decides duplicate emails (STAFF-DEC-004).
+  const duplicateEmail = { onUnique: () => emailConflict(staffMessages.email.taken) };
 
   async function findOwnMember(employerId, id, { transaction } = {}) {
     const member = await repository.findDetail(employerId, id, { transaction });
@@ -39,12 +45,14 @@ export function createStaffService({ sequelize, repository }) {
 
     // Add Staff (E2): the member and its permissions in one transaction; status starts active.
     async create(employerId, input) {
-      const member = await mappingDuplicateEmail(() =>
-        sequelize.transaction(async (transaction) => {
-          await assertNotOwnEmail(employerId, input.email, { transaction });
-          const created = await repository.create({ employerId, ...input }, { transaction });
-          return repository.findDetail(employerId, created.id, { transaction });
-        }),
+      const member = await mappingConstraintErrors(
+        () =>
+          sequelize.transaction(async (transaction) => {
+            await assertNotOwnEmail(employerId, input.email, { transaction });
+            const created = await repository.create({ employerId, ...input }, { transaction });
+            return repository.findDetail(employerId, created.id, { transaction });
+          }),
+        duplicateEmail,
       );
       return { staffMember: toStaffMember(member) };
     },
@@ -57,15 +65,17 @@ export function createStaffService({ sequelize, repository }) {
     // Edit Staff (E4): fields and the permission set in one transaction; status and assignments stay.
     // The member is found (or 404) before the email rules, so another developer's data never shows.
     async update(employerId, id, { permissions, ...fields }) {
-      const member = await mappingDuplicateEmail(() =>
-        sequelize.transaction(async (transaction) => {
-          const locked = await repository.lockMember(employerId, id, { transaction });
-          if (!locked) throw staffNotFound();
-          await assertNotOwnEmail(employerId, fields.email, { transaction });
-          await repository.update(locked, fields, { transaction });
-          await repository.replacePermissions(id, permissions, { transaction });
-          return repository.findDetail(employerId, id, { transaction });
-        }),
+      const member = await mappingConstraintErrors(
+        () =>
+          sequelize.transaction(async (transaction) => {
+            const locked = await repository.lockMember(employerId, id, { transaction });
+            if (!locked) throw staffNotFound();
+            await assertNotOwnEmail(employerId, fields.email, { transaction });
+            await repository.update(locked, fields, { transaction });
+            await repository.replacePermissions(id, permissions, { transaction });
+            return repository.findDetail(employerId, id, { transaction });
+          }),
+        duplicateEmail,
       );
       return { staffMember: toStaffMember(member) };
     },
@@ -95,22 +105,25 @@ export function createStaffService({ sequelize, repository }) {
 
     // Assign Property (E8): ownership check and insert in one transaction; disabled members too.
     async assignProperty(employerId, id, { propertyId }) {
-      try {
-        const member = await sequelize.transaction(async (transaction) => {
-          if (!(await repository.lockMember(employerId, id, { transaction }))) throw staffNotFound();
-          if (!(await repository.findOwnProperty(employerId, propertyId, { transaction }))) {
-            throw new AppError('NOT_FOUND', { message: staffMessages.api.propertyNotFound });
-          }
-          await repository.assignProperty(id, propertyId, { transaction });
-          return repository.findDetail(employerId, id, { transaction });
-        });
-        return { staffMember: toStaffMember(member) };
-      } catch (error) {
-        if (error instanceof UniqueConstraintError) {
-          throw new AppError('CONFLICT', { message: staffMessages.api.alreadyAssigned });
-        }
-        throw error;
-      }
+      const propertyNotFound = () =>
+        new AppError('NOT_FOUND', { message: staffMessages.api.propertyNotFound });
+      const member = await mappingConstraintErrors(
+        () =>
+          sequelize.transaction(async (transaction) => {
+            if (!(await repository.lockMember(employerId, id, { transaction }))) throw staffNotFound();
+            if (!(await repository.findOwnProperty(employerId, propertyId, { transaction }))) {
+              throw propertyNotFound();
+            }
+            await repository.assignProperty(id, propertyId, { transaction });
+            return repository.findDetail(employerId, id, { transaction });
+          }),
+        {
+          onUnique: () => new AppError('CONFLICT', { message: staffMessages.api.alreadyAssigned }),
+          // The property was deleted between the ownership check and the insert.
+          onForeignKey: propertyNotFound,
+        },
+      );
+      return { staffMember: toStaffMember(member) };
     },
 
     // Unassign (E9): the property itself is untouched.

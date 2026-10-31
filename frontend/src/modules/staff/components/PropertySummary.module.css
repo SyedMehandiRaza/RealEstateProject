@@ -1,0 +1,76 @@
+/* Shared by PropertyCard and AssignPropertyModal (Figma 13009:18310, 13009:18346). */
+.summary {
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--space-14);
+  align-items: center;
+  min-width: 0;
+}
+
+.cover {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: var(--color-primary-500-a10);
+  border-radius: 13px;
+}
+
+.titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  line-height: var(--line-height-normal);
+}
+
+.name,
+.location {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Picker: the text wraps between words and keeps room for itself; the badge moves below when narrow. */
+.summary[data-wrap] {
+  flex-basis: 180px;
+}
+
+.summary[data-wrap] .name,
+.summary[data-wrap] .location {
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.name {
+  color: var(--color-text-option);
+  font-size: var(--font-size-15);
+  font-weight: var(--font-weight-medium);
+}
+
+.location {
+  color: var(--color-text-body);
+  font-size: var(--font-size-10);
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-6);
+  font-size: var(--font-size-9);
+  line-height: var(--line-height-normal);
+}
+
+.badge[data-status='ready_to_move'] {
+  color: var(--color-badge-ready-text);
+  background: var(--color-badge-ready-bg);
+}
+
+/* Not designed: Under construction uses the yellow accent tint (assumption). */
+.badge[data-status='under_construction'] {
+  color: var(--color-badge-construction-text);
+  background: var(--color-status-pending-bg);
+}

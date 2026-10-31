@@ -17,11 +17,18 @@ const COLUMNS = ['Name', 'Role', 'Email', 'Phone', 'Status', 'Action'];
 export default function StaffListPage() {
   const [page, setPage] = useState(1);
   const [removing, setRemoving] = useState(null);
-  const { data, error, isLoading, isFetching, isError, refetch } = useListStaffQuery({
+  // currentData is the answer for this page only (never the previous page while a new one loads or fails);
+  // data keeps the last answer, so the page controls stay usable during a change.
+  const { data, currentData, error, isFetching, isError, refetch } = useListStaffQuery({
     page,
     pageSize: LIMITS.staff.listPageSize,
   });
-  const members = data?.data ?? [];
+  const members = currentData?.data ?? [];
+  const lastPage = Math.max(1, currentData?.meta.totalPages ?? 1);
+
+  // A removal can empty the last page (or another tab removed members): go back to the last page there is.
+  // Adjusted while rendering, as React recommends for state that follows new data.
+  if (currentData && page > lastPage) setPage(lastPage);
 
   return (
     <DeveloperLayout title="Staff Management">
@@ -48,7 +55,7 @@ export default function StaffListPage() {
           Staff List
         </h2>
 
-        {isLoading && (
+        {!currentData && isFetching && (
           <div role="status" aria-label="Loading staff" className={styles.skeleton}>
             {[0, 1, 2].map((row) => (
               <span key={row} className={styles.skeletonRow} />
@@ -65,7 +72,9 @@ export default function StaffListPage() {
           </div>
         )}
 
-        {data && members.length === 0 && <p className={styles.empty}>{staffMessages.ui.emptyList}</p>}
+        {currentData && members.length === 0 && page <= lastPage && (
+          <p className={styles.empty}>{staffMessages.ui.emptyList}</p>
+        )}
 
         {members.length > 0 && (
           <table role="table" className={styles.table} aria-labelledby="staff-list-title">

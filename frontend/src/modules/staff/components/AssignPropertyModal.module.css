@@ -32,6 +32,7 @@
 
 .option {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-14);
   align-items: center;
   padding: var(--space-12) var(--space-15);
@@ -58,55 +59,11 @@
   accent-color: var(--color-primary-500);
 }
 
-.cover {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  background: var(--color-primary-500-a10);
-  border-radius: 13px;
-}
-
-.titles {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-width: 0;
-  line-height: var(--line-height-normal);
-}
-
-.name {
-  overflow: hidden;
-  color: var(--color-text-option);
-  font-size: var(--font-size-15);
-  font-weight: var(--font-weight-medium);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.location {
-  color: var(--color-text-body);
-  font-size: var(--font-size-10);
-}
-
-.badge {
+/* Inline position of the shared badge (more specific than its base rule). */
+.option .badge {
   flex: none;
   padding: var(--space-6) var(--space-8);
-  font-size: var(--font-size-9);
   border-radius: var(--radius-sm);
-}
-
-.badge[data-status='ready_to_move'] {
-  color: var(--color-badge-ready-text);
-  background: var(--color-badge-ready-bg);
-}
-
-.badge[data-status='under_construction'] {
-  color: var(--color-badge-construction-text);
-  background: var(--color-status-pending-bg);
 }
 
 .empty {

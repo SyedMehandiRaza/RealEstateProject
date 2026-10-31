@@ -1,5 +1,3 @@
-import { Op } from 'sequelize';
-
 // Staff queries. Every query is scoped to the employer, so another developer's staff are never read.
 export function createStaffRepository(models) {
   const { Property, StaffMember, StaffMemberPermission, StaffPropertyAssignment, User } = models;
@@ -21,6 +19,12 @@ export function createStaffRepository(models) {
       ],
     },
   ];
+
+  const insertPermissions = (staffMemberId, permissions, { transaction }) =>
+    StaffMemberPermission.bulkCreate(
+      permissions.map((permission) => ({ staffMemberId, permission })),
+      { transaction },
+    );
 
   return {
     // Staff List: newest first, ties broken by id (idx_staff_members_employer_id_created_at).
@@ -58,25 +62,27 @@ export function createStaffRepository(models) {
     // Replaces the member's permission set (STAFF-SPEC-001 E4).
     async replacePermissions(staffMemberId, permissions, { transaction }) {
       await StaffMemberPermission.destroy({ where: { staffMemberId }, transaction });
-      await StaffMemberPermission.bulkCreate(
-        permissions.map((permission) => ({ staffMemberId, permission })),
-        { transaction },
-      );
+      await insertPermissions(staffMemberId, permissions, { transaction });
     },
 
     async memberExists(employerId, id, { transaction } = {}) {
       return (await StaffMember.count({ where: { id, employerId }, transaction })) > 0;
     },
 
-    // The employer's properties not yet assigned to this member, for the Assign Property picker (E7).
-    // Read-only on the property tables (STAFF-DEC-009).
-    async assignableProperties(employerId, staffMemberId) {
-      const assigned = await StaffPropertyAssignment.findAll({
-        where: { staffMemberId },
-        attributes: ['propertyId'],
-      });
+    // The employer's properties not yet assigned to this member, for the Assign Property picker (E7): one
+    // query, a LEFT JOIN on this member's assignment and IS NULL. Read-only on the property tables (STAFF-DEC-009).
+    assignableProperties(employerId, staffMemberId) {
       return Property.findAll({
-        where: { ownerId: employerId, id: { [Op.notIn]: assigned.map((a) => a.propertyId) } },
+        where: { ownerId: employerId, '$staffAssignments.id$': null },
+        include: [
+          {
+            model: StaffPropertyAssignment,
+            as: 'staffAssignments',
+            attributes: [],
+            where: { staffMemberId },
+            required: false,
+          },
+        ],
         attributes: ['id', 'name', 'city', 'state', 'propertyStatus'],
         order: [
           ['name', 'ASC'],
@@ -111,10 +117,7 @@ export function createStaffRepository(models) {
 
     async create({ employerId, fullName, email, phone, role, permissions }, { transaction }) {
       const member = await StaffMember.create({ employerId, fullName, email, phone, role }, { transaction });
-      await StaffMemberPermission.bulkCreate(
-        permissions.map((permission) => ({ staffMemberId: member.id, permission })),
-        { transaction },
-      );
+      await insertPermissions(member.id, permissions, { transaction });
       return member;
     },
   };

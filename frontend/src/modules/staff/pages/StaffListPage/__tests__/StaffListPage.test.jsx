@@ -176,3 +176,55 @@ describe('StaffListPage', () => {
     expect(await screen.findByText('Log in page')).toBeInTheDocument();
   });
 });
+
+// Code review fixes (STAFF-020).
+describe('StaffListPage after the code review', () => {
+  it('goes back to the last page when a removal empties the current one', async () => {
+    const user = userEvent.setup();
+    let total = 11;
+    server.use(
+      http.get(apiUrl('/staff'), ({ request }) => {
+        const page = Number(new URL(request.url).searchParams.get('page'));
+        const totalPages = Math.ceil(total / 10);
+        const data =
+          page === 1 ? Array.from({ length: 10 }, (_, i) => member(20 - i)) : total > 10 ? [member(9)] : [];
+        return listResponse(data, { page, total, totalPages });
+      }),
+      http.delete(apiUrl('/staff/9'), () => {
+        total = 10;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: 'Next page' }));
+    await user.click(await screen.findByRole('button', { name: 'Remove Member 9' }));
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Remove' }));
+
+    expect(await screen.findByText('Member 20')).toBeInTheDocument();
+    expect(screen.queryByText(staffMessages.ui.emptyList)).not.toBeInTheDocument();
+  });
+
+  it('shows no rows from the previous page when a page change fails', async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get(apiUrl('/staff'), ({ request }) =>
+        new URL(request.url).searchParams.get('page') === '1'
+          ? listResponse(
+              Array.from({ length: 10 }, (_, i) => member(20 - i)),
+              { total: 12, totalPages: 2 },
+            )
+          : HttpResponse.json(
+              {
+                success: false,
+                error: { code: 'INTERNAL_ERROR', message: ERROR_CODES.INTERNAL_ERROR.message },
+              },
+              { status: 500 },
+            ),
+      ),
+    );
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: 'Next page' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(ERROR_CODES.INTERNAL_ERROR.message);
+    expect(screen.queryByText('Member 20')).not.toBeInTheDocument();
+  });
+});
